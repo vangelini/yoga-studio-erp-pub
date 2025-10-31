@@ -1,0 +1,45 @@
+@extends('layouts.base')
+
+@section('body')
+    <div class="flex flex-col min-h-screen">
+        <header class="bg-white/80 backdrop-blur shadow-sm sticky top-0 z-40">
+            <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <img src="{{ asset('images/yoga-logo.jpg') }}" alt="Shanti Sadhana Logo" class="w-10 h-10 rounded-full">
+                    <div>
+                        <h1 class="text-2xl font-bold text-teal-800">Shanti Sadhana</h1>
+                        <p class="text-sm text-stone-500 -mt-1">Find your inner peace.</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="text-right">
+                        <p class="text-sm text-stone-500">Welcome back</p>
+                        <p class="font-semibold text-teal-700">{{ auth()->user()->name }}</p>
+                    </div>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="bg-stone-200 text-stone-700 font-semibold py-2 px-4 rounded-lg hover:bg-stone-300 transition-colors">
+                            Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 container mx-auto px-4 py-8">
+            @if (session('status'))
+                <div class="mb-6 rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-700 px-4 py-3">
+                    {{ session('status') }}
+                </div>
+            @endif
+
+            @yield('content')
+        </main>
+
+        <footer class="bg-white border-t border-stone-200 py-6">
+            <div class="container mx-auto px-4 text-center text-stone-500 text-sm">
+                &copy; {{ now()->year }} Shanti Sadhana Yoga Center. All Rights Reserved.
+            </div>
+        </footer>
+    </div>
+@endsection
