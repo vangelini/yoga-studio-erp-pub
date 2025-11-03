@@ -35,7 +35,7 @@ class AdminUserController extends Controller
             'residenza_stato' => ['nullable', 'string', 'max:150'],
             'residenza_via' => ['nullable', 'string', 'max:255'],
             'residenza_numero_civico' => ['nullable', 'string', 'max:20'],
-            'codice_fiscale' => ['nullable', 'string', 'max:32'],
+            'codice_fiscale' => ['nullable', 'string', 'regex:/^[A-Z0-9]{16}$/i'],
             'luogo_nascita' => ['nullable', 'string', 'max:150'],
             'data_nascita' => ['nullable', 'date'],
             'can_host_private' => ['sometimes', 'boolean'],
@@ -75,7 +75,7 @@ class AdminUserController extends Controller
             }
 
             if ($data['role'] === 'Client') {
-                app(MembershipManager::class)->ensureCurrentMembership($user);
+                app(MembershipManager::class)->ensureCurrentMembership($user, false);
                 $user->sendEmailVerificationNotification();
             }
         });
@@ -129,7 +129,7 @@ class AdminUserController extends Controller
             'residenza_stato' => ['required', 'string', 'max:150'],
             'residenza_via' => ['required', 'string', 'max:255'],
             'residenza_numero_civico' => ['required', 'string', 'max:20'],
-            'codice_fiscale' => ['required', 'string', 'max:32'],
+            'codice_fiscale' => ['required', 'string', 'regex:/^[A-Z0-9]{16}$/i'],
             'luogo_nascita' => ['required', 'string', 'max:150'],
             'data_nascita' => ['required', 'date'],
         ]);
@@ -150,7 +150,7 @@ class AdminUserController extends Controller
             'data_nascita' => $data['data_nascita'],
         ]);
 
-        app(MembershipManager::class)->ensureCurrentMembership($user);
+        app(MembershipManager::class)->ensureCurrentMembership($user, false);
 
         return redirect()
             ->route('dashboard')

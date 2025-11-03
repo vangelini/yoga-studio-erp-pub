@@ -3,14 +3,22 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Models\MembershipSubscription;
 use App\Models\Payment;
-use Illuminate\Http\RedirectResponse;
+use App\Services\CashReceiptService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class PaymentAdminController extends Controller
 {
-    public function updateStatus(Request $request, Payment $payment): RedirectResponse
+    public function __construct(
+        private CashReceiptService $receiptService,
+    ) {
+    }
+
+    public function updateStatus(Request $request, Payment $payment)
     {
         abort_unless($request->user()->role === 'Admin', 403);
 
@@ -19,18 +27,24 @@ class PaymentAdminController extends Controller
             'reason' => ['nullable', 'string', 'max:255'],
         ]);
 
+        if ($data['action'] === 'waive') {
+            $request->validate(['reason' => ['required', 'string', 'max:255']]);
+        }
+
         if ($data['action'] === 'cash') {
             $payment->markAsPaid('cash');
-            $payment->status_reason = $data['reason'];
-            $payment->save();
+
+            if ($payment->type === 'membership' && $payment->payable instanceof MembershipSubscription) {
+                $payment->payable->update([
+                    'status' => 'active',
+                    'paid_at' => $payment->paid_at,
+                ]);
+            }
+
+            $receiptPath = $this->receiptService->generate($payment, $data['reason'] ?? null);
             $message = 'Pagamento registrato in contanti.';
         } else {
-            $payment->forceFill([
-                'status' => 'waived',
-                'status_reason' => $data['reason'],
-                'paid_at' => null,
-                'method' => null,
-            ])->save();
+            $payment->markAsWaived($data['reason']);
             $message = 'Mese annullato con successo.';
         }
 
@@ -43,10 +57,27 @@ class PaymentAdminController extends Controller
                     'status_reason' => $payment->status_reason,
                     'paid_at' => optional($payment->paid_at)?->format('Y-m-d H:i'),
                     'method' => $payment->method,
+                    'receipt_url' => $payment->receipt_url,
                 ],
             ]);
         }
 
         return back()->with('status', $message);
+    }
+
+    public function showReceipt(Request $request, Payment $payment): BinaryFileResponse
+    {
+        abort_unless($request->user()->role === 'Admin', 403);
+
+        if (!$payment->receipt_path || !Storage::disk(config('receipt.storage_disk', 'public'))->exists($payment->receipt_path)) {
+            abort(404);
+        }
+
+        $absolutePath = Storage::disk(config('receipt.storage_disk', 'public'))->path($payment->receipt_path);
+
+        return response()->file($absolutePath, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . basename($absolutePath) . '"',
+        ]);
     }
 }

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 
 class Payment extends Model
 {
@@ -22,12 +23,20 @@ class Payment extends Model
         'paid_at',
         'method',
         'meta',
+        'status_reason',
+        'receipt_number',
+        'receipt_year',
+        'receipt_path',
     ];
 
     protected $casts = [
         'due_date' => 'date',
         'paid_at' => 'datetime',
         'meta' => 'array',
+    ];
+
+    protected $appends = [
+        'receipt_url',
     ];
 
     public function user(): BelongsTo
@@ -46,6 +55,26 @@ class Payment extends Model
             'status' => 'paid',
             'paid_at' => now(),
             'method' => $method,
+            'status_reason' => null,
         ])->save();
+    }
+
+    public function markAsWaived(?string $reason = null): void
+    {
+        $this->forceFill([
+            'status' => 'waived',
+            'status_reason' => $reason,
+            'paid_at' => null,
+            'method' => null,
+        ])->save();
+    }
+
+    public function getReceiptUrlAttribute(): ?string
+    {
+        if (!$this->receipt_path) {
+            return null;
+        }
+
+        return \Illuminate\Support\Facades\Storage::disk('public')->url($this->receipt_path);
     }
 }

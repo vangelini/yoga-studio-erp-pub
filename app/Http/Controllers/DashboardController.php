@@ -7,6 +7,7 @@ use App\Models\Course;
 use App\Models\Subscription;
 use App\Models\Teacher;
 use App\Models\User;
+use App\Support\TimeHelper;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -37,7 +38,7 @@ class DashboardController extends Controller
                 'schedule' => $course->schedule->map(function ($slot) {
                     return [
                         'day' => $slot->day_of_week,
-                        'time' => $slot->time ? $slot->time->format('H:i') : null,
+                        'time' => TimeHelper::format($slot->time),
                     ];
                 })->all(),
             ];
@@ -55,8 +56,8 @@ class DashboardController extends Controller
                 'availability' => $teacher->availability->map(function ($slot) {
                     return [
                         'date' => optional($slot->slot_date)->format('Y-m-d'),
-                        'time' => optional($slot->slot_time)->format('H:i'),
-                        'is_booked' => (bool) $slot->is_booked,
+                        'time' => TimeHelper::format($slot->slot_time),
+                        'isBooked' => (bool) $slot->is_booked,
                         'bookedBy' => $slot->booked_by_client_id,
                         'bookedByName' => optional($slot->bookedBy)->name,
                     ];
@@ -91,7 +92,10 @@ class DashboardController extends Controller
                         ] : null,
                         'slot' => [
                             'date' => optional($slot->slot_date)->format('Y-m-d'),
-                            'time' => optional($slot->slot_time)->format('H:i'),
+                            'time' => TimeHelper::format($slot->slot_time),
+                            'isBooked' => (bool) $slot->is_booked,
+                            'bookedBy' => $slot->booked_by_client_id,
+                            'bookedByName' => optional($slot->bookedBy)->name,
                         ],
                     ];
                 });
@@ -119,7 +123,10 @@ class DashboardController extends Controller
                         ] : null,
                         'slot' => [
                             'date' => optional($slot->slot_date)->format('Y-m-d'),
-                            'time' => optional($slot->slot_time)->format('H:i'),
+                            'time' => TimeHelper::format($slot->slot_time),
+                            'isBooked' => (bool) $slot->is_booked,
+                            'bookedBy' => $slot->booked_by_client_id,
+                            'bookedByName' => optional($slot->bookedBy)->name,
                         ],
                     ];
                 });

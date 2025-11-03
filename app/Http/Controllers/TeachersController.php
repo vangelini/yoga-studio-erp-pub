@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Teacher;
 use App\Models\TeacherAvailability;
 use App\Models\User;
+use App\Support\TimeHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -70,8 +71,8 @@ class TeachersController extends Controller
                 ->map(function (TeacherAvailability $slot) {
                     return [
                         'date' => optional($slot->slot_date)->format('Y-m-d'),
-                        'time' => optional($slot->slot_time)->format('H:i'),
-                        'is_booked' => (bool) $slot->is_booked,
+                        'time' => TimeHelper::format($slot->slot_time),
+                        'isBooked' => (bool) $slot->is_booked,
                         'bookedBy' => $slot->booked_by_client_id,
                         'bookedByName' => optional($slot->bookedBy)->name,
                     ];

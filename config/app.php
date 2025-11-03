@@ -185,5 +185,5 @@ return [
         // 'Example' => App\Facades\Example::class,
     ])->toArray(),
 
-    'membership_fee' => env('MEMBERSHIP_FEE', 0),
+    'membership_fee' => env('MEMBERSHIP_FEE', 20),
 ];

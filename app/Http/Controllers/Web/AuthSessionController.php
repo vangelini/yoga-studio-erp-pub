@@ -37,6 +37,7 @@ class AuthSessionController extends Controller
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required', 'string'],
+            'remember' => ['nullable', 'boolean'],
         ]);
 
         $user = User::whereRaw('LOWER(email) = ?', [strtolower($credentials['email'])])->first();
@@ -53,7 +54,8 @@ class AuthSessionController extends Controller
             ]);
         }
 
-        Auth::login($user);
+        $remember = $request->boolean('remember');
+        Auth::login($user, $remember);
         $request->session()->regenerate();
 
         if (!$user->hasVerifiedEmail()) {
@@ -78,7 +80,7 @@ class AuthSessionController extends Controller
             'residenza_stato' => ['required', 'string', 'max:150'],
             'residenza_via' => ['required', 'string', 'max:255'],
             'residenza_numero_civico' => ['required', 'string', 'max:20'],
-            'codice_fiscale' => ['required', 'string', 'max:32'],
+            'codice_fiscale' => ['required', 'string', 'regex:/^[A-Z0-9]{16}$/i'],
             'luogo_nascita' => ['required', 'string', 'max:150'],
             'data_nascita' => ['required', 'date'],
         ]);
@@ -116,7 +118,7 @@ class AuthSessionController extends Controller
 
     protected function syncMembershipFor(User $user): void
     {
-        app(MembershipManager::class)->ensureCurrentMembership($user);
+        app(MembershipManager::class)->ensureCurrentMembership($user, false);
     }
 
     public function logout(Request $request): RedirectResponse

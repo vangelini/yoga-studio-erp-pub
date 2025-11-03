@@ -155,6 +155,9 @@
                                 type="text"
                                 name="codice_fiscale"
                                 value="{{ old('codice_fiscale') }}"
+                                maxlength="16"
+                                pattern="[A-Za-z0-9]{16}"
+                                oninput="this.value = this.value.toUpperCase()"
                                 required
                                 class="w-full mt-1 p-3 border rounded-lg uppercase focus:ring-2 focus:ring-teal-500 focus:border-teal-500 @error('codice_fiscale') border-red-400 @enderror"
                                 placeholder="Codice fiscale"

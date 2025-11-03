@@ -30,7 +30,9 @@
         },
         toggleTeacher(id) {
             this.expandedTeacher = this.expandedTeacher === id ? null : id;
-        }
+        },
+        showGenerateModal: false,
+        membershipPanelOpen: false,
     }"
     class="space-y-12"
 >
@@ -43,6 +45,23 @@
                 <p class="text-white/85 leading-relaxed">
                     Verifica i dati degli iscritti, assegna corsi ai docenti e monitora pagamenti e quote associative in un unico posto.
                 </p>
+                <div class="flex flex-wrap items-center gap-2">
+                    <a href="<?php echo e(route('admin.settings.edit')); ?>" class="inline-flex items-center gap-2 rounded-lg bg-white/20 px-4 py-2 text-xs font-semibold text-white border border-white/40 backdrop-blur-sm hover:bg-white/30 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.5 3.75a1.5 1.5 0 013 0V5a1.5 1.5 0 01-3 0V3.75zM5.636 5.636a1.5 1.5 0 010 2.121l-.884.884a1.5 1.5 0 01-2.122-2.121l.884-.884a1.5 1.5 0 012.122 0zM3.75 10.5H5a1.5 1.5 0 010 3H3.75a1.5 1.5 0 010-3zM5.636 18.364a1.5 1.5 0 01-2.122 0l-.884-.884a1.5 1.5 0 112.122-2.121l.884.884a1.5 1.5 0 000 2.121zM10.5 18.75V20a1.5 1.5 0 003 0v-1.25a1.5 1.5 0 00-3 0zM18.364 18.364a1.5 1.5 0 002.122 0l.884-.884a1.5 1.5 0 10-2.122-2.121l-.884.884a1.5 1.5 0 000 2.121zM20.25 13.5H19a1.5 1.5 0 110-3h1.25a1.5 1.5 0 110 3zM18.364 5.636l.884-.884a1.5 1.5 0 10-2.122-2.121l-.884.884a1.5 1.5 0 002.122 2.121z"/>
+                        </svg>
+                        Impostazioni
+                    </a>
+                    <form method="POST" action="<?php echo e(route('admin.memberships.generate')); ?>" x-ref="generateMembershipForm">
+                        <?php echo csrf_field(); ?>
+                        <button type="button" class="inline-flex items-center gap-2 rounded-lg bg-white/20 px-4 py-2 text-xs font-semibold text-white border border-white/40 backdrop-blur-sm hover:bg-white/30 transition" @click="showGenerateModal = true">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v12m6-6H6" />
+                            </svg>
+                            Genera quote
+                        </button>
+                    </form>
+                </div>
             </div>
             <div class="grid grid-cols-3 gap-4 bg-white/20 backdrop-blur-sm rounded-2xl px-6 py-4 border border-white/30 shadow-inner text-center text-xs uppercase tracking-widest">
                 <div class="flex flex-col text-white/80">
@@ -60,6 +79,93 @@
             </div>
         </div>
     </div>
+
+    <div
+        x-show="showGenerateModal"
+        x-cloak
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4"
+        @keydown.escape.window="showGenerateModal = false"
+    >
+        <div class="w-full max-w-md rounded-2xl bg-white shadow-2xl">
+            <div class="border-b border-stone-200 px-6 py-4">
+                <h3 class="text-lg font-semibold text-stone-900">Genera quote associative</h3>
+            </div>
+            <div class="space-y-4 px-6 py-5 text-sm text-stone-600">
+                <p>Questa operazione verifica tutti i clienti e crea le quote annuali mancanti per la stagione corrente. Le pendenze generate resteranno in stato <strong>pending</strong> finché non verranno saldate manualmente.</p>
+                <p class="text-xs text-stone-500">Usa questa funzione all’inizio della stagione o quando aggiungi nuovi clienti che non hanno ancora una quota associativa attiva.</p>
+            </div>
+            <div class="flex flex-col gap-2 border-t border-stone-200 px-6 py-4 sm:flex-row sm:justify-end">
+                <button
+                    type="button"
+                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-stone-300 px-4 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-100 transition"
+                    @click="showGenerateModal = false"
+                >
+                    Annulla
+                </button>
+                <button
+                    type="button"
+                    class="inline-flex items-center justify-center gap-2 rounded-lg bg-teal-600 px-4 py-2 text-xs font-semibold text-white hover:bg-teal-700 transition"
+                    @click="$refs.generateMembershipForm.submit(); showGenerateModal = false;"
+                >
+                    Conferma operazione
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <?php if(isset($membershipSummary)): ?>
+        <div class="card p-6 space-y-4">
+            <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                <div>
+                    <h3 class="text-2xl font-semibold text-stone-900">Morosità quota associativa</h3>
+                    <p class="text-sm text-stone-500">Totale quote in attesa: <?php echo e($membershipSummary['total']); ?></p>
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <?php $__empty_1 = true; $__currentLoopData = $membershipSummary['entries']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $entry): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                    <div class="border border-stone-200 rounded-2xl p-4 bg-white shadow-sm">
+                        <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                            <div>
+                                <p class="text-base font-semibold text-stone-800"><?php echo e($entry['name']); ?></p>
+                                <p class="text-xs text-stone-500"><?php echo e($entry['email'] ?? 'Email non disponibile'); ?></p>
+                                <?php if($entry['telephone']): ?>
+                                    <p class="text-xs text-stone-500"><?php echo e($entry['telephone']); ?></p>
+                                <?php endif; ?>
+                            </div>
+                            <div class="text-sm text-stone-600">
+                                <p>Importo: <strong>€ <?php echo e(number_format($entry['amount'] ?? 0, 2, ',', '.')); ?></strong></p>
+                                <p>Scadenza: <strong><?php echo e($entry['due_date'] ? \Carbon\Carbon::parse($entry['due_date'])->format('d/m/Y') : '—'); ?></strong></p>
+                            </div>
+                        </div>
+
+                        <?php if($entry['payment_id']): ?>
+                            <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+                                <form
+                                    method="POST"
+                                    action="<?php echo e(route('admin.payments.update', $entry['payment_id'])); ?>"
+                                    class="flex flex-col gap-2 sm:flex-row sm:items-center"
+                                    onsubmit="return confirm('Confermi di registrare la quota associativa per <?php echo e($entry['name']); ?>?');"
+                                >
+                                    <?php echo csrf_field(); ?>
+                                    <input type="hidden" name="action" value="cash">
+                                    <input type="hidden" name="reason" value="">
+                                    <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-lg bg-teal-600 px-3 py-2 text-xs font-semibold text-white hover:bg-teal-700 transition-colors">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-10c1.486 0 2.737.81 2.959 1.893M12 6c-1.486 0-2.737.81-2.959 1.893M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        Segna contanti
+                                    </button>
+                                </form>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                    <p class="text-sm text-stone-500">Tutti i clienti sono in regola con la quota associativa.</p>
+                <?php endif; ?>
+            </div>
+        </div>
+    <?php endif; ?>
 
     <?php if(isset($courseUnpaidSummary)): ?>
         <div class="card p-6 space-y-5" x-data="{ expandedCourse: null }">
@@ -168,7 +274,7 @@
                                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-10c1.486 0 2.737.81 2.959 1.893M12 6c-1.486 0-2.737.81-2.959 1.893M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                                                     </svg>
-                                                                    Segna contanti
+                                                                    Paga in contanti
                                                                 </button>
                                                             </form>
                                                             <div>
@@ -194,7 +300,7 @@
                                                                     <input type="hidden" name="action" value="waive">
                                                                     <textarea name="reason" rows="2" class="input-field text-xs" placeholder="Motivo (es. malattia)" required></textarea>
                                                                     <div class="flex items-center gap-2">
-                                                                        <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-lg bg-stone-700 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-stone-800">
+                                                                        <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-lg bg-teal-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-teal-700">
                                                                             Conferma annulla
                                                                         </button>
                                                                         <button type="button" class="inline-flex items-center justify-center gap-2 rounded-lg bg-stone-100 px-3 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-200" @click="showWaiveForm = false">
@@ -303,7 +409,7 @@
             </div>
             <div>
                 <label class="text-xs uppercase text-stone-500 font-semibold">Codice fiscale</label>
-                <input type="text" name="codice_fiscale" required class="input-field text-sm">
+                <input type="text" name="codice_fiscale" required maxlength="16" pattern="[A-Za-z0-9]{16}" oninput="this.value = this.value.toUpperCase()" class="input-field text-sm" placeholder="CODICEFISCALE16">
             </div>
             <div>
                 <label class="text-xs uppercase text-stone-500 font-semibold">Luogo di nascita</label>
@@ -424,7 +530,7 @@
                                             </div>
                                             <div>
                                                 <label class="text-xs uppercase text-stone-500 font-semibold">Codice fiscale</label>
-                                                <input type="text" name="codice_fiscale" value="<?php echo e($client->codice_fiscale); ?>" required class="input-field text-sm">
+                                                <input type="text" name="codice_fiscale" value="<?php echo e($client->codice_fiscale); ?>" required maxlength="16" pattern="[A-Za-z0-9]{16}" oninput="this.value = this.value.toUpperCase()" class="input-field text-sm">
                                             </div>
                                             <div>
                                                 <label class="text-xs uppercase text-stone-500 font-semibold">Luogo di nascita</label>
@@ -479,12 +585,22 @@
                                                         <span>Stato: <strong><?php echo e(ucfirst($client->current_membership->status)); ?></strong></span>
                                                         <span>Pagato il: <strong><?php echo e(optional($client->current_membership->paid_at)->format('d/m/Y H:i') ?? '—'); ?></strong></span>
                                                     </div>
+                                                    <?php if(optional($client->membership_payment)?->receipt_url): ?>
+                                                        <div class="mt-2">
+                                                            <a href="<?php echo e(route('admin.payments.receipt', optional($client->membership_payment)->id)); ?>" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-3 py-2 text-xs font-semibold text-white hover:bg-teal-700">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"/>
+                                                                </svg>
+                                                                Scarica ricevuta
+                                                            </a>
+                                                        </div>
+                                                    <?php endif; ?>
                                                     <?php if(optional($client->membership_payment)->status !== 'paid' && $client->membership_payment): ?>
                                                         <form method="POST" action="<?php echo e(route('admin.payments.update', $client->membership_payment)); ?>" class="flex justify-end">
                                                             <?php echo csrf_field(); ?>
                                                             <input type="hidden" name="action" value="cash">
                                                             <input type="hidden" name="reason" value="">
-                                                            <button type="submit" class="text-xs bg-teal-600 text-white font-semibold px-3 py-2 rounded-lg hover:bg-teal-700 transition-colors">Segna come pagata</button>
+                                                            <button type="submit" class="text-xs bg-teal-600 text-white font-semibold px-3 py-2 rounded-lg hover:bg-teal-700 transition-colors">Paga in contanti</button>
                                                         </form>
                                                     <?php endif; ?>
                                                 </div>
@@ -495,12 +611,78 @@
                                                     <p class="text-xs uppercase text-stone-500 font-semibold mb-2">Ultimi pagamenti</p>
                                                     <ul class="space-y-2 text-xs text-stone-600">
                                                         <?php $__currentLoopData = $client->payments->take(5); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $payment): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                                            <li class="flex items-center justify-between">
-                                                                <span><?php echo e(ucfirst($payment->type)); ?> · <?php echo e(optional($payment->due_date)->format('d/m/Y') ?? '—'); ?></span>
-                                                                <span class="font-semibold <?php echo e($payment->status === 'paid' ? 'text-emerald-600' : 'text-amber-600'); ?>">
-                                                                    <?php echo e($payment->status === 'paid' ? 'Pagato' : 'In attesa'); ?>
+                                                            <li class="rounded-lg border border-stone-200 bg-stone-50 px-3 py-2" x-data="{ showWaiveForm: false }">
+                                                                <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                                                                    <span><?php echo e(ucfirst($payment->type)); ?> · <?php echo e(optional($payment->due_date)->format('d/m/Y') ?? '—'); ?></span>
+                                                                    <div class="flex items-center gap-2">
+                                                                        <span class="font-semibold <?php echo e($payment->status === 'paid' ? 'text-emerald-600' : ($payment->status === 'waived' ? 'text-sky-600' : 'text-amber-600')); ?>">
+                                                                            <?php echo e($payment->status === 'paid' ? 'Pagato' : ($payment->status === 'waived' ? 'Annullato' : 'In attesa')); ?>
 
-                                                                </span>
+                                                                        </span>
+                                                                        <?php if($payment->receipt_url): ?>
+                                                                            <a href="<?php echo e(route('admin.payments.receipt', $payment->id)); ?>" target="_blank" rel="noopener" class="inline-flex items-center gap-1 rounded-lg bg-teal-600 px-2 py-1 text-[10px] font-semibold text-white hover:bg-teal-700">
+                                                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"/>
+                                                                                </svg>
+                                                                                Ricevuta
+                                                                            </a>
+                                                                        <?php endif; ?>
+                                                                    </div>
+                                                                </div>
+                                                                <?php if($payment->status === 'pending'): ?>
+                                                                    <div class="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                                                                        <form
+                                                                            method="POST"
+                                                                            action="<?php echo e(route('admin.payments.update', $payment->id)); ?>"
+                                                                            class="flex flex-col gap-2 sm:flex-row sm:items-center"
+                                                                            onsubmit="return confirm('Confermi di registrare in contanti questo pagamento?');"
+                                                                        >
+                                                                            <?php echo csrf_field(); ?>
+                                                                            <input type="hidden" name="action" value="cash">
+                                                                            <input type="hidden" name="reason" value="">
+                                                                            <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-lg bg-teal-600 px-3 py-2 text-xs font-semibold text-white hover:bg-teal-700 transition-colors">
+                                                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-10c1.486 0 2.737.81 2.959 1.893M12 6c-1.486 0-2.737.81-2.959 1.893M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                                                </svg>
+                                                                                Paga in contanti
+                                                                            </button>
+                                                                        </form>
+                                                                        <?php if($payment->type === 'course_subscription'): ?>
+                                                                            <div class="flex-1">
+                                                                                <button
+                                                                                    type="button"
+                                                                                    class="inline-flex items-center justify-center gap-2 rounded-lg bg-stone-200 px-3 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-300 transition-colors"
+                                                                                    @click="showWaiveForm = !showWaiveForm"
+                                                                                >
+                                                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                                                    </svg>
+                                                                                    Annulla mese
+                                                                                </button>
+                                                                                <form
+                                                                                    method="POST"
+                                                                                    action="<?php echo e(route('admin.payments.update', $payment->id)); ?>"
+                                                                                    class="mt-2 space-y-2"
+                                                                                    x-show="showWaiveForm"
+                                                                                    x-cloak
+                                                                                    onsubmit="return confirm('Confermi di annullare il mese per questo cliente?');"
+                                                                                >
+                                                                                    <?php echo csrf_field(); ?>
+                                                                                    <input type="hidden" name="action" value="waive">
+                                                                                    <textarea name="reason" rows="2" class="input-field text-xs" placeholder="Motivo (es. malattia)" required></textarea>
+                                                                                    <div class="flex items-center gap-2">
+                                                                                        <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-lg bg-teal-600 px-3 py-2 text-xs font-semibold text-white hover:bg-teal-700 transition-colors">
+                                                                                            Conferma annulla
+                                                                                        </button>
+                                                                                        <button type="button" class="inline-flex items-center justify-center gap-2 rounded-lg bg-stone-100 px-3 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-200" @click="showWaiveForm = false">
+                                                                                            Annulla
+                                                                                        </button>
+                                                                                    </div>
+                                                                                </form>
+                                                                            </div>
+                                                                        <?php endif; ?>
+                                                                    </div>
+                                                                <?php endif; ?>
                                                             </li>
                                                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                                     </ul>

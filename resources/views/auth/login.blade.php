@@ -52,6 +52,14 @@
                         >
                     </div>
 
+                    <div class="flex items-center justify-between text-sm">
+                        <label class="inline-flex items-center gap-2 text-stone-600">
+                            <input type="checkbox" name="remember" value="1" class="rounded border-stone-300 text-teal-600 focus:ring-teal-500">
+                            Ricordami
+                        </label>
+                        <a href="#" class="text-teal-600 hover:text-teal-800">Password dimenticata?</a>
+                    </div>
+
                     <button type="submit" class="w-full bg-gradient-to-r from-teal-600 to-emerald-600 text-white font-semibold py-3 rounded-lg hover:from-teal-700 hover:to-emerald-700 transition-colors shadow-md">
                         Accedi
                     </button>

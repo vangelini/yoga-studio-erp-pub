@@ -68,6 +68,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/admin/courses', [AdminCourseController::class, 'store'])->name('admin.courses.store');
         Route::put('/admin/courses/{course}', [AdminCourseController::class, 'update'])->name('admin.courses.update');
         Route::post('/admin/payments/{payment}', [\App\Http\Controllers\Web\PaymentAdminController::class, 'updateStatus'])->name('admin.payments.update');
+        Route::get('/admin/payments/{payment}/receipt', [\App\Http\Controllers\Web\PaymentAdminController::class, 'showReceipt'])->name('admin.payments.receipt');
+        Route::post('/admin/memberships/generate', [\App\Http\Controllers\Web\AdminMembershipController::class, 'generate'])->name('admin.memberships.generate');
+        Route::get('/admin/settings', [\App\Http\Controllers\Web\AdminSettingController::class, 'edit'])->name('admin.settings.edit');
+        Route::put('/admin/settings', [\App\Http\Controllers\Web\AdminSettingController::class, 'update'])->name('admin.settings.update');
         Route::post('/admin/teachers/{teacher}/private', [AdminUserController::class, 'togglePrivateClasses'])->name('admin.teachers.private');
         Route::post('/admin/teachers/{teacher}/courses', [AdminUserController::class, 'updateTeacherCourses'])->name('admin.teachers.courses');
     });

@@ -7,9 +7,11 @@ use App\Models\Booking;
 use App\Models\Course;
 use App\Models\MembershipSubscription;
 use App\Models\Payment;
+use App\Models\Setting;
 use App\Models\Subscription;
 use App\Models\Teacher;
 use App\Services\MembershipManager;
+use App\Support\TimeHelper;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
@@ -19,7 +21,7 @@ class DashboardPageController extends Controller
     {
         $user = Auth::user();
         $membershipManager = app(MembershipManager::class);
-        $membership = $membershipManager->ensureCurrentMembership($user);
+        $membership = $membershipManager->ensureCurrentMembership($user, false);
 
         $courses = Course::with(['teacher', 'schedule'])
             ->orderBy('title')
@@ -37,7 +39,7 @@ class DashboardPageController extends Controller
                     'schedule' => $course->schedule->map(function ($slot) {
                         return [
                             'day' => $slot->day_of_week,
-                            'time' => optional($slot->time)->format('H:i'),
+                            'time' => $slot->time ? TimeHelper::format($slot->time) : null,
                         ];
                     })->values(),
                 ];
@@ -57,7 +59,7 @@ class DashboardPageController extends Controller
                         return [
                             'id' => $slot->id,
                             'date' => optional($slot->slot_date)->format('Y-m-d'),
-                            'time' => optional($slot->slot_time)->format('H:i'),
+                            'time' => $slot->slot_time ? TimeHelper::format($slot->slot_time) : null,
                             'is_booked' => (bool) $slot->is_booked,
                             'booked_by_id' => $slot->booked_by_client_id,
                             'bookedByName' => optional($slot->bookedBy)->name,
@@ -76,9 +78,11 @@ class DashboardPageController extends Controller
         ];
 
         if ($user->role === 'Admin') {
-            $extra['clients'] = $this->loadClients();
+            $autoGenerateMemberships = $this->shouldAutoGenerateMemberships();
+            $extra['clients'] = $this->loadClients($autoGenerateMemberships);
             $extra['teacherAdminList'] = $this->loadTeacherAdminList();
             $extra['courseUnpaidSummary'] = $this->loadCourseUnpaidSummary();
+            $extra['membershipSummary'] = $this->buildMembershipSummary($extra['clients']);
         } elseif ($user->role === 'Teacher') {
             $extra = array_merge($extra, $this->loadTeacherData($user->id));
         } elseif ($user->role === 'Client') {
@@ -93,7 +97,7 @@ class DashboardPageController extends Controller
         ]);
     }
 
-    private function loadClients()
+    private function loadClients(bool $autoGenerate)
     {
         $manager = app(MembershipManager::class);
         $season = $manager->determineCurrentSeason();
@@ -128,18 +132,49 @@ class DashboardPageController extends Controller
             ->where('role', 'Client')
             ->orderBy('name')
             ->get()
-            ->map(function ($user) use ($manager) {
-                $current = $user->membershipSubscriptions->first();
-                if (!$current) {
-                    $current = $manager->ensureCurrentMembership($user);
-                }
-                $current?->loadMissing('payment');
+            ->map(function ($user) use ($manager, $autoGenerate) {
+                $current = $manager->ensureCurrentMembership($user, $autoGenerate);
                 $user->setAttribute('current_membership', $current);
                 $user->setAttribute('membership_payment', $current?->payment);
                 $user->setRelation('payments', $user->payments->sortByDesc('created_at')->values());
                 return $user;
             })
             ->values();
+    }
+
+    private function buildMembershipSummary($clients): array
+    {
+        $entries = collect($clients)
+            ->filter(function ($client) {
+                return optional($client->membership_payment)->status === 'pending';
+            })
+            ->map(function ($client) {
+                $payment = $client->membership_payment;
+                $membership = $client->current_membership;
+
+                return [
+                    'client_id' => $client->id,
+                    'name' => $client->name,
+                    'email' => $client->email,
+                    'telephone' => $client->telephone,
+                    'amount' => $payment?->amount ?? $membership?->amount ?? 0,
+                    'due_date' => optional($payment?->due_date ?? $membership?->due_date)->format('Y-m-d'),
+                    'payment_id' => optional($payment)->id,
+                ];
+            })
+            ->values();
+
+        return [
+            'total' => $entries->count(),
+            'entries' => $entries,
+        ];
+    }
+
+    private function shouldAutoGenerateMemberships(): bool
+    {
+        $setting = Setting::query()->find('membership_auto_generate');
+
+        return isset($setting) ? (bool) $setting->value : false;
     }
 
     private function loadTeacherAdminList()
@@ -292,7 +327,7 @@ class DashboardPageController extends Controller
                     'id' => $booking->id,
                     'client' => optional($booking->client)?->only(['id', 'name', 'email', 'status', 'telephone']),
                     'date' => optional($slot->slot_date)->format('Y-m-d'),
-                    'time' => optional($slot->slot_time)->format('H:i'),
+                    'time' => $slot?->slot_time ? TimeHelper::format($slot->slot_time) : null,
                 ];
             })
             ->values();
@@ -324,7 +359,7 @@ class DashboardPageController extends Controller
                     'id' => $booking->id,
                     'teacher' => optional($booking->teacher)?->only(['id', 'name']),
                     'date' => optional($slot->slot_date)->format('Y-m-d'),
-                    'time' => optional($slot->slot_time)->format('H:i'),
+                    'time' => $slot?->slot_time ? TimeHelper::format($slot->slot_time) : null,
                 ];
             })
             ->values();
@@ -382,6 +417,7 @@ class DashboardPageController extends Controller
             'paid_at' => optional($payment->paid_at)?->format('Y-m-d H:i'),
             'method' => $payment->method,
             'meta' => $payment->meta ?? [],
+            'receipt_url' => $payment->receipt_url,
         ];
     }
 }

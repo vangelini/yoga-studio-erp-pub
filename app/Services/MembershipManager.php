@@ -6,12 +6,16 @@ use App\Models\MembershipSubscription;
 use App\Models\Payment;
 use App\Models\User;
 use Carbon\Carbon;
+use App\Models\Setting;
 
 class MembershipManager
 {
-    public function ensureCurrentMembership(User $user): MembershipSubscription
+    public function ensureCurrentMembership(User $user, bool $createPayment = true): MembershipSubscription
     {
         $season = $this->determineCurrentSeason();
+
+        $amountSetting = Setting::query()->find('membership_fee');
+        $amount = (float) ($amountSetting?->value ?? config('app.membership_fee', 20));
 
         $membership = MembershipSubscription::firstOrCreate(
             [
@@ -22,30 +26,44 @@ class MembershipManager
                 'starts_at' => $season['starts_at'],
                 'ends_at' => $season['ends_at'],
                 'status' => 'pending',
-                'amount' => config('app.membership_fee', 0),
+                'amount' => $amount,
                 'due_date' => $season['starts_at'],
             ]
         );
 
-        $payment = Payment::firstOrCreate(
-            [
-                'user_id' => $user->id,
-                'payable_type' => MembershipSubscription::class,
-                'payable_id' => $membership->id,
-                'type' => 'membership',
-            ],
-            [
-                'amount' => $membership->amount,
-                'status' => $membership->status === 'active' ? 'paid' : 'pending',
-                'due_date' => $membership->due_date,
-                'paid_at' => $membership->paid_at,
-                'meta' => [
-                    'season' => $membership->season_start_year.'/'.($membership->season_start_year + 1),
-                ],
-            ]
-        );
+        if ($membership->wasRecentlyCreated === false && $membership->amount != $amount) {
+            $membership->update(['amount' => $amount]);
+        }
 
-        if ($membership->relationLoaded('payment')) {
+        if ($createPayment) {
+            $payment = Payment::firstOrCreate(
+                [
+                    'user_id' => $user->id,
+                    'payable_type' => MembershipSubscription::class,
+                    'payable_id' => $membership->id,
+                    'type' => 'membership',
+                ],
+                [
+                    'amount' => $membership->amount,
+                    'status' => 'pending',
+                    'due_date' => $membership->due_date,
+                    'paid_at' => $membership->paid_at,
+                    'meta' => [
+                        'season' => $membership->season_start_year.'/'.($membership->season_start_year + 1),
+                    ],
+                ]
+            );
+
+            if ($payment->wasRecentlyCreated === false && $payment->status === 'pending') {
+                $payment->update([
+                    'amount' => $membership->amount,
+                    'due_date' => $membership->due_date,
+                    'meta' => [
+                        'season' => $membership->season_start_year.'/'.($membership->season_start_year + 1),
+                    ],
+                ]);
+            }
+
             $membership->setRelation('payment', $payment);
         } else {
             $membership->load('payment');
