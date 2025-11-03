@@ -25,7 +25,12 @@ class AdminCourseController extends Controller
                 'description' => $data['description'],
                 'teacher_id' => $data['teacher_id'],
                 'price' => $data['price'],
+                'monthly_price' => $data['monthly_price'],
+                'quarterly_price' => $data['quarterly_price'],
+                'annual_price' => $data['annual_price'],
                 'speciality_description' => $data['speciality_description'],
+                'start_date' => $data['start_date'],
+                'end_date' => $data['end_date'],
             ]);
 
             $this->syncSchedule($course, $data['schedule']);
@@ -48,7 +53,12 @@ class AdminCourseController extends Controller
                 'description' => $data['description'],
                 'teacher_id' => $data['teacher_id'],
                 'price' => $data['price'],
+                'monthly_price' => $data['monthly_price'],
+                'quarterly_price' => $data['quarterly_price'],
+                'annual_price' => $data['annual_price'],
                 'speciality_description' => $data['speciality_description'],
+                'start_date' => $data['start_date'],
+                'end_date' => $data['end_date'],
             ]);
 
             $course->schedule()->delete();
@@ -66,8 +76,13 @@ class AdminCourseController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string'],
             'teacher_id' => ['required', 'integer', 'exists:users,id'],
-            'price' => ['required', 'numeric', 'min:0'],
+            'price' => ['nullable', 'numeric', 'min:0'],
+            'monthly_price' => ['nullable', 'numeric', 'min:0'],
+            'quarterly_price' => ['nullable', 'numeric', 'min:0'],
+            'annual_price' => ['nullable', 'numeric', 'min:0'],
             'speciality_description' => ['nullable', 'string'],
+            'start_date' => ['required', 'date'],
+            'end_date' => ['required', 'date', 'after_or_equal:start_date'],
             'schedule_day' => ['nullable', 'array'],
             'schedule_day.*' => ['nullable', 'string'],
             'schedule_time' => ['nullable', 'array'],
@@ -96,12 +111,25 @@ class AdminCourseController extends Controller
             }
         }
 
+        $monthlyPrice = $data['monthly_price'] ?? $data['price'] ?? null;
+        $quarterlyPrice = $data['quarterly_price'] ?? null;
+        $annualPrice = $data['annual_price'] ?? null;
+
+        $monthlyPrice = isset($monthlyPrice) ? (float) $monthlyPrice : null;
+        $quarterlyPrice = isset($quarterlyPrice) ? (float) $quarterlyPrice : null;
+        $annualPrice = isset($annualPrice) ? (float) $annualPrice : null;
+
         return [
             'title' => $data['title'],
             'description' => $data['description'],
             'teacher_id' => (int) $data['teacher_id'],
-            'price' => $data['price'],
+            'price' => $monthlyPrice ?? 0,
+            'monthly_price' => $monthlyPrice,
+            'quarterly_price' => $quarterlyPrice,
+            'annual_price' => $annualPrice,
             'speciality_description' => $data['speciality_description'] ?? null,
+            'start_date' => $data['start_date'],
+            'end_date' => $data['end_date'],
             'schedule' => $schedule,
         ];
     }

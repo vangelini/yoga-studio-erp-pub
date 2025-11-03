@@ -20,6 +20,8 @@ class CoursesController extends Controller
                 'teacher_id' => $data['teacherId'],
                 'price' => $data['price'],
                 'speciality_description' => $data['specialityDescription'] ?? null,
+                'start_date' => $data['startDate'],
+                'end_date' => $data['endDate'],
                 'gallery' => $data['gallery'] ?? [],
             ]);
 
@@ -51,6 +53,8 @@ class CoursesController extends Controller
                 'teacher_id' => $data['teacherId'],
                 'price' => $data['price'],
                 'speciality_description' => $data['specialityDescription'] ?? null,
+                'start_date' => $data['startDate'],
+                'end_date' => $data['endDate'],
                 'gallery' => $data['gallery'] ?? [],
             ]);
 
@@ -81,6 +85,8 @@ class CoursesController extends Controller
             'teacherId' => ['required', 'integer', 'exists:users,id'],
             'price' => ['required', 'numeric', 'min:0'],
             'specialityDescription' => ['nullable', 'string'],
+            'startDate' => ['required', 'date'],
+            'endDate' => ['required', 'date', 'after_or_equal:startDate'],
             'gallery' => ['nullable', 'array'],
             'gallery.*' => ['string'],
             'schedule' => ['nullable', 'array'],
@@ -96,8 +102,14 @@ class CoursesController extends Controller
             'title' => $course->title,
             'description' => $course->description,
             'teacherId' => $course->teacher_id,
+            'teacher_id' => $course->teacher_id,
             'price' => $course->price,
             'specialityDescription' => $course->speciality_description,
+            'speciality_description' => $course->speciality_description,
+            'start_date' => optional($course->start_date)?->format('Y-m-d'),
+            'end_date' => optional($course->end_date)?->format('Y-m-d'),
+            'startDate' => optional($course->start_date)?->format('Y-m-d'),
+            'endDate' => optional($course->end_date)?->format('Y-m-d'),
             'gallery' => $course->gallery ?? [],
             'schedule' => $course->schedule->map(function ($slot) {
                 return [
@@ -105,6 +117,8 @@ class CoursesController extends Controller
                     'time' => $slot->time ? $slot->time->format('H:i') : null,
                 ];
             })->all(),
+            'startDateDisplay' => optional($course->start_date)?->format('d/m/Y'),
+            'endDateDisplay' => optional($course->end_date)?->format('d/m/Y'),
         ];
     }
 }

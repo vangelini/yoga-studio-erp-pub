@@ -34,6 +34,15 @@
                 <label for="auto-generate" class="text-sm text-stone-600">Genera automaticamente le pendenze delle quote quando si accede al pannello admin</label>
             </div>
 
+            <div>
+                <label class="text-xs uppercase font-semibold text-stone-500">Morosità quote per pagina</label>
+                <input type="number" min="1" max="50" name="membership_morosita_page_size" value="{{ old('membership_morosita_page_size', $membership_morosita_page_size) }}" required class="input-field mt-1">
+                <p class="text-xs text-stone-500">Numero di elementi mostrati per pagina nel pannello “Morosità quota associativa”.</p>
+                @error('membership_morosita_page_size')
+                    <p class="text-xs text-rose-600 mt-1">{{ $message }}</p>
+                @enderror
+            </div>
+
             <div class="space-y-3">
                 <label class="text-xs uppercase font-semibold text-stone-500">Password proprietario ricevute</label>
                 <input type="text" name="receipt_owner_password" value="{{ old('receipt_owner_password', $receipt_owner_password) }}" class="input-field" placeholder="Lascia vuoto per nessuna protezione" autocomplete="off">

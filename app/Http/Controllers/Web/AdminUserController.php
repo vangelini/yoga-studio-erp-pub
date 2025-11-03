@@ -6,13 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\Teacher;
 use App\Models\User;
+use App\Models\UserDocument;
 use App\Services\MembershipManager;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -132,7 +137,10 @@ class AdminUserController extends Controller
             'codice_fiscale' => ['required', 'string', 'regex:/^[A-Z0-9]{16}$/i'],
             'luogo_nascita' => ['required', 'string', 'max:150'],
             'data_nascita' => ['required', 'date'],
+            'status' => ['nullable', Rule::in(['active', 'pending', 'disabled'])],
         ]);
+
+        $status = $data['status'] ?? $user->status;
 
         $user->update([
             'first_name' => $data['first_name'],
@@ -148,6 +156,7 @@ class AdminUserController extends Controller
             'codice_fiscale' => strtoupper($data['codice_fiscale']),
             'luogo_nascita' => $data['luogo_nascita'],
             'data_nascita' => $data['data_nascita'],
+            'status' => $status,
         ]);
 
         app(MembershipManager::class)->ensureCurrentMembership($user, false);
@@ -179,6 +188,85 @@ class AdminUserController extends Controller
         $user->sendEmailVerificationNotification();
 
         return redirect()->route('dashboard')->with('status', 'Email di verifica reinviata con successo.');
+    }
+
+    public function storeDocument(Request $request, User $user): JsonResponse|RedirectResponse
+    {
+        $this->authorizeAdmin();
+
+        Log::info('Admin document upload start', [
+            'admin_id' => $request->user()?->id,
+            'target_user' => $user->id,
+            'expects_json' => $request->expectsJson(),
+        ]);
+
+        $data = $request->validate([
+            'document_type' => ['required', 'in:id_front,id_back,health_card,medical_certificate'],
+            'document_file' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+        ]);
+
+        $file = $data['document_file'];
+        $directory = 'documents/' . $user->id;
+        $filename = Str::uuid()->toString() . '.' . $file->getClientOriginalExtension();
+        $path = $file->storeAs($directory, $filename, 'public');
+
+        $document = UserDocument::firstOrNew([
+            'user_id' => $user->id,
+            'type' => $data['document_type'],
+        ]);
+
+        if ($document->exists && $document->path) {
+            Storage::disk('public')->delete($document->path);
+        }
+
+        $document->fill([
+            'original_name' => $file->getClientOriginalName(),
+            'path' => $path,
+        ])->save();
+
+        $downloadUrl = route('admin.users.documents.download', [$user->id, $document->id], false);
+
+        $documentData = [
+            'id' => $document->id,
+            'type' => $document->type,
+            'original_name' => $document->original_name,
+            'originalName' => $document->original_name,
+            'url' => Storage::disk('public')->url($document->path),
+            'download_url' => $downloadUrl,
+            'downloadUrl' => $downloadUrl,
+            'uploaded_at' => optional($document->updated_at)->toIso8601String(),
+            'uploaded_at_display' => optional($document->updated_at)->translatedFormat('d/m/Y H:i'),
+            'uploadedAtDisplay' => optional($document->updated_at)->translatedFormat('d/m/Y H:i'),
+        ];
+
+        if ($request->expectsJson()) {
+            Log::info('Admin document upload completed', [
+                'target_user' => $user->id,
+                'document_id' => $document->id,
+                'download_url' => $downloadUrl,
+            ]);
+            return response()->json([
+                'message' => 'Documento aggiornato correttamente.',
+                'document' => $documentData,
+            ]);
+        }
+
+        return back()->with('status', 'Documento aggiornato correttamente per ' . $user->name . '.');
+    }
+
+    public function downloadDocument(User $user, UserDocument $document)
+    {
+        $this->authorizeAdmin();
+
+        abort_unless($document->user_id === $user->id, 404);
+
+        if (!Storage::disk('public')->exists($document->path)) {
+            abort(404, 'Documento non trovato.');
+        }
+
+        $downloadName = $document->original_name ?: $document->type . '.pdf';
+
+        return Storage::disk('public')->download($document->path, $downloadName);
     }
 
     public function activate(User $user): RedirectResponse

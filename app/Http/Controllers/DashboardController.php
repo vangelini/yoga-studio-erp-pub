@@ -31,10 +31,19 @@ class DashboardController extends Controller
                 'title' => $course->title,
                 'description' => $course->description,
                 'teacher_id' => $course->teacher_id,
+                'teacherId' => $course->teacher_id,
                 'teacher_name' => optional($course->teacher)->name,
+                'teacherName' => optional($course->teacher)->name,
                 'price' => $course->price,
                 'speciality_description' => $course->speciality_description,
+                'specialityDescription' => $course->speciality_description,
                 'gallery' => $course->gallery ?? [],
+                'start_date' => optional($course->start_date)?->format('Y-m-d'),
+                'end_date' => optional($course->end_date)?->format('Y-m-d'),
+                'startDate' => optional($course->start_date)?->format('Y-m-d'),
+                'endDate' => optional($course->end_date)?->format('Y-m-d'),
+                'startDateDisplay' => optional($course->start_date)?->format('d/m/Y'),
+                'endDateDisplay' => optional($course->end_date)?->format('d/m/Y'),
                 'schedule' => $course->schedule->map(function ($slot) {
                     return [
                         'day' => $slot->day_of_week,
@@ -103,7 +112,23 @@ class DashboardController extends Controller
             $subscriptions = Subscription::where('client_id', $user->id)->get();
 
             $response['bookings'] = $clientBookings;
-            $response['subscriptions'] = $subscriptions;
+            $response['subscriptions'] = $subscriptions->map(function (Subscription $subscription) {
+                $subscription->loadMissing('course:id,title,price');
+
+                return [
+                    'id' => $subscription->id,
+                    'client_id' => $subscription->client_id,
+                    'clientId' => $subscription->client_id,
+                    'course_id' => $subscription->course_id,
+                    'courseId' => $subscription->course_id,
+                    'auto_renew' => (bool) $subscription->auto_renew,
+                    'autoRenew' => (bool) $subscription->auto_renew,
+                    'start_date' => optional($subscription->start_date)?->format('Y-m-d'),
+                    'startDate' => optional($subscription->start_date)?->format('Y-m-d'),
+                    'startDateDisplay' => optional($subscription->start_date)?->translatedFormat('d/m/Y'),
+                    'course' => optional($subscription->course)?->only(['id', 'title', 'price']),
+                ];
+            });
         } elseif ($user->role === 'Teacher') {
             $teacherBookings = Booking::with(['availability', 'client'])
                 ->where('teacher_id', $user->id)

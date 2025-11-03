@@ -12,10 +12,13 @@ use Mpdf\MpdfException;
 
 class CashReceiptService
 {
-    public function generate(Payment $payment, ?string $notes = null): string
+    public function generate(Payment $payment, ?string $notes = null, bool $reuseExisting = false): string
     {
-        $year = now()->year;
-        $nextNumber = $this->nextReceiptNumber($year);
+        $now = now();
+        $shouldReuse = $reuseExisting && $payment->receipt_number && $payment->receipt_year;
+
+        $year = $shouldReuse ? $payment->receipt_year : $now->year;
+        $nextNumber = $shouldReuse ? $payment->receipt_number : $this->nextReceiptNumber($year);
         $template = $this->loadTemplate();
 
         $amountFormatted = sprintf('%s %s', config('receipt.currency_symbol', '€'), number_format($payment->amount, 2, ',', '.'));
@@ -25,7 +28,7 @@ class CashReceiptService
             'template' => $template,
             'receiptNumber' => str_pad((string) $nextNumber, 4, '0', STR_PAD_LEFT),
             'receiptYear' => $year,
-            'issuedAt' => now()->format('d/m/Y H:i'),
+            'issuedAt' => $now->format('d/m/Y H:i'),
             'clientName' => optional($payment->user)->name,
             'clientTaxCode' => optional($payment->user)->codice_fiscale,
             'description' => $this->descriptionForPayment($payment),
@@ -54,6 +57,19 @@ class CashReceiptService
         ])->save();
 
         return Storage::disk($disk)->path($fullPath);
+    }
+
+    public function reprint(Payment $payment, ?string $notes = null): string
+    {
+        $disk = config('receipt.storage_disk', 'public');
+
+        if ($payment->receipt_path && Storage::disk($disk)->exists($payment->receipt_path)) {
+            $this->archiveExistingReceipt($payment);
+        }
+
+        $shouldReuse = (bool) ($payment->receipt_number && $payment->receipt_year);
+
+        return $this->generate($payment, $notes, $shouldReuse);
     }
 
     protected function nextReceiptNumber(int $year): int
@@ -101,6 +117,8 @@ class CashReceiptService
         }
 
         try {
+            $isProtected = (bool) ($ownerPassword || $userPassword);
+
             $mpdf = new Mpdf([
                 'mode' => 'utf-8',
                 'format' => 'A4',
@@ -111,12 +129,12 @@ class CashReceiptService
                 'margin_bottom' => 15,
             ]);
 
-            $mpdf->PDFA = true;
-            $mpdf->PDFAauto = true;
-            $mpdf->setAutoTopMargin('pad');
-            $mpdf->setAutoBottomMargin('pad');
+            if (!$isProtected) {
+                $mpdf->PDFA = true;
+                $mpdf->PDFAauto = true;
+            }
 
-            if ($ownerPassword || $userPassword) {
+            if ($isProtected) {
                 $owner = $ownerPassword ?: ($userPassword ?: 'ShantiSadhanaOwner');
                 $mpdf->SetProtection(['print', 'copy'], $userPassword ?: null, $owner, 128);
             }
@@ -125,7 +143,12 @@ class CashReceiptService
 
             return $mpdf->Output(null, 'S');
         } catch (MpdfException $exception) {
-            throw new RuntimeException('Impossibile generare la ricevuta PDF.', 0, $exception);
+            $message = $exception->getMessage();
+            throw new RuntimeException(
+                'Impossibile generare la ricevuta PDF. ' . ($message ? 'Dettagli: ' . $message : ''),
+                0,
+                $exception
+            );
         }
     }
 
@@ -146,5 +169,28 @@ class CashReceiptService
     {
         $setting = Setting::query()->find($key);
         return $setting?->value ?? $default;
+    }
+
+    protected function archiveExistingReceipt(Payment $payment): ?string
+    {
+        $disk = config('receipt.storage_disk', 'public');
+
+        if (!$payment->receipt_path || !Storage::disk($disk)->exists($payment->receipt_path)) {
+            return null;
+        }
+
+        $timestamp = now()->format('YmdHis');
+        $pathInfo = pathinfo($payment->receipt_path);
+        $directory = $pathInfo['dirname'] ?? '';
+        $directory = $directory === '.' ? '' : $directory . '/';
+        $filename = $pathInfo['filename'] ?? 'receipt';
+        $extension = $pathInfo['extension'] ?? 'pdf';
+
+        $archivedName = sprintf('%s_annullata_%s.%s', $filename, $timestamp, $extension);
+        $archivedPath = $directory . $archivedName;
+
+        Storage::disk($disk)->move($payment->receipt_path, $archivedPath);
+
+        return $archivedPath;
     }
 }

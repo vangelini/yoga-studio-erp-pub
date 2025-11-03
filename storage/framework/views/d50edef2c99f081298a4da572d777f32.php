@@ -40,6 +40,22 @@ unset($__errorArgs, $__bag); ?>
                 <label for="auto-generate" class="text-sm text-stone-600">Genera automaticamente le pendenze delle quote quando si accede al pannello admin</label>
             </div>
 
+            <div>
+                <label class="text-xs uppercase font-semibold text-stone-500">Morosità quote per pagina</label>
+                <input type="number" min="1" max="50" name="membership_morosita_page_size" value="<?php echo e(old('membership_morosita_page_size', $membership_morosita_page_size)); ?>" required class="input-field mt-1">
+                <p class="text-xs text-stone-500">Numero di elementi mostrati per pagina nel pannello “Morosità quota associativa”.</p>
+                <?php $__errorArgs = ['membership_morosita_page_size'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                    <p class="text-xs text-rose-600 mt-1"><?php echo e($message); ?></p>
+                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+            </div>
+
             <div class="space-y-3">
                 <label class="text-xs uppercase font-semibold text-stone-500">Password proprietario ricevute</label>
                 <input type="text" name="receipt_owner_password" value="<?php echo e(old('receipt_owner_password', $receipt_owner_password)); ?>" class="input-field" placeholder="Lascia vuoto per nessuna protezione" autocomplete="off">

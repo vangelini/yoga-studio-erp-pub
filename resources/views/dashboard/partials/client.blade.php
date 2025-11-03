@@ -1,6 +1,27 @@
 @php
     use Illuminate\Support\Js;
 
+    $documents = $documents ?? collect();
+
+    $documentDefinitions = [
+        'id_front' => [
+            'label' => "Carta d'identità - fronte",
+            'description' => 'Carica una scansione leggibile del fronte della carta di identità o passaporto.',
+        ],
+        'id_back' => [
+            'label' => "Carta d'identità - retro",
+            'description' => 'Assicurati che i dati siano visibili e non tagliati.',
+        ],
+        'health_card' => [
+            'label' => 'Tessera sanitaria',
+            'description' => 'Foto o PDF della tessera sanitaria in corso di validità.',
+        ],
+        'medical_certificate' => [
+            'label' => 'Certificato medico',
+            'description' => 'Certificato per attività sportiva non agonistica valido per l’anno in corso.',
+        ],
+    ];
+
     $clientDashboardPayload = [
         'clientId' => auth()->id(),
         'courses' => $courses,
@@ -10,6 +31,7 @@
         'membership' => $membership ?? null,
         'membershipPayment' => $membership_payment ?? null,
         'payments' => $payments ?? collect(),
+        'documents' => $documents,
         'routes' => [
             'book' => route('client.bookings.store'),
             'cancelBase' => url('/client/bookings'),
@@ -60,7 +82,7 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
         <div class="card p-6 space-y-4">
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
                 <div>
@@ -82,14 +104,9 @@
                         <span x-text="membership?.ends_at ?? '—'"></span>
                     </p>
                 </div>
-                <button
-                    type="button"
-                    class="btn-primary justify-center text-sm"
-                    x-show="membershipPayment && membershipPayment.status !== 'paid'"
-                    @click="payMembership"
-                >
-                    Segna come pagata
-                </button>
+                <template x-if="membershipPayment && membershipPayment.status !== 'paid'">
+                    <span class="text-sm text-rose-600 font-semibold">Pagamento in attesa</span>
+                </template>
                 <template x-if="membershipPayment && membershipPayment.status === 'paid'">
                     <span class="text-sm text-emerald-600 font-semibold">
                         Pagata il <span x-text="formatDateString(membershipPayment.paid_at)"></span>
@@ -98,28 +115,91 @@
             </div>
         </div>
 
-        <div class="card p-6 space-y-4">
+        <div class="card p-6 space-y-5">
             <div class="flex items-center justify-between">
-                <h3 class="text-xl font-semibold text-stone-900">Storico pagamenti</h3>
-                <span class="text-xs text-stone-400 uppercase tracking-wide">Ultimi movimenti</span>
+                <h3 class="text-xl font-semibold text-stone-900">Documenti personali</h3>
+                <span class="text-xs text-stone-400 uppercase tracking-wide">Obbligatori</span>
             </div>
-            <div class="space-y-3 max-h-64 overflow-y-auto pr-1">
-                <template x-for="payment in payments" :key="payment.id">
-                    <div class="border border-stone-200 rounded-xl px-4 py-3 bg-stone-50 flex flex-col gap-1">
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm font-semibold text-stone-800" x-text="payment.type === 'membership' ? 'Quota associativa' : (payment.type === 'course_subscription' ? 'Iscrizione corso' : 'Lezione privata')"></span>
-                            <span class="text-xs font-semibold px-2.5 py-1 rounded-full" :class="paymentStatusClass(payment.status)" x-text="payment.status === 'paid' ? 'Pagato' : 'In attesa'"></span>
+            <p class="text-xs text-stone-500">Carica i documenti richiesti in formato PDF o immagine (max 5 MB). Puoi sostituirli in qualsiasi momento caricando una nuova versione.</p>
+            @foreach ($documentDefinitions as $type => $definition)
+                <div class="border border-stone-200 rounded-xl p-4 space-y-3 bg-stone-50">
+                    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                        <div>
+                            <p class="text-sm font-semibold text-stone-800">{{ $definition['label'] }}</p>
+                            <p class="text-xs text-stone-500">{{ $definition['description'] }}</p>
                         </div>
-                        <div class="text-xs text-stone-500 flex items-center justify-between">
-                            <span x-text="payment.due_date ? `Scadenza ${formatDateString(payment.due_date)}` : ''"></span>
-                            <span class="font-semibold text-stone-700" x-text="formatMoney(payment.amount)"></span>
+                        <div class="text-right space-y-1">
+                            <template x-if="documentByType('{{ $type }}')">
+                                <div class="space-y-1">
+                                    <a
+                                        :href="documentByType('{{ $type }}').url"
+                                        target="_blank"
+                                        rel="noopener"
+                                        class="inline-flex items-center gap-1 text-xs font-semibold text-teal-600 hover:text-teal-700 underline decoration-dotted"
+                                    >
+                                        Scarica documento
+                                    </a>
+                                    <p class="text-[11px] text-stone-400">
+                                        Aggiornato il <span x-text="documentByType('{{ $type }}').uploadedAtDisplay ?? '—'"></span>
+                                    </p>
+                                </div>
+                            </template>
+                            <template x-if="!documentByType('{{ $type }}')">
+                                <span class="text-xs text-rose-500 font-semibold">Documento mancante</span>
+                            </template>
                         </div>
                     </div>
-                </template>
-                <template x-if="payments.length === 0">
-                    <p class="text-sm text-stone-500">Non hai ancora registrato alcun pagamento.</p>
-                </template>
-            </div>
+                    <form method="POST" action="{{ route('client.documents.store') }}" enctype="multipart/form-data" class="flex flex-col sm:flex-row sm:items-center gap-3">
+                        @csrf
+                        <input type="hidden" name="document_type" value="{{ $type }}">
+                        <input
+                            type="file"
+                            name="document_file"
+                            accept="image/*,application/pdf"
+                            required
+                            class="w-full text-sm text-stone-600 file:mr-4 file:py-2 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-teal-100 file:text-teal-700 hover:file:bg-teal-200"
+                        >
+                        <button type="submit" class="btn-primary text-xs whitespace-nowrap">Carica / aggiorna</button>
+                    </form>
+                </div>
+            @endforeach
+        </div>
+    </div>
+
+    <div class="flex justify-end mt-4">
+        <button
+            type="button"
+            class="inline-flex items-center gap-2 rounded-lg border border-stone-300 px-4 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-100 transition"
+            @click="togglePayments"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+            <span x-text="showPayments ? 'Nascondi storico pagamenti' : 'Mostra storico pagamenti'"></span>
+        </button>
+    </div>
+
+    <div class="card p-6 space-y-4 mt-4" x-show="showPayments" x-cloak>
+        <div class="flex items-center justify-between">
+            <h3 class="text-xl font-semibold text-stone-900">Storico pagamenti</h3>
+            <span class="text-xs text-stone-400 uppercase tracking-wide">Ultimi movimenti</span>
+        </div>
+        <div class="space-y-3 max-h-64 overflow-y-auto pr-1">
+            <template x-for="payment in payments" :key="payment.id">
+                <div class="border border-stone-200 rounded-xl px-4 py-3 bg-stone-50 flex flex-col gap-1">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-semibold text-stone-800" x-text="payment.type === 'membership' ? 'Quota associativa' : (payment.type === 'course_subscription' ? 'Iscrizione corso' : 'Lezione privata')"></span>
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full" :class="paymentStatusClass(payment.status)" x-text="payment.status === 'paid' ? 'Pagato' : 'In attesa'"></span>
+                    </div>
+                    <div class="text-xs text-stone-500 flex items-center justify-between">
+                        <span x-text="payment.due_date ? `Scadenza ${formatDateString(payment.due_date)}` : ''"></span>
+                        <span class="font-semibold text-stone-700" x-text="formatMoney(payment.amount)"></span>
+                    </div>
+                </div>
+            </template>
+            <template x-if="payments.length === 0">
+                <p class="text-sm text-stone-500">Non hai ancora registrato alcun pagamento.</p>
+            </template>
         </div>
     </div>
 
@@ -127,11 +207,11 @@
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div class="space-y-1">
                 <h3 class="text-2xl font-semibold text-stone-900">Monthly Classes</h3>
-                <p class="text-sm text-stone-500">Browse the course catalogue and manage your subscriptions.</p>
+                <p class="text-sm text-stone-500">Sfoglia i corsi disponibili e conferma le tue iscrizioni mensili.</p>
             </div>
             <div class="inline-flex items-center gap-2 bg-stone-100 border border-stone-200 rounded-full px-4 py-2 text-xs text-stone-500">
                 <span class="w-2 h-2 rounded-full bg-teal-500"></span>
-                Updated weekly
+                Aggiornato settimanalmente
             </div>
         </div>
 
@@ -142,19 +222,36 @@
                         <div>
                             <p class="text-lg font-semibold text-teal-700" x-text="course.title"></p>
                             <p class="text-sm text-stone-500">
-                                Instructor: <span x-text="course.teacher_name ?? 'To be announced'"></span>
+                                Instructor: <span x-text="course.teacher_name ?? 'Da assegnare'"></span>
                             </p>
                         </div>
                         <div class="text-right">
-                            <p class="text-sm text-stone-500">Price</p>
-                            <p class="text-xl font-semibold text-stone-800">
-                                $<span x-text="Number(course.price ?? 0).toFixed(2)"></span>
-                            </p>
+                            <template x-if="course.availablePlans?.length">
+                                <div>
+                                    <p class="text-sm text-stone-500">Piano base</p>
+                                    <p class="text-xl font-semibold text-stone-800">
+                                        €<span x-text="Number(course.availablePlans[0]?.amount ?? 0).toFixed(2)"></span>
+                                    </p>
+                                    <p class="text-[11px] uppercase text-stone-400" x-text="course.availablePlans[0]?.label"></p>
+                                </div>
+                            </template>
+                            <template x-if="!(course.availablePlans?.length)">
+                                <div>
+                                    <p class="text-sm text-stone-500">Piani disponibili</p>
+                                    <p class="text-xs font-semibold text-rose-500">Non impostati</p>
+                                </div>
+                            </template>
                         </div>
                     </div>
                     <p class="text-sm text-stone-600 mt-3" x-text="truncate(course.description, 220)"></p>
+                    <template x-if="course.start_date_human || course.startDateHuman || course.start_date || course.startDate">
+                        <p class="text-xs text-stone-500 mt-2">
+                            <span class="font-semibold text-stone-600">Periodo:</span>
+                            <span x-text="(course.start_date_human || course.startDateHuman || course.start_date || course.startDate || '—') + ' → ' + (course.end_date_human || course.endDateHuman || course.end_date || course.endDate || '—')"></span>
+                        </p>
+                    </template>
                     <div class="mt-3 text-xs text-stone-500">
-                        <p class="font-semibold text-stone-600 uppercase tracking-wide">Weekly Schedule</p>
+                        <p class="font-semibold text-stone-600 uppercase tracking-wide">Orari settimanali</p>
                         <div class="mt-1 flex flex-wrap gap-2">
                             <template x-for="slot in course.schedule" :key="slot.day + (slot.time ?? 'TBD')">
                                 <span class="px-3 py-1 rounded-full bg-teal-100 text-teal-700 font-semibold">
@@ -164,51 +261,50 @@
                                 </span>
                             </template>
                         </div>
+                        <template x-if="subscriptionByCourse(course.id)?.start_date || subscriptionByCourse(course.id)?.startDate">
+                            <p class="mt-2 text-stone-500">
+                                <span class="font-semibold text-stone-600">Iscrizione attiva dal:</span>
+                                <span x-text="subscriptionByCourse(course.id)?.startDateDisplay || subscriptionByCourse(course.id)?.start_date || subscriptionByCourse(course.id)?.startDate"></span>
+                            </p>
+                        </template>
+                        <template x-if="subscriptionByCourse(course.id)?.planLabel">
+                            <p class="mt-1 text-stone-500">
+                                <span class="font-semibold text-stone-600">Piano:</span>
+                                <span x-text="subscriptionByCourse(course.id)?.planLabel"></span>
+                            </p>
+                        </template>
                     </div>
                     <div class="mt-4 flex items-center gap-3">
                         <template x-if="!isSubscribed(course.id)">
                             <button
                                 type="button"
                                 class="bg-teal-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-teal-700 transition-colors disabled:bg-teal-400 disabled:cursor-not-allowed"
-                                @click="subscribeToCourse(course.id)"
-                                :disabled="loading"
+                                @click="openSubscriptionModal(course)"
+                                :disabled="loading || !(course.availablePlans?.length)"
                             >
-                                Subscribe
+                                Iscriviti
                             </button>
                         </template>
                         <template x-if="isSubscribed(course.id)">
-                            <div class="flex flex-wrap items-center gap-2">
-                                <button
-                                    type="button"
-                                    class="inline-flex items-center gap-2 bg-emerald-100 text-emerald-700 px-4 py-2 rounded-lg font-semibold text-sm hover:bg-emerald-200 transition disabled:bg-emerald-100"
-                                    @click="toggleSubscriptionAutoRenew(course.id)"
-                                    :disabled="loading"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.5 9.75A7.5 7.5 0 0112 4.5a7.5 7.5 0 017.5 7.5m0 0a7.5 7.5 0 01-7.5 7.5 7.5 7.5 0 01-6.757-4.5m13.757 0H15m4.5 0V18"/>
-                                    </svg>
-                                    Toggle auto renew
-                                </button>
-                                <button
-                                    type="button"
-                                    class="inline-flex items-center gap-2 bg-rose-500 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-rose-600 transition disabled:bg-rose-300"
-                                    @click="cancelSubscription(course.id)"
-                                    :disabled="loading"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                    </svg>
-                                    Cancel
-                                </button>
-                            </div>
+                            <span class="text-xs text-stone-500">Iscrizione attiva. Per modifiche contatta la segreteria.</span>
                         </template>
                     </div>
+                    <template x-if="course.availablePlans?.length">
+                        <div class="mt-3 flex flex-wrap gap-2">
+                            <template x-for="plan in course.availablePlans" :key="plan.type">
+                                <span class="inline-flex items-center gap-2 rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-700">
+                                    <span x-text="plan.label"></span>
+                                    <span>€ <span x-text="Number(plan.amount ?? 0).toFixed(2)"></span></span>
+                                </span>
+                            </template>
+                        </div>
+                    </template>
                 </div>
             </template>
             <template x-if="courses.length === 0">
                 <div class="col-span-full">
                     <div class="rounded-xl border border-dashed border-stone-300 bg-stone-50 px-6 py-12 text-center text-stone-500">
-                        Courses will appear here once they are published. Check back soon!
+                        I corsi saranno disponibili a breve. Torna a trovarci!
                     </div>
                 </div>
             </template>
@@ -477,6 +573,139 @@
             </div>
         </div>
     </div>
+
+    <!-- Subscription Modal -->
+    <div
+        x-cloak
+        x-show="subscriptionModal.open"
+        class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 px-4"
+        x-transition
+        @keydown.escape.window="closeSubscriptionModal"
+    >
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden border border-stone-200/60">
+            <div class="px-6 py-5 border-b border-stone-200 bg-stone-50">
+                <h4 class="text-2xl font-semibold text-stone-900">Conferma iscrizione</h4>
+                <p class="text-sm text-stone-500 mt-1">
+                    Corso: <span class="font-semibold text-teal-700" x-text="subscriptionModal.course?.title"></span>
+                </p>
+            </div>
+            <div class="px-6 py-5 space-y-5 text-sm text-stone-600">
+                <template x-if="subscriptionModal.course">
+                    <div class="space-y-4">
+                        <p x-text="subscriptionModal.course.description"></p>
+
+                        <div class="space-y-3 rounded-xl border border-stone-200 bg-stone-50 p-4">
+                            <h5 class="text-sm font-semibold text-stone-700">Scegli il piano di abbonamento</h5>
+                            <template x-if="coursePlans(subscriptionModal.course).length > 0">
+                                <div class="space-y-3">
+                                    <template x-for="plan in coursePlans(subscriptionModal.course)" :key="plan.type">
+                                        <label class="flex items-start gap-3 rounded-lg border border-transparent px-3 py-2 hover:border-teal-200 hover:bg-white transition">
+                                            <input
+                                                type="radio"
+                                                name="subscription-plan"
+                                                class="mt-1 h-4 w-4 text-teal-600 border-stone-300 focus:ring-teal-500"
+                                                :value="plan.type"
+                                                :checked="subscriptionModal.planType === plan.type"
+                                                @change="selectSubscriptionPlan(plan.type)"
+                                            >
+                                            <span>
+                                                <span class="font-semibold text-stone-700" x-text="plan.label"></span>
+                                                <span class="block text-xs text-stone-500">
+                                                    € <span x-text="Number(plan.amount ?? 0).toFixed(2)"></span>
+                                                    · <span x-text="plan.months === 1 ? '1 mese' : `${plan.months} mesi`"></span>
+                                                </span>
+                                            </span>
+                                        </label>
+                                    </template>
+                                </div>
+                            </template>
+                            <template x-if="coursePlans(subscriptionModal.course).length === 0">
+                                <p class="text-xs text-rose-500">Nessun piano disponibile.</p>
+                            </template>
+
+                            <div class="h-px w-full bg-stone-200"></div>
+
+                            <h5 class="text-sm font-semibold text-stone-700">Scegli la data di inizio</h5>
+                            <p class="text-xs text-stone-500" x-text="subscriptionModal.supportsProration ? 'Iniziando nel mese corrente il costo viene calcolato sui giorni rimanenti.' : 'Il costo è fisso per l\'intero periodo selezionato.'"></p>
+
+                            <div class="space-y-3">
+                                <label class="flex items-start gap-3 text-sm text-stone-600">
+                                    <input
+                                        type="radio"
+                                        name="subscription-start-option"
+                                        value="current_month"
+                                        class="mt-1 h-4 w-4 text-teal-600 border-stone-300 focus:ring-teal-500"
+                                        :checked="subscriptionModal.option === 'current_month'"
+                                        @change="handleSubscriptionOptionChange('current_month')"
+                                    >
+                                    <span>
+                                        <span class="font-semibold text-stone-700">Inizia questo mese</span>
+                                        <span class="block text-xs text-stone-500" x-text="subscriptionModal.supportsProration ? 'Costo proporzionato ai giorni rimanenti.' : 'Il costo verrà applicato per l\'intera durata del piano.'"></span>
+                                    </span>
+                                </label>
+
+                                <div class="ml-7 space-y-2" x-show="subscriptionModal.option === 'current_month'">
+                                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                                        <input
+                                            type="date"
+                                            class="w-full rounded-lg border border-stone-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                            :min="subscriptionModal.limits.today"
+                                            :max="subscriptionModal.limits.endOfMonth"
+                                            :value="subscriptionModal.startDate"
+                                            @input="handleSubscriptionDateChange($event.target.value)"
+                                        >
+                                        <span class="text-xs text-stone-500">Disponibile fino al <span x-text="formatDateLabel(subscriptionModal.limits.endOfMonth)"></span></span>
+                                    </div>
+                                    <p class="text-xs text-rose-500" x-show="subscriptionModal.option === 'current_month' && !isValidSubscriptionDate()">Seleziona una data valida nel mese corrente.</p>
+                                </div>
+
+                                <label class="flex items-start gap-3 text-sm text-stone-600">
+                                    <input
+                                        type="radio"
+                                        name="subscription-start-option"
+                                        value="next_month"
+                                        class="mt-1 h-4 w-4 text-teal-600 border-stone-300 focus:ring-teal-500"
+                                        :checked="subscriptionModal.option === 'next_month'"
+                                        @change="handleSubscriptionOptionChange('next_month')"
+                                    >
+                                    <span>
+                                        <span class="font-semibold text-stone-700">Inizia dal prossimo mese</span>
+                                        <span class="block text-xs text-stone-500">Prima lezione il <span x-text="subscriptionModal.nextMonthLabel"></span>. Prezzo intero.</span>
+                                    </span>
+                                </label>
+                            </div>
+
+                            <div class="flex items-center justify-between rounded-lg border border-stone-200 bg-white px-4 py-3 text-sm">
+                                <span class="text-stone-600">Importo dovuto ora</span>
+                                <span class="font-semibold text-teal-700">€ <span x-text="subscriptionModal.preview"></span></span>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <template x-if="!subscriptionModal.course">
+                    <p class="text-sm text-stone-500">Nessun corso selezionato.</p>
+                </template>
+            </div>
+            <div class="flex flex-col gap-2 border-t border-stone-200 px-6 py-4 sm:flex-row sm:justify-end">
+                <button
+                    type="button"
+                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-stone-300 px-4 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-100 transition"
+                    @click="closeSubscriptionModal"
+                >
+                    Annulla
+                </button>
+                <button
+                    type="button"
+                    class="inline-flex items-center justify-center gap-2 rounded-lg bg-teal-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-teal-700 disabled:bg-stone-300 disabled:text-stone-500 disabled:cursor-not-allowed"
+                    @click="confirmSubscription"
+                    :disabled="!canSubmitSubscription() || loading"
+                >
+                    Conferma iscrizione
+                </button>
+            </div>
+        </div>
+    </div>
 </section>
 
 @once
@@ -513,7 +742,14 @@
 
                     return {
                         clientId: payload.clientId,
-                        courses: normalize(payload.courses),
+                        courses: normalize(payload.courses).map(course => {
+                            const plans = normalize(course.availablePlans ?? course.available_plans ?? []);
+                            return {
+                                ...course,
+                                availablePlans: plans,
+                                available_plans: plans,
+                            };
+                        }),
                         teachers: normalize(payload.teachers)
                             .map(teacher => {
                                 const decorated = decorateTeacher(teacher) ?? {};
@@ -530,6 +766,8 @@
                         membership: payload.membership ?? null,
                         membershipPayment: payload.membershipPayment ?? null,
                         payments: normalize(payload.payments ?? []).map(payment => ({ ...payment })),
+                        documents: normalize(payload.documents ?? []),
+                        showPayments: false,
                         routes: payload.routes,
                         statusMessage: payload.flash?.status ?? '',
                         errorMessage: '',
@@ -540,6 +778,21 @@
                             teacherId: null,
                             teacher: null,
                             selectedSlot: null,
+                        },
+                        subscriptionModal: {
+                            open: false,
+                            course: null,
+                            option: 'current_month',
+                            planType: null,
+                            supportsProration: true,
+                            startDate: null,
+                            preview: '0.00',
+                            nextMonthLabel: '',
+                            limits: {
+                                today: null,
+                                endOfMonth: null,
+                                nextMonthStart: null,
+                            },
                         },
 
                         init() {
@@ -569,6 +822,14 @@
                                 });
                         },
 
+                        togglePayments() {
+                            this.showPayments = !this.showPayments;
+                        },
+
+                        documentByType(type) {
+                            return this.documents.find(doc => doc.type === type) || null;
+                        },
+
                         truncate(text, limit) {
                             if (!text) return '';
                             return text.length > limit ? `${text.slice(0, limit)}…` : text;
@@ -578,6 +839,218 @@
                             if (!this.membership) return '—';
                             const start = this.membership.season_start_year;
                             return `${start}/${start + 1}`;
+                        },
+
+                        isoToday() {
+                            const now = new Date();
+                            return now.toISOString().slice(0, 10);
+                        },
+
+                        isoEndOfMonth() {
+                            const now = new Date();
+                            const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                            return end.toISOString().slice(0, 10);
+                        },
+
+                        isoNextMonthStart() {
+                            const now = new Date();
+                            const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+                            return next.toISOString().slice(0, 10);
+                        },
+
+                        formatDateLabel(isoString) {
+                            if (!isoString) return '';
+                            const date = new Date(`${isoString}T00:00:00`);
+                            if (Number.isNaN(date.getTime())) return isoString;
+                            return date.toLocaleDateString('it-IT', {
+                                day: '2-digit',
+                                month: 'long',
+                                year: 'numeric',
+                            });
+                        },
+
+                        coursePlans(course) {
+                            return normalize(course?.availablePlans ?? course?.available_plans ?? []);
+                        },
+
+                        selectedPlan() {
+                            return this.coursePlans(this.subscriptionModal.course)
+                                .find(plan => plan.type === this.subscriptionModal.planType) ?? null;
+                        },
+
+                        selectSubscriptionPlan(planType) {
+                            this.subscriptionModal.planType = planType;
+                            this.subscriptionModal.supportsProration = planType === 'monthly';
+                            this.updateSubscriptionPreview();
+                        },
+
+                        calculateSubscriptionAmount(option, startDate, plan) {
+                            const basePrice = Number(plan?.amount ?? plan?.price ?? 0);
+                            if (!plan || option === 'next_month' || plan.type !== 'monthly') {
+                                return basePrice.toFixed(2);
+                            }
+
+                            const target = startDate ? new Date(`${startDate}T00:00:00`) : new Date(`${this.isoToday()}T00:00:00`);
+                            const totalDays = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
+                            const remainingDays = Math.max(totalDays - target.getDate() + 1, 0);
+                            const ratio = totalDays > 0 ? remainingDays / totalDays : 1;
+                            let amount = Number((basePrice * ratio).toFixed(2));
+
+                            if (basePrice > 0 && amount < 0.01) {
+                                amount = 0.01;
+                            }
+
+                            return amount.toFixed(2);
+                        },
+
+                        updateSubscriptionPreview() {
+                            if (!this.subscriptionModal.course) {
+                                this.subscriptionModal.preview = '0.00';
+                                return;
+                            }
+
+                            const plan = this.selectedPlan();
+                            if (!plan) {
+                                this.subscriptionModal.preview = '0.00';
+                                return;
+                            }
+
+                            this.subscriptionModal.preview = this.calculateSubscriptionAmount(
+                                this.subscriptionModal.option,
+                                this.subscriptionModal.startDate,
+                                plan
+                            );
+                        },
+
+                        openSubscriptionModal(course) {
+                            if (!course || this.isSubscribed(course.id)) {
+                                this.statusMessage = this.isSubscribed(course?.id) ? 'Sei già iscritto a questo corso.' : this.statusMessage;
+                                return;
+                            }
+
+                            const plans = this.coursePlans(course);
+                            if (!plans.length) {
+                                this.statusMessage = 'Non ci sono piani di abbonamento disponibili per questo corso.';
+                                return;
+                            }
+
+                            const today = this.isoToday();
+                            const endOfMonth = this.isoEndOfMonth();
+                            const nextMonthStart = this.isoNextMonthStart();
+
+                            this.subscriptionModal.course = {
+                                ...course,
+                                availablePlans: plans,
+                            };
+                            this.subscriptionModal.planType = plans[0]?.type ?? null;
+                            this.subscriptionModal.supportsProration = this.subscriptionModal.planType === 'monthly';
+                            this.subscriptionModal.option = 'current_month';
+                            this.subscriptionModal.startDate = today;
+                            this.subscriptionModal.limits = {
+                                today,
+                                endOfMonth,
+                                nextMonthStart,
+                            };
+                            this.subscriptionModal.nextMonthLabel = this.formatDateLabel(nextMonthStart);
+                            this.updateSubscriptionPreview();
+                            this.subscriptionModal.open = true;
+                        },
+
+                        closeSubscriptionModal() {
+                            this.subscriptionModal.open = false;
+                            this.subscriptionModal.course = null;
+                            this.subscriptionModal.planType = null;
+                            this.subscriptionModal.supportsProration = true;
+                            this.subscriptionModal.startDate = null;
+                            this.subscriptionModal.preview = '0.00';
+                        },
+
+                        handleSubscriptionOptionChange(option) {
+                            this.subscriptionModal.option = option;
+                            if (option === 'current_month') {
+                                this.subscriptionModal.startDate = this.subscriptionModal.limits.today ?? this.isoToday();
+                            } else {
+                                this.subscriptionModal.startDate = this.subscriptionModal.limits.nextMonthStart ?? this.isoNextMonthStart();
+                            }
+                            this.updateSubscriptionPreview();
+                        },
+
+                        handleSubscriptionDateChange(value) {
+                            this.subscriptionModal.startDate = value;
+                            this.updateSubscriptionPreview();
+                        },
+
+                        isValidSubscriptionDate() {
+                            if (this.subscriptionModal.option !== 'current_month') {
+                                return true;
+                            }
+                            const date = this.subscriptionModal.startDate;
+                            if (!date) return false;
+                            return (
+                                (!this.subscriptionModal.limits.today || date >= this.subscriptionModal.limits.today) &&
+                                (!this.subscriptionModal.limits.endOfMonth || date <= this.subscriptionModal.limits.endOfMonth)
+                            );
+                        },
+
+                        canSubmitSubscription() {
+                            if (!this.subscriptionModal.course) return false;
+                            if (!this.subscriptionModal.planType || !this.selectedPlan()) return false;
+                            if (this.isSubscribed(this.subscriptionModal.course.id)) return false;
+                            if (this.subscriptionModal.option === 'current_month') {
+                                return this.isValidSubscriptionDate();
+                            }
+                            return true;
+                        },
+
+                        confirmSubscription() {
+                            if (!this.subscriptionModal.course || !this.canSubmitSubscription()) {
+                                return;
+                            }
+
+                            const plan = this.selectedPlan();
+                            if (!plan) {
+                                this.errorMessage = 'Seleziona un piano di abbonamento valido.';
+                                return;
+                            }
+
+                            const courseTitle = this.subscriptionModal.course.title ?? 'Questo corso';
+                            const option = this.subscriptionModal.option === 'current_month'
+                                ? 'a partire da questo mese'
+                                : 'a partire dal prossimo mese';
+                            const amount = this.subscriptionModal.preview;
+                            const planLabel = plan.label ?? plan.type;
+
+                            if (!window.confirm(`Confermi l'iscrizione a \"${courseTitle}\" (${planLabel}) ${option} con un addebito di € ${amount}?`)) {
+                                return;
+                            }
+
+                            const payload = {
+                                course_id: this.subscriptionModal.course.id,
+                                start_option: this.subscriptionModal.option,
+                                plan_type: plan.type,
+                            };
+
+                            if (this.subscriptionModal.option === 'current_month') {
+                                payload.start_date = this.subscriptionModal.startDate;
+                            }
+
+                            this.sendRequest(this.routes.subscribe, 'POST', payload)
+                                .then(response => {
+                                    if (response.subscription) {
+                                        const existing = this.subscriptions.find(sub => sub.id === response.subscription.id);
+                                        if (existing) {
+                                            Object.assign(existing, response.subscription);
+                                        } else {
+                                            this.subscriptions.push(response.subscription);
+                                        }
+                                    }
+                                    this.statusMessage = response.message || 'Subscription activated.';
+                                    if (response.payment) {
+                                        this.upsertPayment(response.payment);
+                                    }
+                                    this.closeSubscriptionModal();
+                                })
+                                .catch(() => {});
                         },
 
                         membershipStatusClass() {
@@ -646,9 +1119,18 @@
 
                         confirmBooking() {
                             if (!this.bookingModal.teacher || !this.bookingModal.selectedSlot) return;
+                            const slot = this.bookingModal.selectedSlot;
+                            const teacherName = this.bookingModal.teacher?.name ?? 'il docente';
+                            const slotDate = this.formatDateString(slot.date) || slot.date;
+                            const slotTime = slot.displayTime || slot.time;
+
+                            if (!window.confirm(`Confermi la prenotazione con ${teacherName} il ${slotDate} alle ${slotTime}?`)) {
+                                return;
+                            }
+
                             const payload = {
                                 teacher_id: this.bookingModal.teacherId,
-                                availability_id: this.bookingModal.selectedSlot.id,
+                                availability_id: slot.id,
                             };
 
                             this.sendRequest(this.routes.book, 'POST', payload)
@@ -689,24 +1171,9 @@
                         },
 
                         subscribeToCourse(courseId) {
-                            if (this.isSubscribed(courseId)) return;
-                            const payload = { course_id: courseId };
-                            this.sendRequest(this.routes.subscribe, 'POST', payload)
-                                .then(response => {
-                                    if (response.subscription) {
-                                        const existing = this.subscriptions.find(sub => sub.id === response.subscription.id);
-                                        if (existing) {
-                                            Object.assign(existing, response.subscription);
-                                        } else {
-                                            this.subscriptions.push(response.subscription);
-                                        }
-                                    }
-                                this.statusMessage = response.message || 'Subscription activated.';
-                                if (response.payment) {
-                                    this.upsertPayment(response.payment);
-                                }
-                            })
-                            .catch(() => {});
+                            const course = this.courses.find(c => c.id === courseId);
+                            if (!course) return;
+                            this.openSubscriptionModal(course);
                         },
 
                         toggleSubscriptionAutoRenew(courseId) {
@@ -839,23 +1306,6 @@
                         return date.toLocaleDateString();
                     },
 
-                    payMembership() {
-                        if (!this.membershipPayment || this.membershipPayment.status === 'paid') return;
-                        const url = `${this.routes.paymentMarkBase}/${this.membershipPayment.id}/mark-paid`;
-                        this.sendRequest(url, 'POST')
-                            .then(response => {
-                                if (response.payment) {
-                                    this.membershipPayment = response.payment;
-                                    this.upsertPayment(response.payment);
-                                }
-                                if (response.membership && this.membership) {
-                                    this.membership = { ...this.membership, ...response.membership };
-                                }
-                                this.statusMessage = response.message || 'Pagamento registrato.';
-                            })
-                            .catch(() => {});
-                    },
-
                     paymentStatusClass(status) {
                         if (status === 'paid') return 'bg-emerald-100 text-emerald-700';
                         return 'bg-amber-100 text-amber-700';
@@ -876,7 +1326,7 @@
                     },
 
                         subscriptionByCourse(courseId) {
-                            return this.subscriptions.find(sub => sub.course_id === courseId) || null;
+                            return this.subscriptions.find(sub => (sub.course_id ?? sub.courseId) === courseId) || null;
                         },
 
                         isSubscribed(courseId) {

@@ -9,15 +9,18 @@ use App\Models\MembershipSubscription;
 use App\Models\Payment;
 use App\Models\Setting;
 use App\Models\Subscription;
+use App\Models\UserDocument;
 use App\Models\Teacher;
 use App\Services\MembershipManager;
 use App\Support\TimeHelper;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class DashboardPageController extends Controller
 {
-    public function __invoke(): View
+    public function __invoke(Request $request): View
     {
         $user = Auth::user();
         $membershipManager = app(MembershipManager::class);
@@ -27,15 +30,36 @@ class DashboardPageController extends Controller
             ->orderBy('title')
             ->get()
             ->map(function (Course $course) {
+                $plans = $course->availablePlans();
+
                 return [
                     'id' => $course->id,
                     'title' => $course->title,
                     'description' => $course->description,
                     'teacher_id' => $course->teacher_id,
                     'teacher_name' => optional($course->teacher)->name,
+                    'teacherId' => $course->teacher_id,
+                    'teacherName' => optional($course->teacher)->name,
                     'price' => $course->price,
+                    'monthly_price' => $course->monthly_price,
+                    'quarterly_price' => $course->quarterly_price,
+                    'annual_price' => $course->annual_price,
+                    'monthlyPrice' => $course->monthly_price,
+                    'quarterlyPrice' => $course->quarterly_price,
+                    'annualPrice' => $course->annual_price,
+                    'available_plans' => $plans,
+                    'availablePlans' => $plans,
                     'speciality_description' => $course->speciality_description,
+                    'specialityDescription' => $course->speciality_description,
                     'gallery' => $course->gallery ?? [],
+                    'start_date' => optional($course->start_date)?->format('Y-m-d'),
+                    'end_date' => optional($course->end_date)?->format('Y-m-d'),
+                    'start_date_human' => optional($course->start_date)?->format('d/m/Y'),
+                    'end_date_human' => optional($course->end_date)?->format('d/m/Y'),
+                    'startDate' => optional($course->start_date)?->format('Y-m-d'),
+                    'endDate' => optional($course->end_date)?->format('Y-m-d'),
+                    'startDateHuman' => optional($course->start_date)?->format('d/m/Y'),
+                    'endDateHuman' => optional($course->end_date)?->format('d/m/Y'),
                     'schedule' => $course->schedule->map(function ($slot) {
                         return [
                             'day' => $slot->day_of_week,
@@ -82,7 +106,7 @@ class DashboardPageController extends Controller
             $extra['clients'] = $this->loadClients($autoGenerateMemberships);
             $extra['teacherAdminList'] = $this->loadTeacherAdminList();
             $extra['courseUnpaidSummary'] = $this->loadCourseUnpaidSummary();
-            $extra['membershipSummary'] = $this->buildMembershipSummary($extra['clients']);
+            $extra['membershipSummary'] = $this->buildMembershipSummary($extra['clients'], $request);
         } elseif ($user->role === 'Teacher') {
             $extra = array_merge($extra, $this->loadTeacherData($user->id));
         } elseif ($user->role === 'Client') {
@@ -101,6 +125,8 @@ class DashboardPageController extends Controller
     {
         $manager = app(MembershipManager::class);
         $season = $manager->determineCurrentSeason();
+
+        $currentYear = now()->year;
 
         return \App\Models\User::select([
                 'id',
@@ -126,24 +152,85 @@ class DashboardPageController extends Controller
                     $query->where('season_start_year', $season['start_year']);
                 },
                 'payments' => function ($query) {
-                    $query->latest()->take(15);
+                    $query->latest();
                 },
+                'documents:id,user_id,type,original_name,updated_at,path',
             ])
             ->where('role', 'Client')
             ->orderBy('name')
             ->get()
-            ->map(function ($user) use ($manager, $autoGenerate) {
+            ->map(function ($user) use ($manager, $autoGenerate, $currentYear) {
                 $current = $manager->ensureCurrentMembership($user, $autoGenerate);
                 $user->setAttribute('current_membership', $current);
                 $user->setAttribute('membership_payment', $current?->payment);
-                $user->setRelation('payments', $user->payments->sortByDesc('created_at')->values());
+
+                $sortedPayments = $user->payments->sortByDesc('created_at')->values();
+                $user->setRelation('payments', $sortedPayments);
+
+                $presentedPayments = $sortedPayments
+                    ->map(fn (Payment $payment) => $this->presentAdminPayment($payment))
+                    ->values();
+
+                $user->setAttribute('admin_payments_all', $presentedPayments);
+                $user->setAttribute(
+                    'admin_payments_current_year',
+                    $presentedPayments
+                        ->filter(fn (array $payment) => ($payment['year'] ?? null) === $currentYear)
+                        ->values()
+                );
+
+                $documents = $user->documents
+                    ->map(function ($document) {
+                        $downloadUrl = route('admin.users.documents.download', [$document->user_id, $document->id], false);
+
+                        return [
+                            'id' => $document->id,
+                            'type' => $document->type,
+                            'original_name' => $document->original_name,
+                            'originalName' => $document->original_name,
+                            'uploaded_at' => optional($document->updated_at)->toIso8601String(),
+                            'uploaded_at_display' => optional($document->updated_at)->translatedFormat('d/m/Y H:i'),
+                            'uploadedAtDisplay' => optional($document->updated_at)->translatedFormat('d/m/Y H:i'),
+                            'url' => Storage::disk('public')->url($document->path),
+                            'download_url' => $downloadUrl,
+                            'downloadUrl' => $downloadUrl,
+                        ];
+                    })
+                    ->values();
+
+                $requiredDocumentTypes = [
+                    'id_front',
+                    'id_back',
+                    'health_card',
+                    'medical_certificate',
+                ];
+
+                $missingDocuments = collect($requiredDocumentTypes)
+                    ->reject(function ($type) use ($documents) {
+                        return $documents->contains(fn ($doc) => $doc['type'] === $type);
+                    })
+                    ->values();
+
+                $pendingPaymentCount = $presentedPayments->where('status', 'pending')->count();
+
+                $user->setAttribute('admin_documents', $documents);
+                $user->setAttribute('admin_missing_documents', $missingDocuments);
+                $user->setAttribute('admin_pending_payments_count', $pendingPaymentCount);
+
                 return $user;
             })
             ->values();
     }
 
-    private function buildMembershipSummary($clients): array
+    private function buildMembershipSummary($clients, Request $request): array
     {
+        $perPageSetting = Setting::query()->find('membership_morosita_page_size');
+        $defaultPerPage = config('app.membership_summary_page_size', 5);
+        $perPage = (int) ($perPageSetting?->value ?? $defaultPerPage);
+        if ($perPage < 1) {
+            $perPage = max(1, (int) $defaultPerPage);
+        }
+
         $entries = collect($clients)
             ->filter(function ($client) {
                 return optional($client->membership_payment)->status === 'pending';
@@ -151,6 +238,7 @@ class DashboardPageController extends Controller
             ->map(function ($client) {
                 $payment = $client->membership_payment;
                 $membership = $client->current_membership;
+                $seasonStart = $membership?->season_start_year;
 
                 return [
                     'client_id' => $client->id,
@@ -158,15 +246,29 @@ class DashboardPageController extends Controller
                     'email' => $client->email,
                     'telephone' => $client->telephone,
                     'amount' => $payment?->amount ?? $membership?->amount ?? 0,
-                    'due_date' => optional($payment?->due_date ?? $membership?->due_date)->format('Y-m-d'),
+                    'season_label' => $seasonStart ? (string) $seasonStart : null,
                     'payment_id' => optional($payment)->id,
                 ];
             })
             ->values();
 
+        $total = $entries->count();
+        $lastPage = max(1, (int) ceil($total / $perPage));
+        $currentPage = (int) $request->query('membership_page', 1);
+        if ($currentPage < 1) {
+            $currentPage = 1;
+        } elseif ($currentPage > $lastPage) {
+            $currentPage = $lastPage;
+        }
+
+        $paginated = $entries->forPage($currentPage, $perPage)->values();
+
         return [
-            'total' => $entries->count(),
-            'entries' => $entries,
+            'total' => $total,
+            'entries' => $paginated,
+            'per_page' => $perPage,
+            'current_page' => $currentPage,
+            'last_page' => $lastPage,
         ];
     }
 
@@ -191,7 +293,7 @@ class DashboardPageController extends Controller
         $endOfMonth = $now->copy()->endOfMonth();
 
         $courses = Course::orderBy('title')
-            ->get(['id', 'title', 'price']);
+            ->get(['id', 'title', 'price', 'monthly_price', 'quarterly_price', 'annual_price']);
 
         $payments = Payment::query()
             ->where('type', 'course_subscription')
@@ -228,7 +330,7 @@ class DashboardPageController extends Controller
             ->values();
 
         $subscriptions = Subscription::with([
-                'course:id,title,price',
+                'course:id,title,price,monthly_price,quarterly_price,annual_price',
                 'client:id,name,email,telephone',
             ])
             ->whereIn('id', $subscriptionIds)
@@ -236,11 +338,15 @@ class DashboardPageController extends Controller
             ->keyBy('id');
 
         $courseSummaries = $courses->mapWithKeys(function (Course $course) {
+            $plans = $course->availablePlans();
+            $referencePrice = $course->monthly_price ?? $course->price;
+
             return [
                 $course->id => [
                     'course_id' => $course->id,
                     'title' => $course->title,
-                    'price' => $course->price,
+                    'price' => $referencePrice,
+                    'plans' => $plans,
                     'unpaid' => [],
                 ],
             ];
@@ -259,7 +365,8 @@ class DashboardPageController extends Controller
                 $courseSummaries[$courseId] = [
                     'course_id' => $courseId,
                     'title' => $subscription->course->title,
-                    'price' => $subscription->course->price,
+                    'price' => $subscription->plan_amount,
+                    'plans' => $subscription->course?->availablePlans() ?? [],
                     'unpaid' => [],
                 ];
             }
@@ -274,6 +381,9 @@ class DashboardPageController extends Controller
                 'due_date' => optional($payment->due_date)->format('Y-m-d'),
                 'period_label' => optional($payment->due_date)->translatedFormat('F Y'),
                 'created_at' => optional($payment->created_at)->format('Y-m-d H:i'),
+                'plan_type' => $subscription->plan_type,
+                'plan_label' => $subscription->plan_label,
+                'plan_amount' => $subscription->plan_amount,
             ];
         }
 
@@ -368,18 +478,61 @@ class DashboardPageController extends Controller
             ->where('client_id', $clientId)
             ->get()
             ->map(function (Subscription $subscription) {
+                $courseData = optional($subscription->course)?->only([
+                    'id',
+                    'title',
+                    'price',
+                    'monthly_price',
+                    'quarterly_price',
+                    'annual_price',
+                ]);
+
                 return [
                     'id' => $subscription->id,
                     'course_id' => $subscription->course_id,
+                    'courseId' => $subscription->course_id,
+                    'client_id' => $subscription->client_id,
+                    'clientId' => $subscription->client_id,
                     'auto_renew' => (bool) $subscription->auto_renew,
-                    'course' => optional($subscription->course)?->only(['id', 'title', 'price']),
+                    'autoRenew' => (bool) $subscription->auto_renew,
+                    'start_date' => optional($subscription->start_date)?->format('Y-m-d'),
+                    'startDate' => optional($subscription->start_date)?->format('Y-m-d'),
+                    'startDateDisplay' => optional($subscription->start_date)?->translatedFormat('d/m/Y'),
+                    'end_date' => optional($subscription->end_date)?->format('Y-m-d'),
+                    'endDate' => optional($subscription->end_date)?->format('Y-m-d'),
+                    'endDateDisplay' => optional($subscription->end_date)?->translatedFormat('d/m/Y'),
+                    'plan_type' => $subscription->plan_type,
+                    'planType' => $subscription->plan_type,
+                    'plan_label' => $subscription->plan_label,
+                    'planLabel' => $subscription->plan_label,
+                    'plan_amount' => $subscription->plan_amount,
+                    'planAmount' => $subscription->plan_amount,
+                    'course' => $courseData,
                 ];
             })
             ->values();
 
+        $documents = UserDocument::where('user_id', $clientId)
+            ->orderBy('type')
+            ->get()
+            ->map(function (UserDocument $document) {
+                return [
+                    'id' => $document->id,
+                    'type' => $document->type,
+                    'original_name' => $document->original_name,
+                    'originalName' => $document->original_name,
+                    'url' => Storage::disk('public')->url($document->path),
+                    'download_url' => route('admin.users.documents.download', [$document->user_id, $document->id], false),
+                    'downloadUrl' => route('admin.users.documents.download', [$document->user_id, $document->id], false),
+                    'uploaded_at' => optional($document->updated_at)->toIso8601String(),
+                    'uploadedAtDisplay' => optional($document->updated_at)->translatedFormat('d/m/Y H:i'),
+                ];
+            });
+
         return [
             'bookings' => $bookings,
             'subscriptions' => $subscriptions,
+            'documents' => $documents,
         ];
     }
 
@@ -408,6 +561,7 @@ class DashboardPageController extends Controller
 
     private function formatPayment(Payment $payment): array
     {
+        $meta = $payment->meta ?? [];
         return [
             'id' => $payment->id,
             'type' => $payment->type,
@@ -416,8 +570,70 @@ class DashboardPageController extends Controller
             'due_date' => optional($payment->due_date)?->format('Y-m-d'),
             'paid_at' => optional($payment->paid_at)?->format('Y-m-d H:i'),
             'method' => $payment->method,
-            'meta' => $payment->meta ?? [],
+            'meta' => $meta,
+            'plan_type' => $meta['plan_type'] ?? null,
+            'plan_label' => $meta['plan_label'] ?? null,
             'receipt_url' => $payment->receipt_url,
+        ];
+    }
+
+    private function presentAdminPayment(Payment $payment): array
+    {
+        $typeLabels = [
+            'membership' => 'Quota associativa',
+            'course_subscription' => 'Iscrizione corso',
+            'private_lesson' => 'Lezione privata',
+        ];
+
+        $statusLabels = [
+            'pending' => 'In attesa',
+            'paid' => 'Pagato',
+            'waived' => 'Annullato',
+        ];
+
+        $statusBadgeClass = match ($payment->status) {
+            'paid' => 'bg-emerald-100 text-emerald-600',
+            'waived' => 'bg-sky-100 text-sky-600',
+            default => 'bg-amber-100 text-amber-600',
+        };
+
+        $createdAt = $payment->created_at;
+        $dueDate = $payment->due_date;
+
+        $meta = $payment->meta ?? [];
+        $planLabel = $meta['plan_label'] ?? null;
+        $planType = $meta['plan_type'] ?? null;
+
+        $typeLabel = $typeLabels[$payment->type] ?? ucfirst(str_replace('_', ' ', $payment->type));
+        if ($payment->type === 'course_subscription' && $planLabel) {
+            $typeLabel .= ' · ' . $planLabel;
+        }
+
+        return [
+            'id' => $payment->id,
+            'type' => $payment->type,
+            'type_label' => $typeLabel,
+            'status' => $payment->status,
+            'status_label' => $statusLabels[$payment->status] ?? ucfirst($payment->status),
+            'status_badge_class' => $statusBadgeClass,
+            'amount' => (float) $payment->amount,
+            'amount_formatted' => number_format((float) $payment->amount, 2, ',', '.'),
+            'due_date' => optional($dueDate)?->format('Y-m-d'),
+            'due_date_display' => optional($dueDate)?->format('d/m/Y'),
+            'created_at' => optional($createdAt)?->toIso8601String(),
+            'created_at_display' => optional($createdAt)?->format('d/m/Y H:i'),
+            'year' => optional($createdAt)?->year,
+            'plan_type' => $planType,
+            'plan_label' => $planLabel,
+            'routes' => [
+                'update' => route('admin.payments.update', $payment->id),
+                'receipt' => $payment->receipt_url ? route('admin.payments.receipt', $payment->id) : null,
+                'reprint' => $payment->receipt_url ? route('admin.payments.reprint', $payment->id) : null,
+            ],
+            'receipt_available' => (bool) $payment->receipt_url,
+            'receipt_route' => $payment->receipt_url ? route('admin.payments.receipt', $payment->id) : null,
+            'is_pending' => $payment->status === 'pending',
+            'is_course' => $payment->type === 'course_subscription',
         ];
     }
 }

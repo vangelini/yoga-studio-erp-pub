@@ -7,13 +7,23 @@ import { useAppContext } from '../../context/AppContext';
 import { Course, DayOfWeek, Role, User, Teacher } from '../../types';
 import Modal from '../Modal';
 
+const normalizeCourseData = (data: Course | Omit<Course, 'id'>): Course | Omit<Course, 'id'> => {
+    return {
+        ...data,
+        gallery: Array.isArray(data.gallery) ? data.gallery : [],
+        schedule: Array.isArray(data.schedule) ? data.schedule : [],
+        startDate: data.startDate ?? '',
+        endDate: data.endDate ?? '',
+    };
+};
+
 const CourseForm: React.FC<{ initialData: Course | Omit<Course, 'id'>, onSave: (course: Course | Omit<Course, 'id'>) => void, onCancel: () => void }> = ({ initialData, onSave, onCancel }) => {
     const { teachers } = useAppContext();
-    const [formData, setFormData] = useState(initialData);
+    const [formData, setFormData] = useState<Course | Omit<Course, 'id'>>(normalizeCourseData(initialData));
     const daysOfWeek: DayOfWeek[] = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
     useEffect(() => {
-        setFormData(initialData);
+        setFormData(normalizeCourseData(initialData));
     }, [initialData]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -76,6 +86,16 @@ const CourseForm: React.FC<{ initialData: Course | Omit<Course, 'id'>, onSave: (
                 <div>
                     <label className="font-semibold text-stone-600">Price ($)</label>
                     <input type="number" name="price" value={formData.price} onChange={handleInputChange} className="w-full mt-1 p-2 border rounded-md" required />
+                </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+                <div>
+                    <label className="font-semibold text-stone-600">Start Date</label>
+                    <input type="date" name="startDate" value={formData.startDate} onChange={handleInputChange} className="w-full mt-1 p-2 border rounded-md" required />
+                </div>
+                <div>
+                    <label className="font-semibold text-stone-600">End Date</label>
+                    <input type="date" name="endDate" value={formData.endDate} onChange={handleInputChange} className="w-full mt-1 p-2 border rounded-md" required />
                 </div>
             </div>
             <div>
@@ -169,6 +189,7 @@ const AdminDashboard: React.FC = () => {
   const [isAddingUser, setIsAddingUser] = useState(false);
   const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null);
   const [isAddingCourse, setIsAddingCourse] = useState(false);
+  const todayIso = new Date().toISOString().slice(0, 10);
 
     const statusColors: Record<User['status'], string> = {
         active: 'bg-green-100 text-green-800',
@@ -206,7 +227,9 @@ const AdminDashboard: React.FC = () => {
     schedule: [],
     price: 99,
     specialityDescription: '',
-    gallery: []
+    gallery: [],
+    startDate: todayIso,
+    endDate: todayIso,
   };
 
   return (

@@ -65,6 +65,34 @@ class PaymentAdminController extends Controller
         return back()->with('status', $message);
     }
 
+    public function reprint(Request $request, Payment $payment)
+    {
+        abort_unless($request->user()->role === 'Admin', 403);
+
+        $data = $request->validate([
+            'notes' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $this->receiptService->reprint($payment, $data['notes'] ?? null);
+        $payment->refresh();
+
+        $message = 'Ricevuta ristampata con successo.';
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $message,
+                'payment' => [
+                    'id' => $payment->id,
+                    'receipt_url' => $payment->receipt_url,
+                    'receipt_number' => $payment->receipt_number,
+                    'receipt_year' => $payment->receipt_year,
+                ],
+            ]);
+        }
+
+        return back()->with('status', $message);
+    }
+
     public function showReceipt(Request $request, Payment $payment): BinaryFileResponse
     {
         abort_unless($request->user()->role === 'Admin', 403);

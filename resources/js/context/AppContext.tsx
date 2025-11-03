@@ -26,7 +26,7 @@ interface AppContextType {
     updateTeacherProfile: (teacherId: number, bio: string, specializations: string[], pictureUrl: string) => Promise<void>;
     bookLesson: (teacherId: number, slot: AvailabilitySlot) => Promise<boolean>;
     cancelBooking: (bookingId: number) => Promise<void>;
-    subscribeToCourse: (courseId: number) => Promise<void>;
+    subscribeToCourse: (options: { courseId: number; planType: 'monthly' | 'quarterly' | 'annual'; startOption: 'current_month' | 'next_month'; startDate?: string }) => Promise<void>;
     toggleAutoRenew: (subscriptionId: number) => Promise<void>;
 }
 
@@ -237,13 +237,19 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         }
     };
 
-    const subscribeToCourse = async (courseId: number) => {
+    const subscribeToCourse = async ({ courseId, planType, startOption, startDate }: { courseId: number; planType: 'monthly' | 'quarterly' | 'annual'; startOption: 'current_month' | 'next_month'; startDate?: string }) => {
         if (!currentUser) return;
         setLoading(true);
         try {
             await fetchApi('/subscriptions', {
                 method: 'POST',
-                body: JSON.stringify({ clientId: currentUser.id, courseId }),
+                body: JSON.stringify({
+                    clientId: currentUser.id,
+                    courseId,
+                    planType,
+                    startOption,
+                    startDate,
+                }),
             });
             await handleFetchData(currentUser);
             alert('Successfully subscribed!');

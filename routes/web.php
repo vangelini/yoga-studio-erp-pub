@@ -4,9 +4,10 @@ use App\Http\Controllers\Web\AdminCourseController;
 use App\Http\Controllers\Web\AdminUserController;
 use App\Http\Controllers\Web\AuthSessionController;
 use App\Http\Controllers\Web\DashboardPageController;
+use App\Http\Controllers\Web\PasswordResetController;
 use App\Http\Controllers\Web\ClientBookingController;
 use App\Http\Controllers\Web\ClientSubscriptionController;
-use App\Http\Controllers\Web\PaymentController;
+use App\Http\Controllers\Web\ClientDocumentController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -54,6 +55,11 @@ Route::middleware('auth')->group(function () {
     })->middleware(['throttle:6,1'])->name('verification.send');
 });
 
+
+// Password reset routes
+Route::get('/password/reset/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
+Route::post('/password/reset', [PasswordResetController::class, 'reset'])->name('password.update');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', DashboardPageController::class)->name('dashboard');
 
@@ -63,12 +69,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/admin/users/{user}', [AdminUserController::class, 'updateRoleStatus'])->name('admin.users.update');
         Route::put('/admin/users/{user}/profile', [AdminUserController::class, 'updateProfile'])->name('admin.users.profile');
         Route::post('/admin/users/{user}/password-email', [AdminUserController::class, 'sendPasswordReset'])->name('admin.users.passwordEmail');
+        Route::post('/admin/users/{user}/documents', [AdminUserController::class, 'storeDocument'])->name('admin.users.documents.store');
+        Route::get('/admin/users/{user}/documents/{document}', [AdminUserController::class, 'downloadDocument'])->name('admin.users.documents.download');
         Route::post('/admin/users/{user}/resend-verification', [AdminUserController::class, 'resendVerification'])->name('admin.users.resendVerification');
         Route::post('/admin/users/{user}/activate', [AdminUserController::class, 'activate'])->name('admin.users.activate');
         Route::post('/admin/courses', [AdminCourseController::class, 'store'])->name('admin.courses.store');
         Route::put('/admin/courses/{course}', [AdminCourseController::class, 'update'])->name('admin.courses.update');
         Route::post('/admin/payments/{payment}', [\App\Http\Controllers\Web\PaymentAdminController::class, 'updateStatus'])->name('admin.payments.update');
         Route::get('/admin/payments/{payment}/receipt', [\App\Http\Controllers\Web\PaymentAdminController::class, 'showReceipt'])->name('admin.payments.receipt');
+        Route::post('/admin/payments/{payment}/reprint', [\App\Http\Controllers\Web\PaymentAdminController::class, 'reprint'])->name('admin.payments.reprint');
         Route::post('/admin/memberships/generate', [\App\Http\Controllers\Web\AdminMembershipController::class, 'generate'])->name('admin.memberships.generate');
         Route::get('/admin/settings', [\App\Http\Controllers\Web\AdminSettingController::class, 'edit'])->name('admin.settings.edit');
         Route::put('/admin/settings', [\App\Http\Controllers\Web\AdminSettingController::class, 'update'])->name('admin.settings.update');
@@ -82,6 +91,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/client/subscriptions', [ClientSubscriptionController::class, 'store'])->name('client.subscriptions.store');
         Route::put('/client/subscriptions/{subscription}/toggle-renew', [ClientSubscriptionController::class, 'toggleRenewal'])->name('client.subscriptions.toggle');
         Route::delete('/client/subscriptions/{subscription}', [ClientSubscriptionController::class, 'destroy'])->name('client.subscriptions.destroy');
-        Route::post('/client/payments/{payment}/mark-paid', [PaymentController::class, 'markPaid'])->name('client.payments.markPaid');
+        Route::post('/client/documents', [ClientDocumentController::class, 'store'])->name('client.documents.store');
+        
     });
 });

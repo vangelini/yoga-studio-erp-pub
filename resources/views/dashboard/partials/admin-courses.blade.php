@@ -47,8 +47,32 @@
                     </select>
                 </div>
                 <div class="space-y-2">
-                    <label class="text-sm font-medium text-stone-600">Prezzo (€)</label>
-                    <input type="number" step="0.01" name="price" required class="w-full p-3 rounded-lg border border-stone-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500" placeholder="0.00">
+                    <label class="text-sm font-medium text-stone-600">Prezzi abbonamenti (€)</label>
+                    <p class="text-xs text-stone-500">Imposta 0 oppure lascia vuoto per non mostrare l'opzione ai clienti.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                            <span class="text-xs font-semibold uppercase text-stone-500">Mensile</span>
+                            <input type="number" step="0.01" name="monthly_price" value="" class="w-full p-2.5 rounded-lg border border-stone-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500" placeholder="0.00">
+                        </div>
+                        <div>
+                            <span class="text-xs font-semibold uppercase text-stone-500">Trimestrale</span>
+                            <input type="number" step="0.01" name="quarterly_price" value="" class="w-full p-2.5 rounded-lg border border-stone-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500" placeholder="0.00">
+                        </div>
+                        <div>
+                            <span class="text-xs font-semibold uppercase text-stone-500">Annuale</span>
+                            <input type="number" step="0.01" name="annual_price" value="" class="w-full p-2.5 rounded-lg border border-stone-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500" placeholder="0.00">
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium text-stone-600">Data inizio</label>
+                        <input type="date" name="start_date" required class="w-full p-3 rounded-lg border border-stone-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium text-stone-600">Data fine</label>
+                        <input type="date" name="end_date" required class="w-full p-3 rounded-lg border border-stone-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                    </div>
                 </div>
                 <div class="space-y-2">
                     <label class="text-sm font-medium text-stone-600">Descrizione</label>
@@ -93,6 +117,14 @@
                             </div>
                             <h4 class="text-xl font-semibold text-stone-900">{{ $course['title'] }}</h4>
                             <p class="text-sm text-stone-500">Docente: {{ $course['teacher_name'] ?? 'Da assegnare' }}</p>
+                            @if(!empty($course['start_date_human']) || !empty($course['end_date_human']))
+                                <p class="text-xs text-teal-700 font-semibold bg-teal-50 border border-teal-200 inline-flex items-center gap-2 px-3 py-1 rounded-full">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10m4-2a2 2 0 00-2-2H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2v-9z"/>
+                                    </svg>
+                                    <span>Periodo: {{ $course['start_date_human'] ?? '—' }} → {{ $course['end_date_human'] ?? '—' }}</span>
+                                </p>
+                            @endif
                             <p class="text-sm text-stone-600 leading-relaxed">{{ $course['description'] }}</p>
                         </div>
                         <div class="text-sm text-stone-500 bg-stone-100 rounded-xl border border-stone-200 px-4 py-3">
@@ -136,8 +168,29 @@
                                     </select>
                                 </div>
                                 <div class="space-y-2">
-                                    <label class="text-xs font-semibold uppercase text-stone-500">Prezzo (€)</label>
-                                    <input type="number" step="0.01" name="price" value="{{ number_format($course['price'] ?? 0, 2, '.', '') }}" required class="w-full p-2.5 rounded-lg border border-stone-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                                    <label class="text-xs font-semibold uppercase text-stone-500">Prezzi abbonamenti (€)</label>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                        <div>
+                                            <span class="text-[11px] font-semibold uppercase text-stone-400">Mensile</span>
+                                            <input type="number" step="0.01" name="monthly_price" value="{{ number_format($course['monthly_price'] ?? $course['price'] ?? 0, 2, '.', '') }}" class="w-full p-2.5 rounded-lg border border-stone-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                                        </div>
+                                        <div>
+                                            <span class="text-[11px] font-semibold uppercase text-stone-400">Trimestrale</span>
+                                            <input type="number" step="0.01" name="quarterly_price" value="{{ number_format($course['quarterly_price'] ?? 0, 2, '.', '') }}" class="w-full p-2.5 rounded-lg border border-stone-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                                        </div>
+                                        <div>
+                                            <span class="text-[11px] font-semibold uppercase text-stone-400">Annuale</span>
+                                            <input type="number" step="0.01" name="annual_price" value="{{ number_format($course['annual_price'] ?? 0, 2, '.', '') }}" class="w-full p-2.5 rounded-lg border border-stone-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-xs font-semibold uppercase text-stone-500">Data inizio</label>
+                                    <input type="date" name="start_date" value="{{ $course['start_date'] ?? '' }}" required class="w-full p-2.5 rounded-lg border border-stone-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-xs font-semibold uppercase text-stone-500">Data fine</label>
+                                    <input type="date" name="end_date" value="{{ $course['end_date'] ?? '' }}" required class="w-full p-2.5 rounded-lg border border-stone-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
                                 </div>
                                 <div class="space-y-2">
                                     <label class="text-xs font-semibold uppercase text-stone-500">Specialità/Focus</label>

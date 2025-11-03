@@ -19,6 +19,7 @@ class AdminSettingController extends Controller
             ->whereIn('key', [
                 'membership_fee',
                 'membership_auto_generate',
+                'membership_morosita_page_size',
                 'receipt_owner_password',
                 'receipt_user_password_mode',
                 'receipt_user_password_custom',
@@ -28,6 +29,7 @@ class AdminSettingController extends Controller
         return view('dashboard.settings', [
             'membership_fee' => $settings['membership_fee'] ?? 20,
             'membership_auto_generate' => isset($settings['membership_auto_generate']) ? (bool) $settings['membership_auto_generate'] : false,
+            'membership_morosita_page_size' => isset($settings['membership_morosita_page_size']) ? (int) $settings['membership_morosita_page_size'] : 5,
             'receipt_owner_password' => $settings['receipt_owner_password'] ?? '',
             'receipt_user_password_mode' => $settings['receipt_user_password_mode'] ?? 'blank',
             'receipt_user_password_custom' => $settings['receipt_user_password_custom'] ?? '',
@@ -41,6 +43,7 @@ class AdminSettingController extends Controller
         $data = $request->validate([
             'membership_fee' => ['required', 'numeric', 'min:0'],
             'membership_auto_generate' => ['nullable', 'boolean'],
+            'membership_morosita_page_size' => ['required', 'integer', 'min:1', 'max:50'],
             'receipt_owner_password' => ['nullable', 'string', 'max:255'],
             'receipt_user_password_mode' => ['required', Rule::in(['blank', 'email', 'custom'])],
             'receipt_user_password_custom' => ['nullable', 'string', 'max:255', 'required_if:receipt_user_password_mode,custom'],
@@ -51,6 +54,7 @@ class AdminSettingController extends Controller
         $settingsToPersist = [
             'membership_fee' => (string) $data['membership_fee'],
             'membership_auto_generate' => $request->boolean('membership_auto_generate') ? '1' : '0',
+            'membership_morosita_page_size' => (string) $data['membership_morosita_page_size'],
             'receipt_owner_password' => trim((string) ($data['receipt_owner_password'] ?? '')),
             'receipt_user_password_mode' => $data['receipt_user_password_mode'],
             'receipt_user_password_custom' => $data['receipt_user_password_mode'] === 'custom'
