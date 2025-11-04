@@ -27,7 +27,6 @@ interface AppContextType {
     bookLesson: (teacherId: number, slot: AvailabilitySlot) => Promise<boolean>;
     cancelBooking: (bookingId: number) => Promise<void>;
     subscribeToCourse: (options: { courseId: number; planType: 'monthly' | 'quarterly' | 'annual'; startOption: 'current_month' | 'next_month'; startDate?: string }) => Promise<void>;
-    toggleAutoRenew: (subscriptionId: number) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -260,11 +259,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         }
     };
 
-    const toggleAutoRenew = async (subscriptionId: number) => {
-        const { subscription } = await fetchApi(`/subscriptions/${subscriptionId}/toggle-renew`, { method: 'PUT' });
-        setSubscriptions((prev) => prev.map((sub) => (sub.id === subscriptionId ? subscription : sub)));
-    };
-
     return (
         <AppContext.Provider
             value={{
@@ -290,7 +284,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 bookLesson,
                 cancelBooking,
                 subscribeToCourse,
-                toggleAutoRenew,
             }}
         >
             {children}

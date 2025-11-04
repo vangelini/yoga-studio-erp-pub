@@ -37,7 +37,6 @@
         toggleTeacher(id) {
             this.expandedTeacher = this.expandedTeacher === id ? null : id;
         },
-        showGenerateModal: false,
         membershipPanelOpen: @json(request()->has('membership_page')),
     }"
     class="space-y-12"
@@ -51,23 +50,12 @@
                 <p class="text-white/85 leading-relaxed">
                     Verifica i dati degli iscritti, assegna corsi ai docenti e monitora pagamenti e quote associative in un unico posto.
                 </p>
-                <div class="flex flex-wrap items-center gap-2">
-                    <a href="{{ route('admin.settings.edit') }}" class="inline-flex items-center gap-2 rounded-lg bg-white/20 px-4 py-2 text-xs font-semibold text-white border border-white/40 backdrop-blur-sm hover:bg-white/30 transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.5 3.75a1.5 1.5 0 013 0V5a1.5 1.5 0 01-3 0V3.75zM5.636 5.636a1.5 1.5 0 010 2.121l-.884.884a1.5 1.5 0 01-2.122-2.121l.884-.884a1.5 1.5 0 012.122 0zM3.75 10.5H5a1.5 1.5 0 010 3H3.75a1.5 1.5 0 010-3zM5.636 18.364a1.5 1.5 0 01-2.122 0l-.884-.884a1.5 1.5 0 112.122-2.121l.884.884a1.5 1.5 0 000 2.121zM10.5 18.75V20a1.5 1.5 0 003 0v-1.25a1.5 1.5 0 00-3 0zM18.364 18.364a1.5 1.5 0 002.122 0l.884-.884a1.5 1.5 0 10-2.122-2.121l-.884.884a1.5 1.5 0 000 2.121zM20.25 13.5H19a1.5 1.5 0 110-3h1.25a1.5 1.5 0 110 3zM18.364 5.636l.884-.884a1.5 1.5 0 10-2.122-2.121l-.884.884a1.5 1.5 0 002.122 2.121z"/>
-                        </svg>
-                        Impostazioni
-                    </a>
-                    <form method="POST" action="{{ route('admin.memberships.generate') }}" x-ref="generateMembershipForm">
-                        @csrf
-                        <button type="button" class="inline-flex items-center gap-2 rounded-lg bg-white/20 px-4 py-2 text-xs font-semibold text-white border border-white/40 backdrop-blur-sm hover:bg-white/30 transition" @click="showGenerateModal = true">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v12m6-6H6" />
-                            </svg>
-                            Genera quote
-                        </button>
-                    </form>
-                </div>
+                <a href="{{ route('admin.settings.edit') }}" class="inline-flex items-center gap-2 rounded-lg bg-white/20 px-4 py-2 text-xs font-semibold text-white border border-white/40 backdrop-blur-sm hover:bg-white/30 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.5 3.75a1.5 1.5 0 013 0V5a1.5 1.5 0 01-3 0V3.75zM5.636 5.636a1.5 1.5 0 010 2.121l-.884.884a1.5 1.5 0 01-2.122-2.121l.884-.884a1.5 1.5 0 012.122 0zM3.75 10.5H5a1.5 1.5 0 010 3H3.75a1.5 1.5 0 010-3zM5.636 18.364a1.5 1.5 0 01-2.122 0l-.884-.884a1.5 1.5 0 112.122-2.121l.884.884a1.5 1.5 0 000 2.121zM10.5 18.75V20a1.5 1.5 0 003 0v-1.25a1.5 1.5 0 00-3 0zM18.364 18.364a1.5 1.5 0 002.122 0l.884-.884a1.5 1.5 0 10-2.122-2.121l-.884.884a1.5 1.5 0 000 2.121zM20.25 13.5H19a1.5 1.5 0 110-3h1.25a1.5 1.5 0 110 3zM18.364 5.636l.884-.884a1.5 1.5 0 10-2.122-2.121l-.884.884a1.5 1.5 0 002.122 2.121z"/>
+                    </svg>
+                    Impostazioni
+                </a>
             </div>
             <div class="grid grid-cols-3 gap-4 bg-white/20 backdrop-blur-sm rounded-2xl px-6 py-4 border border-white/30 shadow-inner text-center text-xs uppercase tracking-widest">
                 <div class="flex flex-col text-white/80">
@@ -82,39 +70,6 @@
                     <span>Docenti</span>
                     <span class="text-2xl font-semibold text-white">{{ $teacherCount }}</span>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <div
-        x-show="showGenerateModal"
-        x-cloak
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4"
-        @keydown.escape.window="showGenerateModal = false"
-    >
-        <div class="w-full max-w-md rounded-2xl bg-white shadow-2xl">
-            <div class="border-b border-stone-200 px-6 py-4">
-                <h3 class="text-lg font-semibold text-stone-900">Genera quote associative</h3>
-            </div>
-            <div class="space-y-4 px-6 py-5 text-sm text-stone-600">
-                <p>Questa operazione verifica tutti i clienti e crea le quote annuali mancanti per la stagione corrente. Le pendenze generate resteranno in stato <strong>pending</strong> finché non verranno saldate manualmente.</p>
-                <p class="text-xs text-stone-500">Usa questa funzione all’inizio della stagione o quando aggiungi nuovi clienti che non hanno ancora una quota associativa attiva.</p>
-            </div>
-            <div class="flex flex-col gap-2 border-t border-stone-200 px-6 py-4 sm:flex-row sm:justify-end">
-                <button
-                    type="button"
-                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-stone-300 px-4 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-100 transition"
-                    @click="showGenerateModal = false"
-                >
-                    Annulla
-                </button>
-                <button
-                    type="button"
-                    class="inline-flex items-center justify-center gap-2 rounded-lg bg-teal-600 px-3 py-2 text-xs font-semibold text-white hover:bg-teal-700 transition"
-                    @click="$refs.generateMembershipForm.submit(); showGenerateModal = false;"
-                >
-                    Conferma operazione
-                </button>
             </div>
         </div>
     </div>
@@ -267,14 +222,47 @@
         </div>
     @endif
     @if(isset($courseUnpaidSummary))
+        @php $showFutureCourses = !empty($courseUnpaidShowFuture); @endphp
+        @php $courseFilterParams = request()->except('show_future_course_payments'); @endphp
         <div class="card p-6 space-y-5" x-data="{ expandedCourse: null }">
-            <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div>
                     <h3 class="text-2xl font-semibold text-stone-900">Morosità corsi</h3>
-                    <p class="text-sm text-stone-500">
-                        Situazione aggiornata per {{ $courseUnpaidSummary['month_label'] }}. Totale clienti in ritardo: {{ $courseUnpaidSummary['total_unpaid'] }}.
-                    </p>
+                    @if($showFutureCourses)
+                        <p class="text-sm text-stone-500">
+                            Sono visualizzate tutte le scadenze pendenti: {{ $courseUnpaidSummary['total_unpaid'] }} (di cui {{ $courseUnpaidSummary['future_total'] ?? 0 }} future).
+                        </p>
+                    @else
+                        <p class="text-sm text-stone-500">
+                            Situazione aggiornata per {{ $courseUnpaidSummary['month_label'] }}. Totale clienti in ritardo: {{ $courseUnpaidSummary['total_unpaid'] }}.
+                        </p>
+                    @endif
                 </div>
+                <form method="GET" action="{{ route('dashboard') }}" class="inline-flex items-center gap-2 text-sm text-stone-600">
+                    @php
+                        foreach ($courseFilterParams as $key => $value) {
+                            if (is_array($value)) {
+                                foreach ($value as $item) {
+                                    echo '<input type="hidden" name="'.e($key).'[]" value="'.e($item).'">';
+                                }
+                            } else {
+                                echo '<input type="hidden" name="'.e($key).'" value="'.e($value).'">';
+                            }
+                        }
+                    @endphp
+                    <input type="hidden" name="show_future_course_payments" value="0">
+                    <label class="inline-flex items-center gap-2 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            name="show_future_course_payments"
+                            value="1"
+                            class="rounded border-stone-300 text-teal-600 focus:ring-teal-500"
+                            @checked($showFutureCourses)
+                            onchange="this.form.submit()"
+                        >
+                        <span>Mostra anche pagamenti futuri</span>
+                    </label>
+                </form>
             </div>
             <div class="space-y-3">
                 @forelse ($courseUnpaidSummary['courses'] as $summary)
@@ -304,6 +292,11 @@
                                 {{ $summary['count'] }}
                             </span>
                         </button>
+                        @if($showFutureCourses && (($summary['future_count'] ?? 0) > 0))
+                            <p class="mt-2 text-xs text-amber-600 font-semibold">
+                                Include {{ $summary['future_count'] }} scadenze future.
+                            </p>
+                        @endif
 
                         <div
                             class="mt-4 space-y-3"
@@ -353,12 +346,17 @@
                                                             </div>
                                                         @endif
                                                     </td>
-                                                    <td class="px-4 py-3 text-stone-600">
-                                                        <p class="text-sm font-semibold text-stone-700">
-                                                            {{ $entry['period_label'] ?? ($entry['due_date'] ? \Carbon\Carbon::parse($entry['due_date'])->translatedFormat('F Y') : '—') }}
-                                                        </p>
-                                                        @if(!empty($entry['plan_label']))
-                                                            <p class="text-xs text-stone-500">Piano: {{ $entry['plan_label'] }}</p>
+                                                   <td class="px-4 py-3 text-stone-600">
+                                                       <p class="text-sm font-semibold text-stone-700">
+                                                           {{ $entry['period_label'] ?? ($entry['due_date'] ? \Carbon\Carbon::parse($entry['due_date'])->translatedFormat('F Y') : '—') }}
+                                                       </p>
+                                                       @if(!empty($entry['plan_label']))
+                                                           <p class="text-xs text-stone-500">Piano: {{ $entry['plan_label'] }}</p>
+                                                       @endif
+                                                        @if(!empty($entry['is_future']))
+                                                            <span class="inline-flex items-center gap-1 mt-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700 uppercase">
+                                                                Futuro
+                                                            </span>
                                                         @endif
                                                     </td>
                                                     <td class="px-4 py-3 text-stone-700 font-semibold">
@@ -1315,24 +1313,45 @@
                                                 <label class="text-xs uppercase text-stone-500 font-semibold">Numero</label>
                                                 <input type="text" name="telephone" value="{{ $teacherNumber }}" required class="input-field text-sm">
                                             </div>
+                                            <div class="md:col-span-2">
+                                                <label class="text-xs uppercase text-stone-500 font-semibold">Stato account</label>
+                                                <select name="status" class="input-field text-sm mt-1">
+                                                    @foreach (['active' => 'Attivo', 'pending' => 'In attesa', 'disabled' => 'Disabilitato'] as $value => $label)
+                                                        <option value="{{ $value }}" @selected(($teacherUser->status ?? '') === $value)>{{ $label }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+
+                                            @if($teacherUser->role === 'Teacher')
+                                                <div class="md:col-span-2 space-y-4 border border-stone-200 rounded-xl bg-white px-4 py-4">
+                                                    <div class="flex items-center gap-3">
+                                                        <input type="hidden" name="teacher_can_host_private" value="0">
+                                                        <label class="flex items-center gap-2 text-xs text-stone-600">
+                                                            <input type="checkbox" name="teacher_can_host_private" value="1" @checked($teacher->can_host_private) class="h-4 w-4 text-teal-600 border-stone-300 rounded">
+                                                            <span class="font-semibold text-stone-700 uppercase tracking-wide">Abilita lezioni private</span>
+                                                        </label>
+                                                    </div>
+
+                                                    <div class="space-y-2">
+                                                        <p class="text-xs uppercase text-stone-500 font-semibold">Assegna corsi</p>
+                                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-48 overflow-y-auto border border-stone-200 rounded-lg p-3 bg-stone-50 text-xs">
+                                                            @foreach ($courses as $course)
+                                                                <label class="flex items-center gap-2">
+                                                                    <input type="checkbox" name="course_ids[]" value="{{ $course['id'] }}" @checked(in_array($course['id'], $assignedCourses)) class="h-4 w-4 text-teal-600 border-stone-300 rounded">
+                                                                    <span>{{ $course['title'] }}</span>
+                                                                </label>
+                                                            @endforeach
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @endif
+
                                             <div class="md:col-span-2 flex justify-end">
                                                 <button type="submit" class="btn-primary text-sm">Salva dati</button>
                                             </div>
                                         </form>
 
                                         <div class="space-y-4">
-                                            <form method="POST" action="{{ route('admin.users.update', $teacherUser) }}" class="flex flex-col md:flex-row md:items-center md:gap-2">
-                                                @csrf
-                                                @method('PUT')
-                                                <input type="hidden" name="role" value="Teacher">
-                                                <select name="status" class="rounded-lg border border-stone-300 px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
-                                                    @foreach (['active', 'pending', 'disabled'] as $statusOption)
-                                                        <option value="{{ $statusOption }}" @selected($teacherUser->status === $statusOption)>{{ ucfirst($statusOption) }}</option>
-                                                    @endforeach
-                                                </select>
-                                                <button type="submit" class="bg-teal-600 text-white text-xs font-semibold px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors">Aggiorna stato</button>
-                                            </form>
-
                                             <form method="POST" action="{{ route('admin.users.passwordEmail', $teacherUser) }}" class="flex items-center gap-3">
                                                 @csrf
                                                 <button type="submit" class="text-xs bg-rose-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-rose-600 transition-colors">Invia reset password</button>
@@ -1350,30 +1369,6 @@
                                                     </form>
                                                 @endif
                                             </div>
-
-                                            <form method="POST" action="{{ route('admin.teachers.private', $teacher) }}" class="flex items-center gap-3">
-                                                @csrf
-                                                <input type="hidden" name="can_host_private" value="0">
-                                                <label class="flex items-center gap-2 text-xs text-stone-600">
-                                                    <input type="checkbox" name="can_host_private" value="1" @checked($teacher->can_host_private) class="h-4 w-4 text-teal-600 border-stone-300 rounded">
-                                                    Abilita lezioni private
-                                                </label>
-                                                <button type="submit" class="text-xs bg-teal-600 text-white font-semibold px-3 py-2 rounded-lg hover:bg-teal-700 transition-colors">Aggiorna</button>
-                                            </form>
-
-                                            <form method="POST" action="{{ route('admin.teachers.courses', $teacher) }}" class="space-y-2">
-                                                @csrf
-                                                <p class="text-xs uppercase text-stone-500 font-semibold">Assegna corsi</p>
-                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-48 overflow-y-auto border border-stone-200 rounded-lg p-3 bg-white text-xs">
-                                                    @foreach ($courses as $course)
-                                                        <label class="flex items-center gap-2">
-                                                            <input type="checkbox" name="course_ids[]" value="{{ $course['id'] }}" @checked(in_array($course['id'], $assignedCourses)) class="h-4 w-4 text-teal-600 border-stone-300 rounded">
-                                                            <span>{{ $course['title'] }}</span>
-                                                        </label>
-                                                    @endforeach
-                                                </div>
-                                                <button type="submit" class="btn-primary text-xs">Salva assegnazioni</button>
-                                            </form>
                                         </div>
                                     </div>
                                 </div>

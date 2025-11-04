@@ -70,61 +70,65 @@ class ClientSubscriptionController extends Controller
             ->with('status', "You are now subscribed to {$course->title}.");
     }
 
-    public function toggleRenewal(Request $request, Subscription $subscription): RedirectResponse|JsonResponse
-    {
-        $client = $request->user();
-        abort_unless($client && $client->role === 'Client', 403);
-        abort_unless($subscription->client_id === $client->id, 403);
-
-        $subscription->update([
-            'auto_renew' => !$subscription->auto_renew,
-        ]);
-
-        $subscription->load('course:id,title,price,monthly_price,quarterly_price,annual_price');
-
-        $message = $subscription->auto_renew
-            ? 'Auto renew enabled.'
-            : 'Auto renew disabled.';
-
-        if ($request->expectsJson()) {
-            return response()->json([
-                'message' => $message,
-                'subscription' => $this->formatSubscription($subscription),
-            ]);
-        }
-
-        return redirect()
-            ->route('dashboard')
-            ->with('status', $message);
-    }
-
     public function destroy(Request $request, Subscription $subscription): RedirectResponse|JsonResponse
     {
         $client = $request->user();
         abort_unless($client && $client->role === 'Client', 403);
         abort_unless($subscription->client_id === $client->id, 403);
 
-        $payment = Payment::where('payable_type', Subscription::class)
-            ->where('payable_id', $subscription->id)
-            ->first();
+        if ($subscription->status === 'cancelled') {
+            $message = __('Questa iscrizione è già stata annullata.');
 
-        $subscription->delete();
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $message,
+                    'subscription' => $this->formatSubscription($subscription),
+                    'removed_payment_ids' => [],
+                ], 200);
+            }
 
-        if ($payment) {
-            $payment->delete();
+            return redirect()
+                ->route('dashboard')
+                ->with('status', $message);
         }
+
+        $subscription->forceFill([
+            'status' => 'cancelled',
+            'cancelled_at' => now(),
+            'auto_renew' => false,
+        ])->save();
+
+        $removedPaymentIds = Payment::query()
+            ->where('payable_type', Subscription::class)
+            ->where('payable_id', $subscription->id)
+            ->where('status', 'pending')
+            ->where(function ($query) {
+                $today = now()->toDateString();
+                $query->whereNull('due_date')
+                    ->orWhereDate('due_date', '>=', $today);
+            })
+            ->pluck('id')
+            ->all();
+
+        if (!empty($removedPaymentIds)) {
+            Payment::whereIn('id', $removedPaymentIds)->delete();
+        }
+
+        $subscription->refresh()->load('course:id,title,price,monthly_price,quarterly_price,annual_price');
+
+        $message = __('Iscrizione al corso annullata con successo.');
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => 'Subscription cancelled.',
-                'subscription_id' => $subscription->id,
-                'payment_id' => $payment?->id,
+                'message' => $message,
+                'subscription' => $this->formatSubscription($subscription),
+                'removed_payment_ids' => $removedPaymentIds,
             ]);
         }
 
         return redirect()
             ->route('dashboard')
-            ->with('status', 'Subscription cancelled.');
+            ->with('status', $message);
     }
 
     protected function formatSubscription(Subscription $subscription): array
@@ -149,6 +153,10 @@ class ClientSubscriptionController extends Controller
             'planLabel' => $subscription->plan_label,
             'plan_amount' => $subscription->plan_amount,
             'planAmount' => $subscription->plan_amount,
+            'status' => $subscription->status,
+            'cancelled_at' => optional($subscription->cancelled_at)?->toIso8601String(),
+            'cancelledAt' => optional($subscription->cancelled_at)?->toIso8601String(),
+            'cancelledAtDisplay' => optional($subscription->cancelled_at)?->translatedFormat('d/m/Y H:i'),
             'course' => optional($subscription->course)?->only([
                 'id',
                 'title',
@@ -167,7 +175,7 @@ class ClientSubscriptionController extends Controller
             'type' => $payment->type,
             'status' => $payment->status,
             'amount' => $payment->amount,
-             'amount_formatted' => number_format((float) $payment->amount, 2, '.', ''),
+            'amount_formatted' => number_format((float) $payment->amount, 2, '.', ''),
             'due_date' => optional($payment->due_date)?->format('Y-m-d'),
             'paid_at' => optional($payment->paid_at)?->format('Y-m-d H:i'),
             'method' => $payment->method,

@@ -48,20 +48,28 @@ class MembershipManager
                     'status' => 'pending',
                     'due_date' => $membership->due_date,
                     'paid_at' => $membership->paid_at,
+                    'receipt_year' => $membership->season_start_year,
                     'meta' => [
                         'season' => $membership->season_start_year.'/'.($membership->season_start_year + 1),
                     ],
                 ]
             );
 
-            if ($payment->wasRecentlyCreated === false && $payment->status === 'pending') {
-                $payment->update([
+            if ($payment->status === 'pending') {
+                $updates = [
                     'amount' => $membership->amount,
                     'due_date' => $membership->due_date,
+                    'receipt_year' => $membership->season_start_year,
                     'meta' => [
                         'season' => $membership->season_start_year.'/'.($membership->season_start_year + 1),
                     ],
-                ]);
+                ];
+
+                $payment->fill($updates);
+
+                if ($payment->isDirty()) {
+                    $payment->save();
+                }
             }
 
             $membership->setRelation('payment', $payment);

@@ -65,6 +65,10 @@ class SubscriptionsController extends Controller
                 'clientId' => $subscription->client_id,
                 'auto_renew' => (bool) $subscription->auto_renew,
                 'autoRenew' => (bool) $subscription->auto_renew,
+                'status' => $subscription->status,
+                'cancelled_at' => optional($subscription->cancelled_at)?->toIso8601String(),
+                'cancelledAt' => optional($subscription->cancelled_at)?->toIso8601String(),
+                'cancelledAtDisplay' => optional($subscription->cancelled_at)?->translatedFormat('d/m/Y H:i'),
                 'start_date' => optional($subscription->start_date)?->format('Y-m-d'),
                 'startDate' => optional($subscription->start_date)?->format('Y-m-d'),
                 'startDateDisplay' => optional($subscription->start_date)?->translatedFormat('d/m/Y'),
@@ -98,46 +102,5 @@ class SubscriptionsController extends Controller
                 'meta' => $payment->meta ?? [],
             ] : null,
         ], 201);
-    }
-
-    public function toggleRenewal(Subscription $subscription)
-    {
-        $subscription->update([
-            'auto_renew' => !$subscription->auto_renew,
-        ]);
-
-        $subscription->load('course:id,title,price,monthly_price,quarterly_price,annual_price');
-
-        return response()->json([
-            'subscription' => [
-                'id' => $subscription->id,
-                'course_id' => $subscription->course_id,
-                'courseId' => $subscription->course_id,
-                'client_id' => $subscription->client_id,
-                'clientId' => $subscription->client_id,
-                'auto_renew' => (bool) $subscription->auto_renew,
-                'autoRenew' => (bool) $subscription->auto_renew,
-                'start_date' => optional($subscription->start_date)?->format('Y-m-d'),
-                'startDate' => optional($subscription->start_date)?->format('Y-m-d'),
-                'startDateDisplay' => optional($subscription->start_date)?->translatedFormat('d/m/Y'),
-                'end_date' => optional($subscription->end_date)?->format('Y-m-d'),
-                'endDate' => optional($subscription->end_date)?->format('Y-m-d'),
-                'endDateDisplay' => optional($subscription->end_date)?->translatedFormat('d/m/Y'),
-                'plan_type' => $subscription->plan_type,
-                'planType' => $subscription->plan_type,
-                'plan_label' => $subscription->plan_label,
-                'planLabel' => $subscription->plan_label,
-                'plan_amount' => $subscription->plan_amount,
-                'planAmount' => $subscription->plan_amount,
-                'course' => optional($subscription->course)?->only([
-                    'id',
-                    'title',
-                    'price',
-                    'monthly_price',
-                    'quarterly_price',
-                    'annual_price',
-                ]),
-            ],
-        ]);
     }
 }

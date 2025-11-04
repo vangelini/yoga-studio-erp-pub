@@ -33,7 +33,7 @@ class CourseSubscriptionManager
             ->where('course_id', $course->id)
             ->first();
 
-        if ($existing) {
+        if ($existing && $existing->status !== 'cancelled') {
             throw ValidationException::withMessages([
                 'course_id' => __('Sei già iscritto a questo corso.'),
             ]);
@@ -132,26 +132,44 @@ class CourseSubscriptionManager
 
         $endDate = $startDate ? $startDate->copy()->addMonthsNoOverflow($durationMonths)->subDay() : null;
 
-        return DB::transaction(function () use ($client, $course, $startDate, $endDate, $amount, $meta, $planType, $basePrice) {
+        return DB::transaction(function () use ($client, $course, $startDate, $endDate, $amount, $meta, $planType, $basePrice, $existing) {
             /** @var Subscription $subscription */
-            $subscription = Subscription::create([
-                'client_id' => $client->id,
-                'course_id' => $course->id,
-                'auto_renew' => true,
-                'start_date' => $startDate,
-                'end_date' => $endDate,
-                'plan_type' => $planType,
-                'plan_amount' => $basePrice,
-            ]);
+            if ($existing) {
+                $existing->fill([
+                    'auto_renew' => true,
+                    'start_date' => $startDate,
+                    'end_date' => $endDate,
+                    'plan_type' => $planType,
+                    'plan_amount' => $basePrice,
+                    'status' => 'active',
+                    'cancelled_at' => null,
+                ]);
+                $existing->save();
+                $subscription = $existing->fresh();
+            } else {
+                $subscription = Subscription::create([
+                    'client_id' => $client->id,
+                    'course_id' => $course->id,
+                    'auto_renew' => true,
+                    'start_date' => $startDate,
+                    'end_date' => $endDate,
+                    'plan_type' => $planType,
+                    'plan_amount' => $basePrice,
+                    'status' => 'active',
+                    'cancelled_at' => null,
+                ]);
+            }
 
             $payment = Payment::create([
                 'user_id' => $client->id,
                 'payable_type' => Subscription::class,
                 'payable_id' => $subscription->id,
+                'course_id' => $course->id,
                 'type' => 'course_subscription',
                 'amount' => $amount,
                 'status' => 'pending',
                 'due_date' => $startDate,
+                'receipt_year' => $startDate ? (int) $startDate->format('Y') : now()->year,
                 'meta' => $meta,
             ]);
 

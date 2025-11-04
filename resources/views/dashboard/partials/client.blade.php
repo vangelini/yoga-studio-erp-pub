@@ -36,7 +36,6 @@
             'book' => route('client.bookings.store'),
             'cancelBase' => url('/client/bookings'),
             'subscribe' => route('client.subscriptions.store'),
-            'toggleSubscription' => url('/client/subscriptions'),
             'cancelSubscription' => url('/client/subscriptions'),
             'paymentMarkBase' => url('/client/payments'),
         ],
@@ -274,7 +273,7 @@
                             </p>
                         </template>
                     </div>
-                    <div class="mt-4 flex items-center gap-3">
+                    <div class="mt-4 flex flex-col sm:flex-row sm:items-center gap-3">
                         <template x-if="!isSubscribed(course.id)">
                             <button
                                 type="button"
@@ -286,7 +285,25 @@
                             </button>
                         </template>
                         <template x-if="isSubscribed(course.id)">
-                            <span class="text-xs text-stone-500">Iscrizione attiva. Per modifiche contatta la segreteria.</span>
+                            <div class="flex flex-col sm:flex-row sm:items-center gap-2 text-xs text-stone-500">
+                                <span class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 font-semibold text-emerald-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    Iscrizione attiva
+                                </span>
+                                <button
+                                    type="button"
+                                    class="inline-flex items-center gap-2 rounded-lg border border-rose-200 bg-white px-3 py-1.5 font-semibold text-rose-600 hover:bg-rose-50 transition-colors disabled:opacity-60"
+                                    @click="cancelSubscription(course.id)"
+                                    :disabled="loading"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                    Annulla iscrizione
+                                </button>
+                            </div>
                         </template>
                     </div>
                     <template x-if="course.availablePlans?.length">
@@ -476,31 +493,55 @@
             <div class="flex items-center justify-between">
                 <h3 class="text-2xl font-semibold text-stone-900">Course Subscriptions</h3>
                 <span class="inline-flex items-center gap-2 bg-emerald-50 text-emerald-600 border border-emerald-100 px-3 py-1.5 rounded-full text-xs font-semibold">
-                    Auto-renew options
+                    Stato iscrizioni
                 </span>
             </div>
-            <template x-if="subscriptions.length === 0">
+            <template x-if="displaySubscriptions().length === 0">
                 <div class="rounded-xl border border-dashed border-stone-300 bg-stone-50 px-6 py-10 text-center text-stone-500">
                     You are not subscribed to any courses yet. Subscribe above to unlock access.
                 </div>
             </template>
-            <template x-for="subscription in subscriptions" :key="subscription.id">
-                <div class="p-4 bg-stone-50 rounded-lg border border-stone-200 flex justify-between items-center">
-                    <div>
+            <template x-for="subscription in displaySubscriptions()" :key="subscription.id">
+                <div
+                    class="p-4 bg-stone-50 rounded-lg border border-stone-200 flex flex-col md:flex-row md:items-center md:justify-between gap-3"
+                    :class="subscription.status === 'cancelled' ? 'opacity-70' : ''"
+                >
+                    <div class="space-y-1">
                         <p class="text-lg font-semibold text-stone-800" x-text="subscription.course?.title ?? 'Subscription'"></p>
-                        <p class="text-xs text-stone-500">
-                            Auto renew:
-                            <span class="font-semibold" x-text="subscription.auto_renew ? 'Enabled' : 'Disabled'"></span>
-                        </p>
+                        <div class="flex flex-wrap items-center gap-2 text-xs">
+                            <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 border text-xs font-semibold"
+                                :class="subscription.status === 'active'
+                                    ? 'border-emerald-200 bg-emerald-50 text-emerald-600'
+                                    : 'border-rose-200 bg-rose-50 text-rose-600'">
+                                <template x-if="subscription.status === 'active'">
+                                    <span>Attiva</span>
+                                </template>
+                                <template x-if="subscription.status === 'cancelled'">
+                                    <span>Annullata</span>
+                                </template>
+                            </span>
+                            <template x-if="subscription.status === 'cancelled' && subscription.cancelledAtDisplay">
+                                <span class="text-stone-400">
+                                    · Annullata il <span x-text="subscription.cancelledAtDisplay"></span>
+                                </span>
+                            </template>
+                        </div>
                     </div>
-                    <button
-                        type="button"
-                        class="text-xs bg-stone-200 text-stone-700 font-semibold py-1.5 px-3 rounded-md hover:bg-stone-300 transition-colors disabled:opacity-50"
-                        @click="toggleSubscriptionAutoRenew(subscription.course_id)"
-                        :disabled="loading"
-                    >
-                        Toggle auto renew
-                    </button>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <template x-if="subscription.status === 'active'">
+                            <button
+                                type="button"
+                                class="text-xs bg-rose-500 text-white font-semibold py-1.5 px-3 rounded-md hover:bg-rose-600 transition-colors disabled:opacity-50"
+                                @click="cancelSubscriptionById(subscription.id)"
+                                :disabled="loading"
+                            >
+                                Annulla iscrizione
+                            </button>
+                        </template>
+                        <template x-if="subscription.status === 'cancelled'">
+                            <span class="text-xs text-stone-500">Rinnovo automatico disattivato dopo l'annullamento.</span>
+                        </template>
+                    </div>
                 </div>
             </template>
         </div>
@@ -820,6 +861,16 @@
                                         },
                                     };
                                 });
+
+                            this.subscriptions.sort((a, b) => {
+                                if (a.status === b.status) {
+                                    const titleA = (a.course?.title ?? '').toLocaleLowerCase();
+                                    const titleB = (b.course?.title ?? '').toLocaleLowerCase();
+                                    return titleA.localeCompare(titleB);
+                                }
+
+                                return a.status === 'active' ? -1 : 1;
+                            });
                         },
 
                         togglePayments() {
@@ -1043,6 +1094,7 @@
                                         } else {
                                             this.subscriptions.push(response.subscription);
                                         }
+                                        this.refreshDerivedCollections();
                                     }
                                     this.statusMessage = response.message || 'Subscription activated.';
                                     if (response.payment) {
@@ -1176,34 +1228,61 @@
                             this.openSubscriptionModal(course);
                         },
 
-                        toggleSubscriptionAutoRenew(courseId) {
-                            const subscription = this.subscriptionByCourse(courseId);
-                            if (!subscription) return;
-                            const url = `${this.routes.toggleSubscription}/${subscription.id}/toggle-renew`;
-                            this.sendRequest(url, 'PUT')
-                                .then(response => {
-                                    if (response.subscription) {
-                                        Object.assign(subscription, response.subscription);
-                                    }
-                                    this.statusMessage = response.message || 'Subscription updated.';
-                                })
-                                .catch(() => {});
-                        },
-
                         cancelSubscription(courseId) {
                             const subscription = this.subscriptionByCourse(courseId);
-                            if (!subscription) return;
+                            if (!subscription) {
+                                this.statusMessage = 'Nessuna iscrizione attiva da annullare.';
+                                return;
+                            }
+
+                            this.cancelSubscriptionInternal(subscription);
+                        },
+
+                        cancelSubscriptionById(subscriptionId) {
+                            const subscription = this.findSubscriptionById(subscriptionId);
+                            if (!subscription) {
+                                this.statusMessage = 'Iscrizione non trovata.';
+                                return;
+                            }
+
+                            this.cancelSubscriptionInternal(subscription);
+                        },
+
+                        cancelSubscriptionInternal(subscription) {
+                            if (!subscription || subscription.status === 'cancelled') {
+                                this.statusMessage = 'Questa iscrizione è già stata annullata.';
+                                return;
+                            }
+
+                            if (!window.confirm('Confermi la cancellazione della tua partecipazione a questo corso?')) {
+                                return;
+                            }
+
                             const url = `${this.routes.cancelSubscription}/${subscription.id}`;
                             this.sendRequest(url, 'DELETE')
                                 .then(response => {
-                                    this.subscriptions = this.subscriptions.filter(sub => sub.id !== subscription.id);
-                                this.statusMessage = response.message || 'Subscription cancelled.';
-                                if (response.payment_id) {
-                                    this.removePayment(response.payment_id);
-                                }
-                            })
-                            .catch(() => {});
-                    },
+                                    if (response.subscription) {
+                                        const target = this.findSubscriptionById(response.subscription.id);
+                                        if (target) {
+                                            Object.assign(target, response.subscription);
+                                        } else {
+                                            this.subscriptions.push(response.subscription);
+                                        }
+                                    } else {
+                                        this.subscriptions = this.subscriptions.filter(sub => sub.id !== subscription.id);
+                                    }
+
+                                    const removedIds = Array.isArray(response.removed_payment_ids)
+                                        ? response.removed_payment_ids
+                                        : (response.payment_id ? [response.payment_id] : []);
+
+                                    removedIds.forEach(id => this.removePayment(id));
+
+                                    this.statusMessage = response.message || 'Iscrizione annullata.';
+                                    this.refreshDerivedCollections();
+                                })
+                                .catch(() => {});
+                        },
 
                         updateAfterBooking(booking) {
                             const decorated = decorateBooking(booking) ?? booking;
@@ -1325,12 +1404,39 @@
                         this.payments = this.payments.filter(p => p.id !== paymentId);
                     },
 
-                        subscriptionByCourse(courseId) {
+                        findSubscriptionByCourse(courseId) {
                             return this.subscriptions.find(sub => (sub.course_id ?? sub.courseId) === courseId) || null;
+                        },
+
+                        findSubscriptionById(subscriptionId) {
+                            return this.subscriptions.find(sub => sub.id === subscriptionId) || null;
+                        },
+
+                        subscriptionByCourse(courseId) {
+                            const subscription = this.findSubscriptionByCourse(courseId);
+                            if (!subscription) return null;
+                            return subscription.status === 'cancelled' ? null : subscription;
                         },
 
                         isSubscribed(courseId) {
                             return Boolean(this.subscriptionByCourse(courseId));
+                        },
+
+                        activeSubscriptions() {
+                            return this.subscriptions.filter(sub => sub.status !== 'cancelled');
+                        },
+
+                        displaySubscriptions() {
+                            return this.subscriptions
+                                .slice()
+                                .sort((a, b) => {
+                                    if (a.status === b.status) {
+                                        const titleA = (a.course?.title ?? '').toLocaleLowerCase();
+                                        const titleB = (b.course?.title ?? '').toLocaleLowerCase();
+                                        return titleA.localeCompare(titleB);
+                                    }
+                                    return a.status === 'active' ? -1 : 1;
+                                });
                         },
 
                         upcomingSorted() {

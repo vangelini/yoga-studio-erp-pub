@@ -17,6 +17,8 @@ class Subscription extends Model
         'end_date',
         'plan_type',
         'plan_amount',
+        'status',
+        'cancelled_at',
     ];
 
     protected $casts = [
@@ -24,6 +26,7 @@ class Subscription extends Model
         'start_date' => 'date',
         'end_date' => 'date',
         'plan_amount' => 'float',
+        'cancelled_at' => 'datetime',
     ];
 
     public function client()
@@ -48,5 +51,10 @@ class Subscription extends Model
             'annual' => __('Annuale'),
             default => __('Mensile'),
         };
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
     }
 }

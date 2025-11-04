@@ -83,7 +83,10 @@ export interface Subscription {
     id: number;
     clientId: number;
     courseId: number;
-    autoRenew: boolean;
+    autoRenew?: boolean;
+    status?: 'active' | 'cancelled';
+    cancelledAt?: string;
+    cancelledAtDisplay?: string;
     startDate?: string;
     startDateDisplay?: string;
     endDate?: string;

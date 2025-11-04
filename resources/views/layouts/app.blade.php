@@ -4,13 +4,13 @@
     <div class="flex flex-col min-h-screen">
         <header class="bg-white/80 backdrop-blur shadow-sm sticky top-0 z-40">
             <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <img src="{{ asset('images/yoga-logo.jpg') }}" alt="Shanti Sadhana Logo" class="w-10 h-10 rounded-full">
+                <a href="{{ route('dashboard') }}" class="flex items-center gap-3 group transition">
+                    <img src="{{ asset('images/yoga-logo.jpg') }}" alt="Shanti Sadhana Logo" class="w-10 h-10 rounded-full ring-2 ring-transparent group-hover:ring-teal-200 transition">
                     <div>
-                        <h1 class="text-2xl font-bold text-teal-800">Shanti Sadhana</h1>
+                        <h1 class="text-2xl font-bold text-teal-800 group-hover:text-teal-700 transition">Shanti Sadhana</h1>
                         <p class="text-sm text-stone-500 -mt-1">Find your inner peace.</p>
                     </div>
-                </div>
+                </a>
                 <div class="flex items-center gap-4">
                     <div class="text-right">
                         <p class="text-sm text-stone-500">Welcome back</p>

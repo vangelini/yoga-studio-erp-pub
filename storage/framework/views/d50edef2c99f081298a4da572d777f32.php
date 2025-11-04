@@ -1,20 +1,21 @@
 <?php $__env->startSection('content'); ?>
 <?php
     $autoGenerateOld = old('membership_auto_generate', $membership_auto_generate);
+    $courseAutoOld = old('course_payment_auto_generate', $course_payment_auto_generate);
+    $courseLeadOld = old('course_payment_lead_days', $course_payment_lead_days);
 ?>
 <div class="max-w-3xl mx-auto" x-data="{ mode: '<?php echo e($receipt_user_password_mode); ?>' }">
+    <form id="membership-generate-form" method="POST" action="<?php echo e(route('admin.memberships.generate')); ?>" class="hidden">
+        <?php echo csrf_field(); ?>
+    </form>
+    <form id="course-payments-generate-form" method="POST" action="<?php echo e(route('admin.courses.payments.generate')); ?>" class="hidden">
+        <?php echo csrf_field(); ?>
+    </form>
     <div class="card p-6 space-y-6">
         <div>
             <h1 class="text-2xl font-semibold text-stone-900">Impostazioni amministratore</h1>
             <p class="text-sm text-stone-500">Configura le impostazioni generali del centro.</p>
         </div>
-
-        <?php if(session('status')): ?>
-            <div class="rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-3 text-emerald-700">
-                <?php echo e(session('status')); ?>
-
-            </div>
-        <?php endif; ?>
 
         <form method="POST" action="<?php echo e(route('admin.settings.update')); ?>" class="space-y-6">
             <?php echo csrf_field(); ?>
@@ -35,9 +36,62 @@ endif;
 unset($__errorArgs, $__bag); ?>
             </div>
 
-            <div class="flex items-center gap-2">
-                <input type="checkbox" name="membership_auto_generate" value="1" id="auto-generate" <?php echo e($autoGenerateOld ? 'checked' : ''); ?> class="rounded border-stone-300 text-teal-600 focus:ring-teal-500">
-                <label for="auto-generate" class="text-sm text-stone-600">Genera automaticamente le pendenze delle quote quando si accede al pannello admin</label>
+            <div class="space-y-2">
+                <div class="flex flex-wrap items-center gap-2">
+                    <input type="checkbox" name="membership_auto_generate" value="1" id="auto-generate" <?php echo e($autoGenerateOld ? 'checked' : ''); ?> class="rounded border-stone-300 text-teal-600 focus:ring-teal-500">
+                    <label for="auto-generate" class="text-sm text-stone-600">Genera automaticamente le pendenze delle quote associative quando un amministratore accede al pannello.</label>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <button type="button" class="inline-flex items-center gap-1 rounded-lg border border-stone-300 px-3 py-1.5 text-xs font-semibold text-stone-600 hover:bg-stone-100 transition" onclick="if (confirm('Generare subito le pendenze delle quote associative?')) document.getElementById('membership-generate-form').submit();">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-10c1.486 0 2.737.81 2.959 1.893M12 6c-1.486 0-2.737.81-2.959 1.893M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        Genera quote ora
+                    </button>
+                </div>
+            </div>
+
+            <div class="space-y-3 border border-stone-200 rounded-xl bg-stone-50 px-4 py-4">
+                <div class="flex flex-col gap-2">
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" name="course_payment_auto_generate" value="1" id="course-auto" <?php echo e($courseAutoOld ? 'checked' : ''); ?> class="rounded border-stone-300 text-teal-600 focus:ring-teal-500">
+                        <label for="course-auto" class="text-sm text-stone-600">Abilita la generazione automatica delle pendenze per i corsi in abbonamento.</label>
+                    </div>
+                    <div>
+                        <label class="text-xs uppercase font-semibold text-stone-500">Giorni di anticipo</label>
+                        <input type="number" min="1" max="120" name="course_payment_lead_days" value="<?php echo e($courseLeadOld); ?>" class="input-field text-sm mt-1 w-32">
+                        <p class="text-xs text-stone-500 mt-1">La pendenza del periodo successivo verrà creata questo numero di giorni prima della scadenza dell'abbonamento.</p>
+                        <?php $__errorArgs = ['course_payment_lead_days'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                            <p class="text-xs text-rose-600 mt-1"><?php echo e($message); ?></p>
+                        <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button type="button" class="inline-flex items-center gap-1 rounded-lg border border-stone-300 px-3 py-1.5 text-xs font-semibold text-stone-600 hover:bg-stone-100 transition" onclick="if (confirm('Generare subito le pendenze per i corsi?')) document.getElementById('course-payments-generate-form').submit();">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2h-5.586a1 1 0 01-.707-.293l-1.414-1.414A2 2 0 009.586 3H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            Genera pendenze corsi
+                        </button>
+                        <?php if(!empty($course_payment_last_run)): ?>
+                            <span class="text-[11px] text-stone-500">
+                                Ultima esecuzione: <?php echo e(\Carbon\Carbon::parse($course_payment_last_run['run_at'])->format('d/m/Y H:i') ?? '—'); ?>
+
+                                · nuove pendenze: <?php echo e($course_payment_last_run['created'] ?? 0); ?>
+
+                                <?php if(!empty($course_payment_last_run['manual'])): ?>
+                                    · esecuzione manuale
+                                <?php endif; ?>
+                            </span>
+                        <?php endif; ?>
+                    </div>
+                </div>
             </div>
 
             <div>

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Web\AdminCourseController;
+use App\Http\Controllers\Web\AdminCoursePaymentController;
 use App\Http\Controllers\Web\AdminUserController;
 use App\Http\Controllers\Web\AuthSessionController;
 use App\Http\Controllers\Web\DashboardPageController;
@@ -79,6 +80,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/admin/payments/{payment}/receipt', [\App\Http\Controllers\Web\PaymentAdminController::class, 'showReceipt'])->name('admin.payments.receipt');
         Route::post('/admin/payments/{payment}/reprint', [\App\Http\Controllers\Web\PaymentAdminController::class, 'reprint'])->name('admin.payments.reprint');
         Route::post('/admin/memberships/generate', [\App\Http\Controllers\Web\AdminMembershipController::class, 'generate'])->name('admin.memberships.generate');
+        Route::post('/admin/courses/payments/generate', [AdminCoursePaymentController::class, 'generate'])->name('admin.courses.payments.generate');
         Route::get('/admin/settings', [\App\Http\Controllers\Web\AdminSettingController::class, 'edit'])->name('admin.settings.edit');
         Route::put('/admin/settings', [\App\Http\Controllers\Web\AdminSettingController::class, 'update'])->name('admin.settings.update');
         Route::post('/admin/teachers/{teacher}/private', [AdminUserController::class, 'togglePrivateClasses'])->name('admin.teachers.private');
@@ -89,7 +91,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/client/bookings', [ClientBookingController::class, 'store'])->name('client.bookings.store');
         Route::delete('/client/bookings/{booking}', [ClientBookingController::class, 'destroy'])->name('client.bookings.destroy');
         Route::post('/client/subscriptions', [ClientSubscriptionController::class, 'store'])->name('client.subscriptions.store');
-        Route::put('/client/subscriptions/{subscription}/toggle-renew', [ClientSubscriptionController::class, 'toggleRenewal'])->name('client.subscriptions.toggle');
         Route::delete('/client/subscriptions/{subscription}', [ClientSubscriptionController::class, 'destroy'])->name('client.subscriptions.destroy');
         Route::post('/client/documents', [ClientDocumentController::class, 'store'])->name('client.documents.store');
         

@@ -11,10 +11,12 @@ use App\Models\Setting;
 use App\Models\Subscription;
 use App\Models\UserDocument;
 use App\Models\Teacher;
+use App\Services\CoursePaymentGenerator;
 use App\Services\MembershipManager;
 use App\Support\TimeHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
@@ -25,6 +27,10 @@ class DashboardPageController extends Controller
         $user = Auth::user();
         $membershipManager = app(MembershipManager::class);
         $membership = $membershipManager->ensureCurrentMembership($user, false);
+
+        if ($user->role === 'Admin') {
+            $this->maybeAutoGenerateCoursePayments();
+        }
 
         $courses = Course::with(['teacher', 'schedule'])
             ->orderBy('title')
@@ -105,7 +111,9 @@ class DashboardPageController extends Controller
             $autoGenerateMemberships = $this->shouldAutoGenerateMemberships();
             $extra['clients'] = $this->loadClients($autoGenerateMemberships);
             $extra['teacherAdminList'] = $this->loadTeacherAdminList();
-            $extra['courseUnpaidSummary'] = $this->loadCourseUnpaidSummary();
+            $showFuture = (bool) $request->boolean('show_future_course_payments', false);
+            $extra['courseUnpaidSummary'] = $this->loadCourseUnpaidSummary($showFuture);
+            $extra['courseUnpaidShowFuture'] = $showFuture;
             $extra['membershipSummary'] = $this->buildMembershipSummary($extra['clients'], $request);
         } elseif ($user->role === 'Teacher') {
             $extra = array_merge($extra, $this->loadTeacherData($user->id));
@@ -287,7 +295,7 @@ class DashboardPageController extends Controller
             ->values();
     }
 
-    private function loadCourseUnpaidSummary(): array
+    private function loadCourseUnpaidSummary(bool $includeFuture = false): array
     {
         $now = now();
         $endOfMonth = $now->copy()->endOfMonth();
@@ -295,15 +303,21 @@ class DashboardPageController extends Controller
         $courses = Course::orderBy('title')
             ->get(['id', 'title', 'price', 'monthly_price', 'quarterly_price', 'annual_price']);
 
-        $payments = Payment::query()
+        $paymentsQuery = Payment::query()
             ->where('type', 'course_subscription')
             ->where('status', 'pending')
             ->where('payable_type', Subscription::class)
-            ->where(function ($query) use ($endOfMonth) {
-                $query->whereDate('due_date', '<=', $endOfMonth)
-                    ->orWhereNull('due_date');
+            ->when(!$includeFuture, function ($query) use ($endOfMonth) {
+                $query->where(function ($inner) use ($endOfMonth) {
+                    $inner->whereDate('due_date', '<=', $endOfMonth)
+                        ->orWhereNull('due_date');
+                });
             })
-            ->get();
+            ->when($includeFuture, function ($query) {
+                $query->orderByRaw('COALESCE(due_date, "9999-12-31") ASC');
+            });
+
+        $payments = $paymentsQuery->get();
 
         if ($payments->isEmpty()) {
             $courseSummary = $courses->map(function (Course $course) {
@@ -312,13 +326,16 @@ class DashboardPageController extends Controller
                     'title' => $course->title,
                     'price' => $course->price,
                     'count' => 0,
+                    'future_count' => 0,
                     'unpaid' => [],
                 ];
             })->values()->all();
 
             return [
-                'month_label' => $now->translatedFormat('F Y'),
+                'month_label' => $includeFuture ? __('tutte le scadenze') : $now->translatedFormat('F Y'),
                 'total_unpaid' => 0,
+                'future_total' => 0,
+                'showing_future' => $includeFuture,
                 'courses' => $courseSummary,
             ];
         }
@@ -329,11 +346,17 @@ class DashboardPageController extends Controller
             ->unique()
             ->values();
 
-        $subscriptions = Subscription::with([
+        $subscriptionQuery = Subscription::with([
                 'course:id,title,price,monthly_price,quarterly_price,annual_price',
-                'client:id,name,email,telephone',
+                'client:id,name,email,telephone,status',
             ])
-            ->whereIn('id', $subscriptionIds)
+            ->whereIn('id', $subscriptionIds);
+
+        if (Schema::hasColumn('subscriptions', 'status')) {
+            $subscriptionQuery->where('status', 'active');
+        }
+
+        $subscriptions = $subscriptionQuery
             ->get()
             ->keyBy('id');
 
@@ -348,6 +371,7 @@ class DashboardPageController extends Controller
                     'price' => $referencePrice,
                     'plans' => $plans,
                     'unpaid' => [],
+                    'future_count' => 0,
                 ],
             ];
         })->toArray();
@@ -356,6 +380,10 @@ class DashboardPageController extends Controller
             $subscription = $subscriptions->get($payment->payable_id);
 
             if (!$subscription || !$subscription->course) {
+                continue;
+            }
+
+            if (optional($subscription->client)->status === 'disabled') {
                 continue;
             }
 
@@ -368,7 +396,14 @@ class DashboardPageController extends Controller
                     'price' => $subscription->plan_amount,
                     'plans' => $subscription->course?->availablePlans() ?? [],
                     'unpaid' => [],
+                    'future_count' => 0,
                 ];
+            }
+
+            $isFuture = $includeFuture && optional($payment->due_date)->greaterThan($endOfMonth);
+
+            if ($isFuture) {
+                $courseSummaries[$courseId]['future_count'] = ($courseSummaries[$courseId]['future_count'] ?? 0) + 1;
             }
 
             $courseSummaries[$courseId]['unpaid'][] = [
@@ -384,6 +419,7 @@ class DashboardPageController extends Controller
                 'plan_type' => $subscription->plan_type,
                 'plan_label' => $subscription->plan_label,
                 'plan_amount' => $subscription->plan_amount,
+                'is_future' => $isFuture,
             ];
         }
 
@@ -417,10 +453,13 @@ class DashboardPageController extends Controller
             ->all();
 
         $totalUnpaid = array_sum(array_column($courseSummary, 'count'));
+        $futureTotal = array_sum(array_map(fn ($course) => $course['future_count'] ?? 0, $courseSummary));
 
         return [
-            'month_label' => $now->translatedFormat('F Y'),
+            'month_label' => $includeFuture ? __('tutte le scadenze') : $now->translatedFormat('F Y'),
             'total_unpaid' => $totalUnpaid,
+            'future_total' => $futureTotal,
+            'showing_future' => $includeFuture,
             'courses' => $courseSummary,
         ];
     }
@@ -507,6 +546,10 @@ class DashboardPageController extends Controller
                     'planLabel' => $subscription->plan_label,
                     'plan_amount' => $subscription->plan_amount,
                     'planAmount' => $subscription->plan_amount,
+                    'status' => $subscription->status,
+                    'cancelled_at' => optional($subscription->cancelled_at)?->toIso8601String(),
+                    'cancelledAt' => optional($subscription->cancelled_at)?->toIso8601String(),
+                    'cancelledAtDisplay' => optional($subscription->cancelled_at)?->translatedFormat('d/m/Y H:i'),
                     'course' => $courseData,
                 ];
             })
@@ -635,5 +678,28 @@ class DashboardPageController extends Controller
             'is_pending' => $payment->status === 'pending',
             'is_course' => $payment->type === 'course_subscription',
         ];
+    }
+
+    private function maybeAutoGenerateCoursePayments(): void
+    {
+        $autoSetting = Setting::query()->find('course_payment_auto_generate');
+        if (!$autoSetting || !$autoSetting->value) {
+            return;
+        }
+
+        $leadSetting = Setting::query()->find('course_payment_lead_days');
+        $leadDays = $leadSetting ? (int) $leadSetting->value : 10;
+
+        $generator = app(CoursePaymentGenerator::class);
+        $result = $generator->generate($leadDays);
+
+        $payload = array_merge($result, [
+            'manual' => false,
+            'timestamp' => $result['run_at'] ?? now()->toDateTimeString(),
+        ]);
+
+        Setting::updateOrCreate(['key' => 'course_payment_last_run'], [
+            'value' => json_encode($payload),
+        ]);
     }
 }

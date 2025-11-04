@@ -28,7 +28,6 @@ Route::post('/bookings', [BookingsController::class, 'store']);
 Route::delete('/bookings/{booking}', [BookingsController::class, 'destroy']);
 
 Route::post('/subscriptions', [SubscriptionsController::class, 'store']);
-Route::put('/subscriptions/{subscription}/toggle-renew', [SubscriptionsController::class, 'toggleRenewal']);
 
 Route::post('/gemini/generate-course-description', [GeminiController::class, 'generateCourseDescription']);
 Route::get('/gemini/pose-of-the-day', [GeminiController::class, 'poseOfTheDay']);

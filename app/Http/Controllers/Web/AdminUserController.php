@@ -138,6 +138,9 @@ class AdminUserController extends Controller
             'luogo_nascita' => ['required', 'string', 'max:150'],
             'data_nascita' => ['required', 'date'],
             'status' => ['nullable', Rule::in(['active', 'pending', 'disabled'])],
+            'teacher_can_host_private' => ['nullable', 'boolean'],
+            'course_ids' => ['sometimes', 'array'],
+            'course_ids.*' => ['integer', 'exists:courses,id'],
         ]);
 
         $status = $data['status'] ?? $user->status;
@@ -160,6 +163,29 @@ class AdminUserController extends Controller
         ]);
 
         app(MembershipManager::class)->ensureCurrentMembership($user, false);
+
+        if ($user->role === 'Teacher') {
+            $teacher = $user->teacherProfile;
+            if ($teacher) {
+                $teacher->update([
+                    'can_host_private' => $request->boolean('teacher_can_host_private'),
+                ]);
+            }
+
+            $courseIds = collect($request->input('course_ids', []))
+                ->map(fn ($id) => (int) $id)
+                ->unique()
+                ->values()
+                ->all();
+
+            Course::where('teacher_id', $user->id)
+                ->when(!empty($courseIds), fn ($query) => $query->whereNotIn('id', $courseIds))
+                ->update(['teacher_id' => null]);
+
+            if (!empty($courseIds)) {
+                Course::whereIn('id', $courseIds)->update(['teacher_id' => $user->id]);
+            }
+        }
 
         return redirect()
             ->route('dashboard')

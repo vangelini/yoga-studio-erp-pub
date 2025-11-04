@@ -16,6 +16,7 @@ class Payment extends Model
         'user_id',
         'payable_type',
         'payable_id',
+        'course_id',
         'type',
         'amount',
         'status',
@@ -47,6 +48,11 @@ class Payment extends Model
     public function payable(): MorphTo
     {
         return $this->morphTo();
+    }
+
+    public function course(): BelongsTo
+    {
+        return $this->belongsTo(Course::class);
     }
 
     public function markAsPaid(?string $method = null): void

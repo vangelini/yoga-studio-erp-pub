@@ -23,8 +23,20 @@ class AdminSettingController extends Controller
                 'receipt_owner_password',
                 'receipt_user_password_mode',
                 'receipt_user_password_custom',
+                'course_payment_auto_generate',
+                'course_payment_lead_days',
+                'course_payment_last_run',
+                'membership_last_run',
             ])
             ->pluck('value', 'key');
+
+        $coursePaymentLastRun = [];
+        if (!empty($settings['course_payment_last_run'])) {
+            $decoded = json_decode($settings['course_payment_last_run'], true);
+            if (is_array($decoded)) {
+                $coursePaymentLastRun = $decoded;
+            }
+        }
 
         return view('dashboard.settings', [
             'membership_fee' => $settings['membership_fee'] ?? 20,
@@ -33,6 +45,9 @@ class AdminSettingController extends Controller
             'receipt_owner_password' => $settings['receipt_owner_password'] ?? '',
             'receipt_user_password_mode' => $settings['receipt_user_password_mode'] ?? 'blank',
             'receipt_user_password_custom' => $settings['receipt_user_password_custom'] ?? '',
+            'course_payment_auto_generate' => isset($settings['course_payment_auto_generate']) ? (bool) $settings['course_payment_auto_generate'] : false,
+            'course_payment_lead_days' => isset($settings['course_payment_lead_days']) ? (int) $settings['course_payment_lead_days'] : 10,
+            'course_payment_last_run' => $coursePaymentLastRun,
         ]);
     }
 
@@ -47,6 +62,8 @@ class AdminSettingController extends Controller
             'receipt_owner_password' => ['nullable', 'string', 'max:255'],
             'receipt_user_password_mode' => ['required', Rule::in(['blank', 'email', 'custom'])],
             'receipt_user_password_custom' => ['nullable', 'string', 'max:255', 'required_if:receipt_user_password_mode,custom'],
+            'course_payment_auto_generate' => ['nullable', 'boolean'],
+            'course_payment_lead_days' => ['required', 'integer', 'min:1', 'max:120'],
         ], [
             'receipt_user_password_custom.required_if' => 'Inserisci la password personalizzata quando scegli la modalità "Password personalizzata".',
         ]);
@@ -60,6 +77,8 @@ class AdminSettingController extends Controller
             'receipt_user_password_custom' => $data['receipt_user_password_mode'] === 'custom'
                 ? trim((string) $data['receipt_user_password_custom'])
                 : '',
+            'course_payment_auto_generate' => $request->boolean('course_payment_auto_generate') ? '1' : '0',
+            'course_payment_lead_days' => (string) $data['course_payment_lead_days'],
         ];
 
         foreach ($settingsToPersist as $key => $value) {

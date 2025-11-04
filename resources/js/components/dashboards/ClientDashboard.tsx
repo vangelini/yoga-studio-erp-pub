@@ -47,7 +47,7 @@ const PoseOfTheDay: React.FC = () => {
 
 
 const ClientDashboard: React.FC = () => {
-    const { courses, teachers, currentUser, bookings, cancelBooking, subscriptions, subscribeToCourse, toggleAutoRenew, loading } = useAppContext();
+    const { courses, teachers, currentUser, bookings, cancelBooking, subscriptions, subscribeToCourse, loading } = useAppContext();
     const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
     const [viewingCourse, setViewingCourse] = useState<Course | null>(null);
     const today = new Date();
@@ -179,24 +179,19 @@ const ClientDashboard: React.FC = () => {
                                             <p className="text-xs text-stone-500 mt-1">Start date: {startLabel}</p>
                                         )}
                                     </div>
-                                    <div className="flex items-center gap-4 sm:gap-6">
+                                    <div className="flex flex-col items-start sm:items-end gap-2">
                                         <span className="font-semibold text-lg text-stone-800">
                                             €{(course.availablePlans?.[0]?.amount ?? course.price ?? 0).toFixed(2)}
                                         </span>
-                                        <label htmlFor={`auto-renew-${sub.id}`} className="flex items-center cursor-pointer">
-                                            <span className="mr-3 text-sm text-stone-600">Auto-Renew</span>
-                                            <div className="relative">
-                                                <input 
-                                                    type="checkbox" 
-                                                    id={`auto-renew-${sub.id}`} 
-                                                    className="sr-only" 
-                                                    checked={sub.autoRenew}
-                                                    onChange={() => toggleAutoRenew(sub.id)}
-                                                />
-                                                <div className={`block w-10 h-6 rounded-full ${sub.autoRenew ? 'bg-teal-500' : 'bg-stone-300'}`}></div>
-                                                <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${sub.autoRenew ? 'transform translate-x-4' : ''}`}></div>
-                                            </div>
-                                        </label>
+                                        <span
+                                            className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${
+                                                sub.status === 'cancelled'
+                                                    ? 'bg-rose-50 text-rose-600 border border-rose-200'
+                                                    : 'bg-emerald-50 text-emerald-600 border border-emerald-200'
+                                            }`}
+                                        >
+                                            {sub.status === 'cancelled' ? 'Annullata' : 'Attiva'}
+                                        </span>
                                     </div>
                                 </div>
                             );
