@@ -1403,4 +1403,4 @@
         </div>
     </div>
 </section>
-<?php /**PATH /Users/vincenzo/Documents/shanti-sadhana-yoga-center/php-laravel/resources/views/dashboard/partials/admin.blade.php ENDPATH**/ ?>
+<?php /**PATH /Users/vincenzo/Documents/yoga-studio-erp/resources/views/dashboard/partials/admin.blade.php ENDPATH**/ ?>

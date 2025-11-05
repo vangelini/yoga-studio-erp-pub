@@ -229,4 +229,4 @@
         <?php endif; ?>
     </div>
 </div>
-<?php /**PATH /Users/vincenzo/Documents/shanti-sadhana-yoga-center/php-laravel/resources/views/dashboard/partials/admin-courses.blade.php ENDPATH**/ ?>
+<?php /**PATH /Users/vincenzo/Documents/yoga-studio-erp/resources/views/dashboard/partials/admin-courses.blade.php ENDPATH**/ ?>
