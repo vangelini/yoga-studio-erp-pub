@@ -291,7 +291,7 @@
                                 </li>
                                 <li>
                                     <a
-                                        href="{{ asset('SCAN-2275.pdf') }}"
+                                        href="{{ asset('ShantiSadhana_InformativaPrivacy.pdf') }}"
                                         target="_blank"
                                         rel="noopener"
                                         class="underline hover:text-teal-800"
