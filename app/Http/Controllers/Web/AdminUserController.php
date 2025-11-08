@@ -107,7 +107,7 @@ class AdminUserController extends Controller
                     ['user_id' => $user->id],
                     [
                         'profile_picture_url' => "https://picsum.photos/seed/{$user->id}/100/100",
-                        'bio' => 'Welcome! Please update your bio.',
+                        'bio' => 'Welcome! ',
                         'specializations' => [],
                     ]
                 );

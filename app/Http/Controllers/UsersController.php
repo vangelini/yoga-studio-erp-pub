@@ -26,7 +26,7 @@ class UsersController extends Controller
                     ['user_id' => $user->id],
                     [
                         'profile_picture_url' => "https://picsum.photos/seed/{$user->id}/100/100",
-                        'bio' => 'Welcome! Please update your bio.',
+                        'bio' => 'Welcome! ',
                         'specializations' => [],
                     ]
                 );
@@ -71,7 +71,7 @@ class UsersController extends Controller
                 Teacher::create([
                     'user_id' => $user->id,
                     'profile_picture_url' => "https://picsum.photos/seed/{$user->id}/100/100",
-                    'bio' => 'Welcome! Please update your bio.',
+                    'bio' => 'Welcome!',
                     'specializations' => [],
                 ]);
             }

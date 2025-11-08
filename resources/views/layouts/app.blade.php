@@ -13,7 +13,7 @@
                 </a>
                 <div class="flex items-center gap-4">
                     <div class="text-right">
-                        <p class="text-sm text-stone-500">Welcome back</p>
+                        <p class="text-sm text-stone-500">Benvenuta/o</p>
                         <p class="font-semibold text-teal-700">{{ auth()->user()->name }}</p>
                     </div>
                     <form method="POST" action="{{ route('logout') }}">

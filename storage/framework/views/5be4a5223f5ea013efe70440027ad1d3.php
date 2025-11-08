@@ -1,4 +1,4 @@
-@php
+<?php
     use Illuminate\Support\Js;
 
     $documents = $documents ?? collect();
@@ -43,10 +43,10 @@
             'status' => session('status'),
         ],
     ];
-@endphp
+?>
 
 <section
-    x-data="clientDashboard({{ Js::from($clientDashboardPayload) }})"
+    x-data="clientDashboard(<?php echo e(Js::from($clientDashboardPayload)); ?>)"
     x-init="init()"
     class="space-y-10"
 >
@@ -117,18 +117,18 @@
                 <span class="text-xs text-stone-400 uppercase tracking-wide">Obbligatori</span>
             </div>
             <p class="text-xs text-stone-500">Carica i documenti richiesti in formato PDF o immagine (max 5 MB). Puoi sostituirli in qualsiasi momento caricando una nuova versione.</p>
-            @foreach ($documentDefinitions as $type => $definition)
+            <?php $__currentLoopData = $documentDefinitions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $type => $definition): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <div class="border border-stone-200 rounded-xl p-4 space-y-3 bg-stone-50">
                     <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                         <div>
-                            <p class="text-sm font-semibold text-stone-800">{{ $definition['label'] }}</p>
-                            <p class="text-xs text-stone-500">{{ $definition['description'] }}</p>
+                            <p class="text-sm font-semibold text-stone-800"><?php echo e($definition['label']); ?></p>
+                            <p class="text-xs text-stone-500"><?php echo e($definition['description']); ?></p>
                         </div>
                         <div class="text-right space-y-1">
-                            <template x-if="documentByType('{{ $type }}')">
+                            <template x-if="documentByType('<?php echo e($type); ?>')">
                                 <div class="space-y-1">
                                     <a
-                                        :href="documentByType('{{ $type }}').url"
+                                        :href="documentByType('<?php echo e($type); ?>').url"
                                         target="_blank"
                                         rel="noopener"
                                         class="inline-flex items-center gap-1 text-xs font-semibold text-teal-600 hover:text-teal-700 underline decoration-dotted"
@@ -136,18 +136,18 @@
                                         Scarica documento
                                     </a>
                                     <p class="text-[11px] text-stone-400">
-                                        Aggiornato il <span x-text="documentByType('{{ $type }}').uploadedAtDisplay ?? '—'"></span>
+                                        Aggiornato il <span x-text="documentByType('<?php echo e($type); ?>').uploadedAtDisplay ?? '—'"></span>
                                     </p>
                                 </div>
                             </template>
-                            <template x-if="!documentByType('{{ $type }}')">
+                            <template x-if="!documentByType('<?php echo e($type); ?>')">
                                 <span class="text-xs text-rose-500 font-semibold">Documento mancante</span>
                             </template>
                         </div>
                     </div>
-                    <form method="POST" action="{{ route('client.documents.store') }}" enctype="multipart/form-data" class="flex flex-col sm:flex-row sm:items-center gap-3">
-                        @csrf
-                        <input type="hidden" name="document_type" value="{{ $type }}">
+                    <form method="POST" action="<?php echo e(route('client.documents.store')); ?>" enctype="multipart/form-data" class="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <?php echo csrf_field(); ?>
+                        <input type="hidden" name="document_type" value="<?php echo e($type); ?>">
                         <input
                             type="file"
                             name="document_file"
@@ -158,7 +158,7 @@
                         <button type="submit" class="btn-primary text-xs whitespace-nowrap">Carica / aggiorna</button>
                     </form>
                 </div>
-            @endforeach
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         </div>
     </div>
 
@@ -691,8 +691,8 @@
     </div>
 </section>
 
-@once
-    @push('scripts')
+<?php if (! $__env->hasRenderedOnce('e7cf8290-ec6d-411d-8778-254bf7521d72')): $__env->markAsRenderedOnce('e7cf8290-ec6d-411d-8778-254bf7521d72'); ?>
+    <?php $__env->startPush('scripts'); ?>
         <script>
             document.addEventListener('alpine:init', () => {
                 Alpine.data('clientDashboard', (payload) => {
@@ -1463,5 +1463,6 @@
                 });
             });
         </script>
-    @endpush
-@endonce
+    <?php $__env->stopPush(); ?>
+<?php endif; ?>
+<?php /**PATH /Users/vincenzo/Documents/yoga-studio-erp/resources/views/dashboard/partials/client.blade.php ENDPATH**/ ?>
