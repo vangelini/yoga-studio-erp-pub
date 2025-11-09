@@ -10,7 +10,7 @@ class EnsureMembershipsCommand extends Command
 {
     protected $signature = 'membership:ensure {--refresh-pending : ricrea il pagamento solo se non esiste una pendenza attiva}';
 
-    protected $description = 'Garantisce che ogni cliente abbia la sottoscrizione annuale e il pagamento in stato pending per la stagione corrente.';
+    protected $description = 'Garantisce che ogni allieva/o abbia la sottoscrizione annuale e il pagamento in stato pending per la stagione corrente.';
 
     public function handle(MembershipManager $manager): int
     {
@@ -44,7 +44,7 @@ class EnsureMembershipsCommand extends Command
             }
         }
 
-        $this->info("Clienti processati: {$clients->count()} | Pendenze create: {$created}");
+        $this->info("Allievi processati: {$clients->count()} | Pendenze create: {$created}");
 
         return self::SUCCESS;
     }

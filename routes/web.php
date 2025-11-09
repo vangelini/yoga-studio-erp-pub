@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Web\AdminClientPageController;
 use App\Http\Controllers\Web\AdminCourseController;
 use App\Http\Controllers\Web\AdminCoursePaymentController;
 use App\Http\Controllers\Web\AdminTeacherPageController;
@@ -66,6 +67,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', DashboardPageController::class)->name('dashboard');
 
     Route::middleware('throttle:15,1')->group(function () {
+        Route::get('/admin/clients', [AdminClientPageController::class, 'index'])->name('admin.clients.index');
         Route::get('/admin/teachers', [AdminTeacherPageController::class, 'index'])->name('admin.teachers.index');
         Route::get('/admin/users/export', [AdminUserController::class, 'export'])->name('admin.users.export');
         Route::post('/admin/users', [AdminUserController::class, 'store'])->name('admin.users.store');

@@ -72,7 +72,7 @@ unset($__errorArgs, $__bag); ?>
                 </div>
                 <div class="space-y-1.5">
                     <label class="text-xs uppercase font-semibold text-stone-500">Prezzi abbonamenti (€)</label>
-                    <p class="text-[11px] text-stone-500">Imposta 0 o lascia vuoto per nascondere l'opzione ai clienti.</p>
+                    <p class="text-[11px] text-stone-500">Imposta 0 o lascia vuoto per nascondere l'opzione agli allievi.</p>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                         <input type="number" step="0.01" name="monthly_price" class="input-field text-sm" placeholder="Mensile">
                         <input type="number" step="0.01" name="quarterly_price" class="input-field text-sm" placeholder="Trimestrale">
@@ -117,7 +117,7 @@ unset($__errorArgs, $__bag); ?>
                     <input type="checkbox" name="allows_extra_day" value="1" class="mt-1 h-4 w-4 rounded border-stone-300 text-teal-600 focus:ring-teal-500">
                     <div>
                         <p class="text-sm font-semibold text-stone-700">Disponibile come “Un giorno in più”</p>
-                        <p class="text-xs text-stone-500">Se selezionato, questo corso potrà essere scelto dai clienti come lezione extra.</p>
+                        <p class="text-xs text-stone-500">Se selezionato, questo corso potrà essere scelto dagli Allievi come lezione extra.</p>
                     </div>
                 </div>
                 <div class="space-y-1.5">
@@ -270,7 +270,7 @@ unset($__errorArgs, $__bag); ?>
                                 <input type="checkbox" name="allows_extra_day" value="1" class="mt-1 h-4 w-4 rounded border-stone-300 text-teal-600 focus:ring-teal-500" <?php if($course['allows_extra_day'] ?? false): echo 'checked'; endif; ?>>
                                 <div>
                                     <p class="text-sm font-semibold text-stone-700">Disponibile come “Un giorno in più”</p>
-                                    <p class="text-xs text-stone-500">Consente ai clienti di scegliere una lezione settimanale extra da questo corso.</p>
+                                    <p class="text-xs text-stone-500">Consente agli allievi di scegliere una lezione settimanale extra da questo corso.</p>
                                 </div>
                             </div>
                             <div class="space-y-1.5">
