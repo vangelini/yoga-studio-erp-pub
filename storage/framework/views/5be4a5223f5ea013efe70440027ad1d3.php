@@ -710,7 +710,7 @@
     </div>
 </section>
 
-<?php if (! $__env->hasRenderedOnce('8c041934-dbd7-4205-9a7f-5bd50c41fd21')): $__env->markAsRenderedOnce('8c041934-dbd7-4205-9a7f-5bd50c41fd21'); ?>
+<?php if (! $__env->hasRenderedOnce('99097188-a9ad-4b24-9d40-4e3284b54e70')): $__env->markAsRenderedOnce('99097188-a9ad-4b24-9d40-4e3284b54e70'); ?>
     <?php $__env->startPush('scripts'); ?>
         <script>
             document.addEventListener('alpine:init', () => {
@@ -902,8 +902,26 @@
                                 return basePrice.toFixed(2);
                             }
 
+                            const course = this.subscriptionModal.course;
                             const target = startDate ? new Date(`${startDate}T00:00:00`) : new Date(`${this.isoToday()}T00:00:00`);
-                            const totalDays = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
+                            const periodStart = new Date(target.getFullYear(), target.getMonth(), 1);
+                            const periodEnd = new Date(target.getFullYear(), target.getMonth() + 1, 0);
+
+                            const courseStart = course?.start_date ? new Date(`${course.start_date}T00:00:00`) : null;
+                            const courseEnd = course?.end_date ? new Date(`${course.end_date}T00:00:00`) : null;
+
+                            const scheduleDays = this.normalizeScheduleDays(course?.schedule);
+                            const lessonInfo = this.calculateLessonProration(scheduleDays, periodStart, periodEnd, target, courseStart, courseEnd);
+
+                            if (lessonInfo.total > 0 && lessonInfo.remaining > 0) {
+                                let lessonAmount = Number((basePrice * (lessonInfo.remaining / lessonInfo.total)).toFixed(2));
+                                if (basePrice > 0 && lessonAmount < 0.01) {
+                                    lessonAmount = 0.01;
+                                }
+                                return lessonAmount.toFixed(2);
+                            }
+
+                            const totalDays = periodEnd.getDate();
                             const remainingDays = Math.max(totalDays - target.getDate() + 1, 0);
                             const ratio = totalDays > 0 ? remainingDays / totalDays : 1;
                             let amount = Number((basePrice * ratio).toFixed(2));
@@ -913,6 +931,69 @@
                             }
 
                             return amount.toFixed(2);
+                        },
+
+                        normalizeScheduleDays(rawSchedule) {
+                            const items = normalize(rawSchedule ?? []);
+                            const mapped = items
+                                .map(slot => this.weekdayIndex(slot.day ?? slot.day_of_week ?? slot.label))
+                                .filter((day, index, arr) => day !== null && arr.indexOf(day) === index);
+                            return mapped;
+                        },
+
+                        weekdayIndex(label) {
+                            if (!label) return null;
+                            const normalized = label.toString().trim().toLowerCase();
+                            const map = {
+                                'domenica': 0, 'dom': 0, 'sunday': 0,
+                                'lunedì': 1, 'lunedi': 1, 'lun': 1, 'monday': 1,
+                                'martedì': 2, 'martedi': 2, 'mar': 2, 'tuesday': 2,
+                                'mercoledì': 3, 'mercoledi': 3, 'mer': 3, 'wednesday': 3,
+                                'giovedì': 4, 'giovedi': 4, 'gio': 4, 'thursday': 4,
+                                'venerdì': 5, 'venerdi': 5, 'ven': 5, 'friday': 5,
+                                'sabato': 6, 'sab': 6, 'saturday': 6,
+                            };
+                            return map[normalized] ?? null;
+                        },
+
+                        calculateLessonProration(scheduleDays, periodStart, periodEnd, clientStart, courseStart, courseEnd) {
+                            if (!scheduleDays.length) {
+                                return { total: 0, remaining: 0 };
+                            }
+
+                            const effectiveStart = courseStart && courseStart > periodStart ? courseStart : periodStart;
+                            const effectiveEnd = courseEnd && courseEnd < periodEnd ? courseEnd : periodEnd;
+                            if (effectiveStart > effectiveEnd) {
+                                return { total: 0, remaining: 0 };
+                            }
+
+                            const countWeekday = (startDate, endDate, weekday) => {
+                                const first = new Date(startDate.getTime());
+                                const diff = (weekday - first.getDay() + 7) % 7;
+                                first.setDate(first.getDate() + diff);
+
+                                if (first > endDate) return 0;
+
+                                const last = new Date(endDate.getTime());
+                                const backDiff = (last.getDay() - weekday + 7) % 7;
+                                last.setDate(last.getDate() - backDiff);
+
+                                if (first > last) return 0;
+
+                                return Math.floor((last - first) / (7 * 24 * 60 * 60 * 1000)) + 1;
+                            };
+
+                            let total = 0;
+                            let remaining = 0;
+                            scheduleDays.forEach(weekday => {
+                                total += countWeekday(effectiveStart, effectiveEnd, weekday);
+                                const remainingStart = clientStart > effectiveStart ? clientStart : effectiveStart;
+                                if (remainingStart <= effectiveEnd) {
+                                    remaining += countWeekday(remainingStart, effectiveEnd, weekday);
+                                }
+                            });
+
+                            return { total, remaining };
                         },
 
                         updateSubscriptionPreview() {

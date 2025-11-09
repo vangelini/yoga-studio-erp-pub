@@ -85,23 +85,48 @@ class CourseSubscriptionManager
                 ]);
             }
             if ($planType === 'monthly') {
-                $daysInMonth = $startDate->daysInMonth;
-                $remainingDays = $daysInMonth - $startDate->day + 1;
-                $ratio = $remainingDays / $daysInMonth;
-                $amount = round($basePrice * $ratio, 2);
+                $periodStart = $today->copy()->startOfMonth();
+                $periodEnd = $today->copy()->endOfMonth();
+                $lessonProration = $this->calculateLessonProration($course, $periodStart, $periodEnd, $startDate);
 
-                if ($basePrice > 0 && $amount < 0.01) {
-                    $amount = 0.01;
+                if ($lessonProration['total'] > 0 && $lessonProration['remaining'] > 0) {
+                    $ratio = $lessonProration['remaining'] / $lessonProration['total'];
+                    $amount = round($basePrice * $ratio, 2);
+
+                    if ($basePrice > 0 && $amount < 0.01) {
+                        $amount = 0.01;
+                    }
+
+                    $meta = array_merge($meta, [
+                        'start_option' => 'current_month',
+                        'start_date' => $startDate->toDateString(),
+                        'prorated' => true,
+                        'proration_basis' => 'lessons',
+                        'remaining_lessons' => $lessonProration['remaining'],
+                        'total_lessons' => $lessonProration['total'],
+                        'proration_ratio' => $ratio,
+                        'proration_details' => $lessonProration['details'],
+                    ]);
+                } else {
+                    $daysInMonth = $startDate->daysInMonth;
+                    $remainingDays = $daysInMonth - $startDate->day + 1;
+                    $ratio = $remainingDays / $daysInMonth;
+                    $amount = round($basePrice * $ratio, 2);
+
+                    if ($basePrice > 0 && $amount < 0.01) {
+                        $amount = 0.01;
+                    }
+
+                    $meta = array_merge($meta, [
+                        'start_option' => 'current_month',
+                        'start_date' => $startDate->toDateString(),
+                        'prorated' => true,
+                        'proration_basis' => 'days',
+                        'remaining_days' => $remainingDays,
+                        'days_in_month' => $daysInMonth,
+                        'proration_ratio' => $ratio,
+                    ]);
                 }
-
-                $meta = array_merge($meta, [
-                    'start_option' => 'current_month',
-                    'start_date' => $startDate->toDateString(),
-                    'prorated' => true,
-                    'remaining_days' => $remainingDays,
-                    'days_in_month' => $daysInMonth,
-                    'proration_ratio' => $ratio,
-                ]);
             } else {
                 $amount = round($basePrice, 2);
 
@@ -181,5 +206,138 @@ class CourseSubscriptionManager
                 'payment' => $payment,
             ];
         });
+    }
+
+    protected function calculateLessonProration(Course $course, Carbon $periodStart, Carbon $periodEnd, Carbon $clientStart): array
+    {
+        $courseStart = $course->start_date?->copy();
+        $courseEnd = $course->end_date?->copy();
+
+        $effectiveStart = $periodStart->copy();
+        if ($courseStart && $courseStart->gt($effectiveStart)) {
+            $effectiveStart = $courseStart->copy();
+        }
+
+        $effectiveEnd = $periodEnd->copy();
+        if ($courseEnd && $courseEnd->lt($effectiveEnd)) {
+            $effectiveEnd = $courseEnd->copy();
+        }
+
+        if ($effectiveStart->gt($effectiveEnd)) {
+            return ['total' => 0, 'remaining' => 0, 'details' => []];
+        }
+
+        $remainingStart = $clientStart->copy();
+        if ($remainingStart->lt($effectiveStart)) {
+            $remainingStart = $effectiveStart->copy();
+        }
+
+        if ($remainingStart->gt($effectiveEnd)) {
+            return ['total' => 0, 'remaining' => 0, 'details' => []];
+        }
+
+        $schedules = $course->schedule()->get(['day_of_week']);
+        if ($schedules->isEmpty()) {
+            return ['total' => 0, 'remaining' => 0, 'details' => []];
+        }
+
+        $totalLessons = 0;
+        $remainingLessons = 0;
+        $details = [];
+
+        foreach ($schedules as $slot) {
+            $weekday = $this->mapDayOfWeek($slot->day_of_week);
+            if ($weekday === null) {
+                continue;
+            }
+
+            $totalForSlot = $this->countWeekdayOccurrences($effectiveStart, $effectiveEnd, $weekday);
+            $remainingForSlot = $this->countWeekdayOccurrences($remainingStart, $effectiveEnd, $weekday);
+
+            $totalLessons += $totalForSlot;
+            $remainingLessons += $remainingForSlot;
+
+            $details[] = [
+                'day' => $slot->day_of_week,
+                'weekday' => $weekday,
+                'total' => $totalForSlot,
+                'remaining' => $remainingForSlot,
+            ];
+        }
+
+        return [
+            'total' => $totalLessons,
+            'remaining' => $remainingLessons,
+            'details' => $details,
+        ];
+    }
+
+    protected function mapDayOfWeek(?string $label): ?int
+    {
+        if (!$label) {
+            return null;
+        }
+
+        $map = [
+            'Lunedì' => Carbon::MONDAY,
+            'Martedì' => Carbon::TUESDAY,
+            'Mercoledì' => Carbon::WEDNESDAY,
+            'Giovedì' => Carbon::THURSDAY,
+            'Venerdì' => Carbon::FRIDAY,
+            'Sabato' => Carbon::SATURDAY,
+            'Domenica' => Carbon::SUNDAY,
+            'Lunedi' => Carbon::MONDAY,
+            'Martedi' => Carbon::TUESDAY,
+            'Mercoledi' => Carbon::WEDNESDAY,
+            'Giovedi' => Carbon::THURSDAY,
+            'Venerdi' => Carbon::FRIDAY,
+            'Sabato' => Carbon::SATURDAY,
+            'Domenica' => Carbon::SUNDAY,
+            'Monday' => Carbon::MONDAY,
+            'Tuesday' => Carbon::TUESDAY,
+            'Wednesday' => Carbon::WEDNESDAY,
+            'Thursday' => Carbon::THURSDAY,
+            'Friday' => Carbon::FRIDAY,
+            'Saturday' => Carbon::SATURDAY,
+            'Sunday' => Carbon::SUNDAY,
+        ];
+
+        return $map[$label] ?? null;
+    }
+
+    protected function countWeekdayOccurrences(Carbon $start, Carbon $end, int $weekday): int
+    {
+        $first = $start->copy();
+        if ($first->dayOfWeek !== $weekday) {
+            $first = $first->next($this->weekdayName($weekday));
+        }
+
+        if ($first->gt($end)) {
+            return 0;
+        }
+
+        $last = $end->copy();
+        if ($last->dayOfWeek !== $weekday) {
+            $last = $last->previous($this->weekdayName($weekday));
+        }
+
+        if ($first->gt($last)) {
+            return 0;
+        }
+
+        return intdiv($first->diffInDays($last), 7) + 1;
+    }
+
+    private function weekdayName(int $weekday): string
+    {
+        return match ($weekday) {
+            Carbon::MONDAY => 'Monday',
+            Carbon::TUESDAY => 'Tuesday',
+            Carbon::WEDNESDAY => 'Wednesday',
+            Carbon::THURSDAY => 'Thursday',
+            Carbon::FRIDAY => 'Friday',
+            Carbon::SATURDAY => 'Saturday',
+            Carbon::SUNDAY => 'Sunday',
+        };
     }
 }
