@@ -97,4 +97,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     Route::get('/payments/{payment}/receipt', [\App\Http\Controllers\Web\PaymentAdminController::class, 'showReceipt'])->name('payments.receipt');
+
+    Route::prefix('account')->group(function () {
+        Route::get('/password', [\App\Http\Controllers\Web\PasswordUpdateController::class, 'edit'])->name('account.password.edit');
+        Route::put('/password', [\App\Http\Controllers\Web\PasswordUpdateController::class, 'update'])->name('account.password.update');
+    });
 });

@@ -16,6 +16,16 @@
                         <p class="text-sm text-stone-500">Benvenuta/o</p>
                         <p class="font-semibold text-teal-700">{{ auth()->user()->name }}</p>
                     </div>
+                    <a
+                        href="{{ route('account.password.edit') }}"
+                        class="inline-flex items-center gap-2 rounded-lg border border-stone-200 px-3 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-100 transition"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0-1.104-.896-2-2-2m8 10V9a4 4 0 00-4-4H9a4 4 0 00-4 4v10" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 15h10" />
+                        </svg>
+                        Cambia password
+                    </a>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" class="bg-stone-200 text-stone-700 font-semibold py-2 px-4 rounded-lg hover:bg-stone-300 transition-colors">
@@ -27,11 +37,7 @@
         </header>
 
         <main class="flex-1 container mx-auto px-4 py-8">
-            @if (session('status'))
-                <div class="mb-6 rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-700 px-4 py-3">
-                    {{ session('status') }}
-                </div>
-            @endif
+           
 
             @yield('content')
         </main>
