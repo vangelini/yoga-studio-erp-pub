@@ -263,14 +263,7 @@
                             <p class="text-sm text-stone-500">
                                 Insegnante: <span x-text="course.teacher_name ?? 'Da assegnare'"></span>
                             </p>
-                            <template x-if="course.allows_extra_day">
-                                <span class="mt-1 inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-600">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                    </svg>
-                                    Candidato per “Un giorno in più”
-                                </span>
-                            </template>
+ 
                         </div>
                         <div class="text-right">
                             <template x-if="course.availablePlans?.length">
@@ -322,7 +315,7 @@
                         </template>
                         <template x-if="subscriptionByCourse(course.id)?.hasExtraDay">
                             <p class="mt-1 text-[11px] font-semibold text-emerald-600">
-                                Include “Un giorno in più” su
+                                Include l'opzione “Un giorno in più” del corso
                                 <span
                                     x-text="subscriptionByCourse(course.id)?.extra_course?.title
                                         ?? subscriptionByCourse(course.id)?.extraCourseSnapshot?.course_title
@@ -1438,7 +1431,7 @@
                         confirmBooking() {
                             if (!this.bookingModal.teacher || !this.bookingModal.selectedSlot) return;
                             const slot = this.bookingModal.selectedSlot;
-                            const teacherName = this.bookingModal.teacher?.name ?? 'il docente';
+                            const teacherName = this.bookingModal.teacher?.name ?? 'insegnante';
                             const slotDate = this.formatDateString(slot.date) || slot.date;
                             const slotTime = slot.displayTime || slot.time;
 

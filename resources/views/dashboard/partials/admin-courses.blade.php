@@ -45,9 +45,9 @@
                     @enderror
                 </div>
                 <div class="space-y-1.5">
-                    <label class="text-xs uppercase font-semibold text-stone-500">Docente <span class="text-rose-600">*</span></label>
-                    <select name="teacher_id" required class="input-field text-sm">
-                        <option value="" disabled {{ old('teacher_id') ? '' : 'selected' }}>Seleziona un docente</option>
+                    <label class="text-xs uppercase font-semibold text-stone-500">Insegnante (opzionale)</label>
+                    <select name="teacher_id" class="input-field text-sm">
+                        <option value="" {{ old('teacher_id') ? '' : 'selected' }}>Non assegnato</option>
                         @foreach ($teacherOptions as $teacherId => $teacherName)
                             <option value="{{ $teacherId }}" @selected(old('teacher_id') == $teacherId)>{{ $teacherName }}</option>
                         @endforeach
@@ -153,7 +153,7 @@
                         <span class="text-xs text-stone-400">(#{{ $course['id'] }})</span>
                     </div>
                     <div class="flex items-center gap-2 text-xs text-stone-500">
-                        <span class="font-semibold uppercase text-stone-600">Docente:</span>
+                        <span class="font-semibold uppercase text-stone-600">Insegnante:</span>
                         <span>{{ $course['teacher_name'] ?? 'Non assegnato' }}</span>
                     </div>
                     <div class="flex items-center gap-2 text-xs text-stone-500">
@@ -193,7 +193,7 @@
                                 <input type="text" name="title" value="{{ $course['title'] }}" required class="input-field text-sm">
                             </div>
                             <div class="space-y-1.5">
-                                <label class="text-xs uppercase font-semibold text-stone-500">Docente <span class="text-rose-600">*</span></label>
+                                <label class="text-xs uppercase font-semibold text-stone-500">Insegnante (opzionale)</label>
                                 <select name="teacher_id" class="input-field text-sm">
                                     <option value="">Non assegnato</option>
                                     @foreach ($teacherOptions as $teacherId => $teacherName)

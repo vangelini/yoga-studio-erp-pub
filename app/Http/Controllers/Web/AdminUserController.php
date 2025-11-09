@@ -400,7 +400,7 @@ class AdminUserController extends Controller
             Course::whereIn('id', $courseIds)->update(['teacher_id' => $teacher->user_id]);
         }
 
-        return redirect()->route('dashboard')->with('status', 'Corsi assegnati al docente.');
+        return redirect()->route('dashboard')->with('status', 'Corsi assegnati al insegnante.');
     }
 
     private function authorizeAdmin(): void

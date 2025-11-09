@@ -79,7 +79,7 @@ class AdminCourseController extends Controller
         $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string'],
-            'teacher_id' => ['required', 'integer', 'exists:users,id'],
+            'teacher_id' => ['nullable', 'integer', 'exists:users,id'],
             'price' => ['nullable', 'numeric', 'min:0'],
             'monthly_price' => ['nullable', 'numeric', 'min:0'],
             'quarterly_price' => ['nullable', 'numeric', 'min:0'],
@@ -95,11 +95,13 @@ class AdminCourseController extends Controller
             'extra_day_discount_percent' => ['nullable', 'numeric', 'min:0', 'max:100'],
         ]);
 
-        $teacher = User::where('id', $data['teacher_id'])->where('role', 'Teacher')->exists();
-        if (!$teacher) {
-            throw ValidationException::withMessages([
-                'teacher_id' => 'Il docente selezionato non è valido.',
-            ]);
+        if (!empty($data['teacher_id'])) {
+            $teacher = User::where('id', $data['teacher_id'])->where('role', 'Teacher')->exists();
+            if (!$teacher) {
+                throw ValidationException::withMessages([
+                    'teacher_id' => 'Insegnante selezionato non valido.',
+                ]);
+            }
         }
 
         $days = $request->input('schedule_day', []);
@@ -128,7 +130,7 @@ class AdminCourseController extends Controller
         return [
             'title' => $data['title'],
             'description' => $data['description'],
-            'teacher_id' => (int) $data['teacher_id'],
+            'teacher_id' => isset($data['teacher_id']) ? (int) $data['teacher_id'] : null,
             'price' => $monthlyPrice ?? 0,
             'monthly_price' => $monthlyPrice,
             'quarterly_price' => $quarterlyPrice,

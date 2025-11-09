@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Web\AdminCourseController;
 use App\Http\Controllers\Web\AdminCoursePaymentController;
+use App\Http\Controllers\Web\AdminTeacherPageController;
 use App\Http\Controllers\Web\AdminUserController;
 use App\Http\Controllers\Web\AuthSessionController;
 use App\Http\Controllers\Web\DashboardPageController;
@@ -65,6 +66,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', DashboardPageController::class)->name('dashboard');
 
     Route::middleware('throttle:15,1')->group(function () {
+        Route::get('/admin/teachers', [AdminTeacherPageController::class, 'index'])->name('admin.teachers.index');
         Route::get('/admin/users/export', [AdminUserController::class, 'export'])->name('admin.users.export');
         Route::post('/admin/users', [AdminUserController::class, 'store'])->name('admin.users.store');
         Route::put('/admin/users/{user}', [AdminUserController::class, 'updateRoleStatus'])->name('admin.users.update');

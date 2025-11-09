@@ -28,14 +28,9 @@
 <section
     x-data="{
         showCreateClient: false,
-        showCreateTeacher: false,
         expandedClient: null,
-        expandedTeacher: null,
         toggleClient(id) {
             this.expandedClient = this.expandedClient === id ? null : id;
-        },
-        toggleTeacher(id) {
-            this.expandedTeacher = this.expandedTeacher === id ? null : id;
         },
         membershipPanelOpen: <?php echo json_encode(request()->has('membership_page'), 15, 512) ?>,
     }"
@@ -46,16 +41,24 @@
         <div class="relative px-6 py-8 md:px-10 md:py-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div class="space-y-3 max-w-2xl">
                 <p class="text-xs uppercase tracking-[0.35em] text-white/70">Pannello amministrazione</p>
-                <h2 class="text-3xl md:text-4xl font-semibold">Gestisci associati, docenti e corsi</h2>
+                <h2 class="text-3xl md:text-4xl font-semibold">Gestisci associati, insegnanti e corsi</h2>
                 <p class="text-white/85 leading-relaxed">
-                    Verifica i dati degli iscritti, assegna corsi ai docenti e monitora pagamenti e quote associative in un unico posto.
+                    Verifica i dati degli iscritti, assegna corsi ai insegnanti e monitora pagamenti e quote associative in un unico posto.
                 </p>
-                <a href="<?php echo e(route('admin.settings.edit')); ?>" class="inline-flex items-center gap-2 rounded-lg bg-white/20 px-4 py-2 text-xs font-semibold text-white border border-white/40 backdrop-blur-sm hover:bg-white/30 transition">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.5 3.75a1.5 1.5 0 013 0V5a1.5 1.5 0 01-3 0V3.75zM5.636 5.636a1.5 1.5 0 010 2.121l-.884.884a1.5 1.5 0 01-2.122-2.121l.884-.884a1.5 1.5 0 012.122 0zM3.75 10.5H5a1.5 1.5 0 010 3H3.75a1.5 1.5 0 010-3zM5.636 18.364a1.5 1.5 0 01-2.122 0l-.884-.884a1.5 1.5 0 112.122-2.121l.884.884a1.5 1.5 0 000 2.121zM10.5 18.75V20a1.5 1.5 0 003 0v-1.25a1.5 1.5 0 00-3 0zM18.364 18.364a1.5 1.5 0 002.122 0l.884-.884a1.5 1.5 0 10-2.122-2.121l-.884.884a1.5 1.5 0 000 2.121zM20.25 13.5H19a1.5 1.5 0 110-3h1.25a1.5 1.5 0 110 3zM18.364 5.636l.884-.884a1.5 1.5 0 10-2.122-2.121l-.884.884a1.5 1.5 0 002.122 2.121z"/>
-                    </svg>
-                    Impostazioni
-                </a>
+                <div class="flex flex-wrap items-center gap-3">
+                    <a href="<?php echo e(route('admin.settings.edit')); ?>" class="inline-flex items-center gap-2 rounded-lg bg-white/20 px-4 py-2 text-xs font-semibold text-white border border-white/40 backdrop-blur-sm hover:bg-white/30 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.5 3.75a1.5 1.5 0 013 0V5a1.5 1.5 0 01-3 0V3.75zM5.636 5.636a1.5 1.5 0 010 2.121l-.884.884a1.5 1.5 0 01-2.122-2.121l.884-.884a1.5 1.5 0 012.122 0zM3.75 10.5H5a1.5 1.5 0 010 3H3.75a1.5 1.5 0 010-3zM5.636 18.364a1.5 1.5 0 01-2.122 0l-.884-.884a1.5 1.5 0 112.122-2.121l.884.884a1.5 1.5 0 000 2.121zM10.5 18.75V20a1.5 1.5 0 003 0v-1.25a1.5 1.5 0 00-3 0zM18.364 18.364a1.5 1.5 0 002.122 0l.884-.884a1.5 1.5 0 10-2.122-2.121l-.884.884a1.5 1.5 0 000 2.121zM20.25 13.5H19a1.5 1.5 0 110-3h1.25a1.5 1.5 0 110 3zM18.364 5.636l.884-.884a1.5 1.5 0 10-2.122-2.121l-.884.884a1.5 1.5 0 002.122 2.121z"/>
+                        </svg>
+                        Impostazioni
+                    </a>
+                    <a href="<?php echo e(route('admin.teachers.index')); ?>" class="inline-flex items-center gap-2 rounded-lg bg-white/20 px-4 py-2 text-xs font-semibold text-white border border-white/40 backdrop-blur-sm hover:bg-white/30 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 14l-3 3m3-3l3 3m-3-3V4m9 5v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9" />
+                        </svg>
+                        Amministrazione insegnanti
+                    </a>
+                </div>
             </div>
             <div class="grid grid-cols-3 gap-4 bg-white/20 backdrop-blur-sm rounded-2xl px-6 py-4 border border-white/30 shadow-inner text-center text-xs uppercase tracking-widest">
                 <div class="flex flex-col text-white/80">
@@ -67,7 +70,7 @@
                     <span class="text-2xl font-semibold text-white"><?php echo e($courseCount); ?></span>
                 </div>
                 <div class="flex flex-col text-white/80">
-                    <span>Docenti</span>
+                    <span>insegnanti</span>
                     <span class="text-2xl font-semibold text-white"><?php echo e($teacherCount); ?></span>
                 </div>
             </div>
@@ -1183,224 +1186,5 @@
         </div>
     </div>
 
-    <div class="card p-6 space-y-6">
-        <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-            <div>
-                <h3 class="text-2xl font-semibold text-stone-900">Docenti</h3>
-                <p class="text-sm text-stone-500">Gestisci credenziali, lezioni private e assegnazioni dei corsi mensili.</p>
-            </div>
-            <button type="button" class="btn-primary text-xs self-start md:self-auto" @click="showCreateTeacher = !showCreateTeacher">
-                <span class="text-sm font-semibold" x-text="showCreateTeacher ? 'Nascondi form docente' : 'Nuovo docente'"></span>
-            </button>
-        </div>
-        <form
-            x-show="showCreateTeacher"
-            x-transition
-            method="POST"
-            action="<?php echo e(route('admin.users.store')); ?>"
-            class="grid grid-cols-1 md:grid-cols-2 gap-4 border border-stone-200 rounded-2xl bg-stone-50 px-5 py-6 mb-4"
-        >
-            <?php echo csrf_field(); ?>
-            <input type="hidden" name="role" value="Teacher">
-            <div>
-                <label class="text-xs uppercase text-stone-500 font-semibold">Nome</label>
-                <input type="text" name="first_name" required class="input-field text-sm">
-            </div>
-            <div>
-                <label class="text-xs uppercase text-stone-500 font-semibold">Cognome</label>
-                <input type="text" name="last_name" required class="input-field text-sm">
-            </div>
-            <div>
-                <label class="text-xs uppercase text-stone-500 font-semibold">Email</label>
-                <input type="email" name="email" required class="input-field text-sm">
-            </div>
-            <div>
-                <label class="text-xs uppercase text-stone-500 font-semibold">Password temporanea</label>
-                <input type="password" name="password" minlength="6" required class="input-field text-sm">
-            </div>
-            <div>
-                <label class="text-xs uppercase text-stone-500 font-semibold">Prefisso</label>
-                <select name="telephone_country" class="input-field text-sm">
-                    <?php $__currentLoopData = $phonePrefixes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $option): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <option value="<?php echo e($option['code']); ?>" <?php if($option['code'] === '+39'): echo 'selected'; endif; ?>><?php echo e($option['name']); ?> (<?php echo e($option['code']); ?>)</option>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                </select>
-            </div>
-            <div>
-                <label class="text-xs uppercase text-stone-500 font-semibold">Numero</label>
-                <input type="text" name="telephone" required class="input-field text-sm">
-            </div>
-            <div class="md:col-span-2 flex items-center gap-2">
-                <input id="teacher-private" type="checkbox" name="can_host_private" value="1" class="h-4 w-4 text-teal-600 border-stone-300 rounded">
-                <label for="teacher-private" class="text-sm text-stone-600">Abilita immediatamente le lezioni private</label>
-            </div>
-            <div class="md:col-span-2 flex justify-end">
-                <button type="submit" class="btn-primary text-sm">Registra docente</button>
-            </div>
-        </form>
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-stone-200 text-sm">
-                <thead class="bg-stone-100 text-stone-600 uppercase text-xs tracking-wide">
-                    <tr>
-                        <th class="px-4 py-3 text-left font-semibold">Nome</th>
-                        <th class="px-4 py-3 text-left font-semibold">Email</th>
-                        <th class="px-4 py-3 text-left font-semibold">Telefono</th>
-                        <th class="px-4 py-3 text-left font-semibold">Stato</th>
-                        <th class="px-4 py-3 text-left font-semibold">Lezioni private</th>
-                        <th class="px-4 py-3 text-left font-semibold">Azioni</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-stone-100">
-                    <?php $__empty_1 = true; $__currentLoopData = $teacherAdminList; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $teacher): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                        <?php
-                            $teacherUser = $teacher->user;
-                            $teacherPhoneParts = explode(' ', $teacherUser->telephone ?? '', 2);
-                            $teacherPrefix = $teacherPhoneParts[0] ?? '+39';
-                            $teacherNumber = $teacherPhoneParts[1] ?? '';
-                            $assignedCourses = $teacher->courses->pluck('id')->all();
-                            $teacherWhatsapp = preg_replace('/\D+/', '', $teacherUser->telephone ?? '');
-                        ?>
-                        <tr class="hover:bg-stone-50">
-                            <td class="px-4 py-3 font-medium text-stone-800"><?php echo e($teacherUser->name); ?></td>
-                            <td class="px-4 py-3 text-stone-600">
-                                <?php if($teacherUser->email): ?>
-                                    <a href="mailto:<?php echo e($teacherUser->email); ?>" class="text-teal-600 hover:text-teal-800 font-semibold underline decoration-dotted"><?php echo e($teacherUser->email); ?></a>
-                                <?php else: ?>
-                                    —
-                                <?php endif; ?>
-                            </td>
-                            <td class="px-4 py-3 text-stone-600">
-                                <?php if($teacherUser->telephone && $teacherWhatsapp): ?>
-                                    <a href="https://wa.me/<?php echo e($teacherWhatsapp); ?>" target="_blank" rel="noopener" class="text-teal-600 hover:text-teal-800 font-semibold underline decoration-dotted">
-                                        <?php echo e($teacherUser->telephone); ?>
-
-                                    </a>
-                                <?php else: ?>
-                                    <?php echo e($teacherUser->telephone ?? '—'); ?>
-
-                                <?php endif; ?>
-                            </td>
-                            <td class="px-4 py-3">
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold
-                                    <?php if($teacherUser->status === 'active'): ?> bg-emerald-100 text-emerald-700
-                                    <?php elseif($teacherUser->status === 'pending'): ?> bg-amber-100 text-amber-700
-                                    <?php else: ?> bg-rose-100 text-rose-700 <?php endif; ?>">
-                                    <?php echo e(ucfirst($teacherUser->status)); ?>
-
-                                </span>
-                            </td>
-                            <td class="px-4 py-3 text-stone-600">
-                                <?php echo $teacher->can_host_private
-                                    ? '<span class="text-emerald-600 font-semibold">Abilitate</span>'
-                                    : '<span class="text-stone-500">Disabilitate</span>'; ?>
-
-                            </td>
-                            <td class="px-4 py-3">
-                                <button type="button" class="text-xs font-semibold inline-flex items-center gap-1 bg-stone-200 text-stone-700 px-3 py-1.5 rounded-lg hover:bg-stone-300 transition-colors" @click="toggleTeacher(<?php echo e($teacher->id); ?>)">
-                                    <span x-text="expandedTeacher === <?php echo e($teacher->id); ?> ? 'Nascondi' : 'Gestisci'"></span>
-                                </button>
-                            </td>
-                        </tr>
-                        <tr x-show="expandedTeacher === <?php echo e($teacher->id); ?>" x-cloak x-transition>
-                            <td colspan="6" class="px-4 pb-5">
-                                <div class="bg-stone-50 border border-stone-200 rounded-lg p-5 space-y-5">
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <form method="POST" action="<?php echo e(route('admin.users.profile', $teacherUser)); ?>" class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                            <?php echo csrf_field(); ?>
-                                            <?php echo method_field('PUT'); ?>
-                                            <div>
-                                                <label class="text-xs uppercase text-stone-500 font-semibold">Nome</label>
-                                                <input type="text" name="first_name" value="<?php echo e($teacherUser->first_name); ?>" required class="input-field text-sm">
-                                            </div>
-                                            <div>
-                                                <label class="text-xs uppercase text-stone-500 font-semibold">Cognome</label>
-                                                <input type="text" name="last_name" value="<?php echo e($teacherUser->last_name); ?>" required class="input-field text-sm">
-                                            </div>
-                                            <div class="md:col-span-2">
-                                                <label class="text-xs uppercase text-stone-500 font-semibold">Email</label>
-                                                <input type="email" name="email" value="<?php echo e($teacherUser->email); ?>" required class="input-field text-sm">
-                                            </div>
-                                            <div>
-                                                <label class="text-xs uppercase text-stone-500 font-semibold">Prefisso</label>
-                                                <select name="telephone_country" class="input-field text-sm">
-                                                    <?php $__currentLoopData = $phonePrefixes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $option): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                                        <option value="<?php echo e($option['code']); ?>" <?php if($teacherPrefix === $option['code']): echo 'selected'; endif; ?>><?php echo e($option['name']); ?> (<?php echo e($option['code']); ?>)</option>
-                                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                                </select>
-                                            </div>
-                                            <div>
-                                                <label class="text-xs uppercase text-stone-500 font-semibold">Numero</label>
-                                                <input type="text" name="telephone" value="<?php echo e($teacherNumber); ?>" required class="input-field text-sm">
-                                            </div>
-                                            <div class="md:col-span-2">
-                                                <label class="text-xs uppercase text-stone-500 font-semibold">Stato account</label>
-                                                <select name="status" class="input-field text-sm mt-1">
-                                                    <?php $__currentLoopData = ['active' => 'Attivo', 'pending' => 'In attesa', 'disabled' => 'Disabilitato']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $value => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                                        <option value="<?php echo e($value); ?>" <?php if(($teacherUser->status ?? '') === $value): echo 'selected'; endif; ?>><?php echo e($label); ?></option>
-                                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                                </select>
-                                            </div>
-
-                                            <?php if($teacherUser->role === 'Teacher'): ?>
-                                                <div class="md:col-span-2 space-y-4 border border-stone-200 rounded-xl bg-white px-4 py-4">
-                                                    <div class="flex items-center gap-3">
-                                                        <input type="hidden" name="teacher_can_host_private" value="0">
-                                                        <label class="flex items-center gap-2 text-xs text-stone-600">
-                                                            <input type="checkbox" name="teacher_can_host_private" value="1" <?php if($teacher->can_host_private): echo 'checked'; endif; ?> class="h-4 w-4 text-teal-600 border-stone-300 rounded">
-                                                            <span class="font-semibold text-stone-700 uppercase tracking-wide">Abilita lezioni private</span>
-                                                        </label>
-                                                    </div>
-
-                                                    <div class="space-y-2">
-                                                        <p class="text-xs uppercase text-stone-500 font-semibold">Assegna corsi</p>
-                                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-48 overflow-y-auto border border-stone-200 rounded-lg p-3 bg-stone-50 text-xs">
-                                                            <?php $__currentLoopData = $courses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $course): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                                                <label class="flex items-center gap-2">
-                                                                    <input type="checkbox" name="course_ids[]" value="<?php echo e($course['id']); ?>" <?php if(in_array($course['id'], $assignedCourses)): echo 'checked'; endif; ?> class="h-4 w-4 text-teal-600 border-stone-300 rounded">
-                                                                    <span><?php echo e($course['title']); ?></span>
-                                                                </label>
-                                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            <?php endif; ?>
-
-                                            <div class="md:col-span-2 flex justify-end">
-                                                <button type="submit" class="btn-primary text-sm">Salva dati</button>
-                                            </div>
-                                        </form>
-
-                                        <div class="space-y-4">
-                                            <form method="POST" action="<?php echo e(route('admin.users.passwordEmail', $teacherUser)); ?>" class="flex items-center gap-3">
-                                                <?php echo csrf_field(); ?>
-                                                <button type="submit" class="text-xs bg-rose-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-rose-600 transition-colors">Invia reset password</button>
-                                            </form>
-
-                                            <div class="flex flex-wrap items-center gap-2 text-xs text-stone-600">
-                                                <span class="font-semibold text-stone-700 uppercase tracking-wide"> Verifica Email:</span>
-                                                <?php if($teacherUser->email_verified_at): ?>
-                                                    <span class="text-emerald-600 font-semibold">Sì (<?php echo e(optional($teacherUser->email_verified_at)->format('d/m/Y H:i')); ?>)</span>
-                                                <?php else: ?>
-                                                    <span class="text-amber-600 font-semibold">No</span>
-                                                    <form method="POST" action="<?php echo e(route('admin.users.resendVerification', $teacherUser)); ?>">
-                                                        <?php echo csrf_field(); ?>
-                                                        <button type="submit" class="text-xs bg-amber-500 text-white font-semibold px-3 py-2 rounded-lg hover:bg-amber-600 transition-colors">Reinvia email</button>
-                                                    </form>
-                                                <?php endif; ?>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                        <tr>
-                            <td colspan="5" class="px-4 py-6 text-center text-stone-500">Nessun docente registrato al momento.</td>
-                        </tr>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
-    </div>
 </section>
 <?php /**PATH /Users/vincenzo/Documents/yoga-studio-erp/resources/views/dashboard/partials/admin.blade.php ENDPATH**/ ?>
