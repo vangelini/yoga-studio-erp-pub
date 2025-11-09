@@ -85,9 +85,7 @@ class AdminUserController extends Controller
             }
         });
 
-        return redirect()
-            ->route('dashboard')
-            ->with('status', 'Utente creato con successo.');
+        return back()->with('status', 'Utente creato con successo.');
     }
 
     public function updateRoleStatus(Request $request, User $user): RedirectResponse
@@ -114,9 +112,7 @@ class AdminUserController extends Controller
             }
         });
 
-        return redirect()
-            ->route('dashboard')
-            ->with('status', 'User settings updated.');
+        return back()->with('status', 'User settings updated.');
     }
 
     public function updateProfile(Request $request, User $user): RedirectResponse
@@ -172,24 +168,24 @@ class AdminUserController extends Controller
                 ]);
             }
 
-            $courseIds = collect($request->input('course_ids', []))
-                ->map(fn ($id) => (int) $id)
-                ->unique()
-                ->values()
-                ->all();
+            if ($request->has('course_ids')) {
+                $courseIds = collect($request->input('course_ids', []))
+                    ->map(fn ($id) => (int) $id)
+                    ->unique()
+                    ->values()
+                    ->all();
 
-            Course::where('teacher_id', $user->id)
-                ->when(!empty($courseIds), fn ($query) => $query->whereNotIn('id', $courseIds))
-                ->update(['teacher_id' => null]);
+                Course::where('teacher_id', $user->id)
+                    ->when(!empty($courseIds), fn ($query) => $query->whereNotIn('id', $courseIds))
+                    ->update(['teacher_id' => null]);
 
-            if (!empty($courseIds)) {
-                Course::whereIn('id', $courseIds)->update(['teacher_id' => $user->id]);
+                if (!empty($courseIds)) {
+                    Course::whereIn('id', $courseIds)->update(['teacher_id' => $user->id]);
+                }
             }
         }
 
-        return redirect()
-            ->route('dashboard')
-            ->with('status', "Dati aggiornati per {$user->email}.");
+        return back()->with('status', "Dati aggiornati per {$user->email}.");
     }
 
     public function sendPasswordReset(User $user): RedirectResponse

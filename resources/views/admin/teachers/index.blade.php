@@ -22,6 +22,21 @@
     }"
     class="space-y-10"
 >
+    @if (session('status'))
+        <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            {{ session('status') }}
+        </div>
+    @endif
+
+    @if ($errors->any())
+        <div class="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+            <ul class="list-disc list-inside space-y-1">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
     <div class="card p-6 space-y-6">
         <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <div>
@@ -72,35 +87,35 @@
             </div>
             <div>
                 <label class="text-xs uppercase text-stone-500 font-semibold">Città</label>
-                <input type="text" name="residenza_citta" class="input-field text-sm">
+                <input type="text" name="residenza_citta" required class="input-field text-sm">
             </div>
             <div>
                 <label class="text-xs uppercase text-stone-500 font-semibold">Provincia</label>
-                <input type="text" name="residenza_provincia" class="input-field text-sm">
+                <input type="text" name="residenza_provincia" required class="input-field text-sm">
             </div>
             <div>
                 <label class="text-xs uppercase text-stone-500 font-semibold">Stato</label>
-                <input type="text" name="residenza_stato" value="Italia" class="input-field text-sm">
+                <input type="text" name="residenza_stato" value="Italia" required class="input-field text-sm">
             </div>
             <div>
                 <label class="text-xs uppercase text-stone-500 font-semibold">Via</label>
-                <input type="text" name="residenza_via" class="input-field text-sm">
+                <input type="text" name="residenza_via" required class="input-field text-sm">
             </div>
             <div>
                 <label class="text-xs uppercase text-stone-500 font-semibold">Numero civico</label>
-                <input type="text" name="residenza_numero_civico" class="input-field text-sm">
+                <input type="text" name="residenza_numero_civico" required class="input-field text-sm">
             </div>
             <div>
                 <label class="text-xs uppercase text-stone-500 font-semibold">Codice fiscale</label>
-                <input type="text" name="codice_fiscale" class="input-field text-sm uppercase">
+                <input type="text" name="codice_fiscale" required class="input-field text-sm uppercase">
             </div>
             <div>
                 <label class="text-xs uppercase text-stone-500 font-semibold">Luogo di nascita</label>
-                <input type="text" name="luogo_nascita" class="input-field text-sm">
+                <input type="text" name="luogo_nascita" required class="input-field text-sm">
             </div>
             <div>
                 <label class="text-xs uppercase text-stone-500 font-semibold">Data di nascita</label>
-                <input type="date" name="data_nascita" class="input-field text-sm">
+                <input type="date" name="data_nascita" required class="input-field text-sm">
             </div>
             <div class="md:col-span-2 flex items-center gap-2">
                 <input id="teacher-private" type="checkbox" name="can_host_private" value="1" class="h-4 w-4 text-teal-600 border-stone-300 rounded">
@@ -247,7 +262,8 @@
                                                     <label class="text-sm text-stone-600">Può tenere lezioni private</label>
                                                 </div>
                                             @endif
-                                            <div class="md:col-span-2 flex justify-end">
+                                            <div class="md:col-span-2 flex justify-end gap-2">
+                                                <button type="reset" class="inline-flex items-center gap-2 rounded-lg border border-stone-300 px-3 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-100 transition">Cancella</button>
                                                 <button type="submit" class="btn-primary text-sm">Salva dati</button>
                                             </div>
                                         </form>
