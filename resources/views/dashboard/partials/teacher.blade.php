@@ -1,5 +1,6 @@
 @php
     $activeTeacher = $teachers->firstWhere('id', auth()->id());
+    $teacherReceipts = collect($receipts ?? []);
 @endphp
 
 <section class="space-y-10">
@@ -130,6 +131,50 @@
                     <span x-show="saving">Saving...</span>
                 </button>
             </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 space-y-4">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div>
+                <h3 class="text-2xl font-semibold text-stone-800">Ricevute lezioni private</h3>
+                <p class="text-sm text-stone-500">Scarica le ricevute dei pagamenti registrati dai tuoi clienti.</p>
+            </div>
+            <span class="text-xs uppercase tracking-widest text-stone-400">Ultime 10</span>
+        </div>
+        <div class="space-y-3">
+            @forelse ($teacherReceipts as $receipt)
+                <div class="border border-stone-200 rounded-lg px-4 py-3 bg-stone-50 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                    <div>
+                        <p class="text-sm font-semibold text-stone-800">{{ $receipt['client_name'] ?? 'Cliente' }}</p>
+                        <p class="text-xs text-stone-500">
+                            @if (!empty($receipt['lesson_date']))
+                                Lezione del {{ $receipt['lesson_date'] }}@if (!empty($receipt['lesson_time'])) alle {{ $receipt['lesson_time'] }}@endif
+                            @else
+                                Ricevuta disponibile
+                            @endif
+                        </p>
+                        @if (!empty($receipt['paid_at']))
+                            <p class="text-[11px] text-stone-400">Pagata il {{ $receipt['paid_at'] }}</p>
+                        @endif
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-base font-semibold text-stone-800">€ {{ $receipt['amount_formatted'] ?? number_format($receipt['amount'] ?? 0, 2, ',', '.') }}</span>
+                        @if (!empty($receipt['receipt_route']))
+                            <a
+                                href="{{ $receipt['receipt_route'] }}"
+                                target="_blank"
+                                rel="noopener"
+                                class="inline-flex items-center gap-2 rounded-lg border border-teal-200 px-3 py-1.5 text-xs font-semibold text-teal-700 hover:bg-teal-50 transition"
+                            >
+                                Scarica
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            @empty
+                <p class="text-sm text-stone-500">Non ci sono ricevute disponibili al momento.</p>
+            @endforelse
         </div>
     </div>
 
@@ -416,5 +461,4 @@
         </script>
     @endpush
 @endonce
-
 

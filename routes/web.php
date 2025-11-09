@@ -95,4 +95,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/client/documents', [ClientDocumentController::class, 'store'])->name('client.documents.store');
         
     });
+
+    Route::get('/payments/{payment}/receipt', [\App\Http\Controllers\Web\PaymentAdminController::class, 'showReceipt'])->name('payments.receipt');
 });

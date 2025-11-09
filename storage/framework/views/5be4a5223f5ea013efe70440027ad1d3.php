@@ -108,6 +108,16 @@
                         Pagata il <span x-text="formatDateString(membershipPayment.paid_at)"></span>
                     </span>
                 </template>
+                <template x-if="membershipPayment && membershipPayment.receipt_route">
+                    <a
+                        :href="membershipPayment.receipt_route"
+                        target="_blank"
+                        rel="noopener"
+                        class="inline-flex items-center gap-1 rounded-lg border border-teal-200 px-3 py-1 text-xs font-semibold text-teal-700 hover:bg-teal-50 transition"
+                    >
+                        Scarica ricevuta
+                    </a>
+                </template>
             </div>
         </div>
 
@@ -184,9 +194,21 @@
                         <span class="text-sm font-semibold text-stone-800" x-text="payment.type === 'membership' ? 'Quota associativa' : (payment.type === 'course_subscription' ? 'Iscrizione corso' : 'Lezione privata')"></span>
                         <span class="text-xs font-semibold px-2.5 py-1 rounded-full" :class="paymentStatusClass(payment.status)" x-text="payment.status === 'paid' ? 'Pagato' : 'In attesa'"></span>
                     </div>
-                    <div class="text-xs text-stone-500 flex items-center justify-between">
-                        <span x-text="payment.due_date ? `Scadenza ${formatDateString(payment.due_date)}` : ''"></span>
-                        <span class="font-semibold text-stone-700" x-text="formatMoney(payment.amount)"></span>
+                    <div class="text-xs text-stone-500 flex items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <span x-text="payment.due_date ? `Scadenza ${formatDateString(payment.due_date)}` : ''"></span>
+                            <template x-if="payment.receipt_route">
+                                <a
+                                    :href="payment.receipt_route"
+                                    target="_blank"
+                                    rel="noopener"
+                                    class="inline-flex items-center gap-1 text-[11px] font-semibold text-teal-600 hover:text-teal-700 underline decoration-dotted"
+                                >
+                                    Scarica ricevuta
+                                </a>
+                            </template>
+                        </div>
+                        <span class="font-semibold text-stone-700 text-right" x-text="formatMoney(payment.amount)"></span>
                     </div>
                 </div>
             </template>
@@ -688,7 +710,7 @@
     </div>
 </section>
 
-<?php if (! $__env->hasRenderedOnce('f0edd837-064b-4401-b6b0-7a7f1916a043')): $__env->markAsRenderedOnce('f0edd837-064b-4401-b6b0-7a7f1916a043'); ?>
+<?php if (! $__env->hasRenderedOnce('8c041934-dbd7-4205-9a7f-5bd50c41fd21')): $__env->markAsRenderedOnce('8c041934-dbd7-4205-9a7f-5bd50c41fd21'); ?>
     <?php $__env->startPush('scripts'); ?>
         <script>
             document.addEventListener('alpine:init', () => {

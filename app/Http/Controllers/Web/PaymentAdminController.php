@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Models\Booking;
 use App\Models\MembershipSubscription;
 use App\Models\Payment;
 use App\Services\CashReceiptService;
@@ -95,7 +96,9 @@ class PaymentAdminController extends Controller
 
     public function showReceipt(Request $request, Payment $payment): BinaryFileResponse
     {
-        abort_unless($request->user()->role === 'Admin', 403);
+        $payment->loadMissing('payable');
+
+        abort_unless($this->canAccessReceipt($request->user(), $payment), 403);
 
         if (!$payment->receipt_path || !Storage::disk(config('receipt.storage_disk', 'public'))->exists($payment->receipt_path)) {
             abort(404);
@@ -107,5 +110,29 @@ class PaymentAdminController extends Controller
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'inline; filename="' . basename($absolutePath) . '"',
         ]);
+    }
+
+    private function canAccessReceipt($user, Payment $payment): bool
+    {
+        if (!$user) {
+            return false;
+        }
+
+        if ($user->role === 'Admin') {
+            return true;
+        }
+
+        if ($payment->user_id === $user->id) {
+            return true;
+        }
+
+        if ($user->role === 'Teacher' && $payment->payable_type === Booking::class) {
+            $booking = $payment->payable;
+            if ($booking && (int) $booking->teacher_id === (int) $user->id) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

@@ -490,9 +490,37 @@ class DashboardPageController extends Controller
             ->orderBy('users.name')
             ->get();
 
+        $receiptPayments = Payment::with(['user:id,name,email', 'payable'])
+            ->where('payable_type', Booking::class)
+            ->whereNotNull('receipt_path')
+            ->whereHas('payable', function ($query) use ($teacherId) {
+                $query->where('teacher_id', $teacherId);
+            })
+            ->orderByDesc('paid_at')
+            ->limit(10)
+            ->get()
+            ->map(function (Payment $payment) {
+                $booking = $payment->payable;
+                $slot = $booking?->availability;
+
+                return [
+                    'id' => $payment->id,
+                    'client_name' => optional($payment->user)->name,
+                    'client_email' => optional($payment->user)->email,
+                    'amount' => $payment->amount,
+                    'amount_formatted' => number_format((float) $payment->amount, 2, ',', '.'),
+                    'paid_at' => optional($payment->paid_at)->format('d/m/Y H:i'),
+                    'lesson_date' => optional($slot?->slot_date)->format('d/m/Y'),
+                    'lesson_time' => $slot?->slot_time ? TimeHelper::format($slot->slot_time) : null,
+                    'receipt_route' => $payment->receipt_url ? route('payments.receipt', $payment->id) : null,
+                ];
+            })
+            ->values();
+
         return [
             'bookings' => $bookings,
             'clients' => $clients,
+            'receipts' => $receiptPayments,
         ];
     }
 
@@ -617,6 +645,7 @@ class DashboardPageController extends Controller
             'plan_type' => $meta['plan_type'] ?? null,
             'plan_label' => $meta['plan_label'] ?? null,
             'receipt_url' => $payment->receipt_url,
+            'receipt_route' => $payment->receipt_url ? route('payments.receipt', $payment->id) : null,
         ];
     }
 
