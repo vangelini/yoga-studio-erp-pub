@@ -20,7 +20,10 @@ class CoursePaymentGenerator
         $leadDays = max(0, $leadDays);
         $now = now();
 
-        $subscriptions = Subscription::with(['course:id,title,monthly_price,quarterly_price,annual_price,price'])
+        $subscriptions = Subscription::with([
+                'course:id,title,monthly_price,quarterly_price,annual_price,price',
+                'extraCourse:id,title,monthly_price,teacher_id',
+            ])
             ->where('auto_renew', true)
             ->where('status', 'active')
             ->get();
@@ -113,6 +116,21 @@ class CoursePaymentGenerator
             'renewal_cycle_end' => $cycleEnd->toDateString(),
             'auto_generated' => true,
         ];
+
+        $extraMeta = null;
+        if ($subscription->hasExtraDay() && ($subscription->extra_course_plan_amount ?? 0) > 0) {
+            $amount += $subscription->extra_course_plan_amount;
+            $extraSnapshot = $subscription->extra_course_snapshot ?? [
+                'course_id' => $subscription->extra_course_id,
+                'course_title' => optional($subscription->extraCourse)->title,
+                'plan_months' => $planMonths,
+            ];
+            $extraMeta = array_merge($extraSnapshot, [
+                'charged_amount' => $subscription->extra_course_plan_amount,
+                'plan_amount' => $subscription->extra_course_plan_amount,
+            ]);
+            $meta['extra_day'] = $extraMeta;
+        }
 
         DB::transaction(function () use ($subscription, $amount, $nextDue, $meta) {
             Payment::create([

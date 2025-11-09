@@ -22,7 +22,8 @@ class CourseSubscriptionManager
         Course $course,
         string $planType,
         string $startOption,
-        ?string $startDateInput = null
+        ?string $startDateInput = null,
+        ?Course $extraCourse = null
     ): array
     {
         $planType = in_array($planType, array_keys(Course::PLAN_MONTHS), true) ? $planType : 'monthly';
@@ -61,6 +62,8 @@ class CourseSubscriptionManager
             },
             'plan_amount' => $basePrice,
         ];
+        $periodStart = null;
+        $periodEnd = null;
 
         if ($startOption === 'current_month') {
             $startDate = $startDateInput ? Carbon::parse($startDateInput, $today->timezone) : $today->copy();
@@ -156,8 +159,28 @@ class CourseSubscriptionManager
         }
 
         $endDate = $startDate ? $startDate->copy()->addMonthsNoOverflow($durationMonths)->subDay() : null;
+        $extraData = $this->prepareExtraDayData(
+            $extraCourse,
+            $durationMonths,
+            $planType,
+            $startOption,
+            $startDate,
+            $periodStart,
+            $periodEnd
+        );
 
-        return DB::transaction(function () use ($client, $course, $startDate, $endDate, $amount, $meta, $planType, $basePrice, $existing) {
+        if ($extraData) {
+            $amount += $extraData['charged_amount'];
+            $meta['extra_day'] = array_merge(
+                $extraData['snapshot'],
+                [
+                    'plan_amount' => $extraData['plan_amount'],
+                    'charged_amount' => $extraData['charged_amount'],
+                ]
+            );
+        }
+
+        return DB::transaction(function () use ($client, $course, $startDate, $endDate, $amount, $meta, $planType, $basePrice, $existing, $extraCourse, $extraData) {
             /** @var Subscription $subscription */
             if ($existing) {
                 $existing->fill([
@@ -168,6 +191,9 @@ class CourseSubscriptionManager
                     'plan_amount' => $basePrice,
                     'status' => 'active',
                     'cancelled_at' => null,
+                    'extra_course_id' => $extraCourse?->id,
+                    'extra_course_plan_amount' => $extraData['plan_amount'] ?? null,
+                    'extra_course_snapshot' => $extraData['snapshot'] ?? null,
                 ]);
                 $existing->save();
                 $subscription = $existing->fresh();
@@ -182,6 +208,9 @@ class CourseSubscriptionManager
                     'plan_amount' => $basePrice,
                     'status' => 'active',
                     'cancelled_at' => null,
+                    'extra_course_id' => $extraCourse?->id,
+                    'extra_course_plan_amount' => $extraData['plan_amount'] ?? null,
+                    'extra_course_snapshot' => $extraData['snapshot'] ?? null,
                 ]);
             }
 
@@ -198,7 +227,10 @@ class CourseSubscriptionManager
                 'meta' => $meta,
             ]);
 
-            $subscription->load('course:id,title,price,monthly_price,quarterly_price,annual_price');
+            $subscription->load([
+                'course:id,title,price,monthly_price,quarterly_price,annual_price',
+                'extraCourse:id,title,monthly_price,teacher_id',
+            ]);
             $payment->refresh();
 
             return [
@@ -206,6 +238,84 @@ class CourseSubscriptionManager
                 'payment' => $payment,
             ];
         });
+    }
+
+    protected function prepareExtraDayData(
+        ?Course $extraCourse,
+        int $planMonths,
+        string $planType,
+        string $startOption,
+        ?Carbon $startDate,
+        ?Carbon $periodStart,
+        ?Carbon $periodEnd
+    ): ?array {
+        if (!$extraCourse) {
+            return null;
+        }
+
+        $extraCourse->loadMissing(['schedule', 'teacher']);
+
+        $monthlyPrice = (float) ($extraCourse->monthly_price ?? $extraCourse->price ?? 0);
+        $lessonsPerWeek = $extraCourse->schedule ? $extraCourse->schedule->count() : 0;
+
+        if ($monthlyPrice <= 0 || $lessonsPerWeek <= 0) {
+            throw ValidationException::withMessages([
+                'extra_course_id' => __('Non è possibile calcolare il costo della lezione extra per il corso selezionato.'),
+            ]);
+        }
+
+        $unitLessonAmount = round($monthlyPrice / max(1, $lessonsPerWeek), 2);
+        $basePlanAmount = round($unitLessonAmount * max(1, $planMonths), 2);
+
+        $discountPercent = max(0, min(100, (float) ($extraCourse->extra_day_discount_percent ?? 0)));
+        $discountAmount = round($basePlanAmount * ($discountPercent / 100), 2);
+        $planAmount = max($basePlanAmount - $discountAmount, 0);
+        if ($planAmount > 0 && $planAmount < 0.01) {
+            $planAmount = 0.01;
+        }
+
+        $chargedAmount = $planAmount;
+        $snapshot = [
+            'course_id' => $extraCourse->id,
+            'course_title' => $extraCourse->title,
+            'teacher_id' => $extraCourse->teacher_id,
+            'teacher_name' => optional($extraCourse->teacher)->name,
+            'weekly_lessons' => $lessonsPerWeek,
+            'monthly_price' => $monthlyPrice,
+            'unit_lesson_amount' => $unitLessonAmount,
+            'plan_months' => $planMonths,
+            'base_plan_amount' => $basePlanAmount,
+            'discount_percent' => $discountPercent,
+            'discount_amount' => $discountAmount,
+        ];
+
+        if (
+            $planType === 'monthly'
+            && $startOption === 'current_month'
+            && $periodStart
+            && $periodEnd
+            && $startDate
+        ) {
+            $lessonProration = $this->calculateLessonProration($extraCourse, $periodStart, $periodEnd, $startDate);
+
+            if ($lessonProration['total'] > 0 && $lessonProration['remaining'] >= 0) {
+                $ratio = $lessonProration['total'] > 0 ? $lessonProration['remaining'] / $lessonProration['total'] : 1;
+                $chargedAmount = round($planAmount * $ratio, 2);
+                if ($planAmount > 0 && $chargedAmount < 0.01) {
+                    $chargedAmount = 0.01;
+                }
+
+                $snapshot['prorated'] = true;
+                $snapshot['proration_ratio'] = $ratio;
+                $snapshot['proration_details'] = $lessonProration;
+            }
+        }
+
+        return [
+            'plan_amount' => $planAmount,
+            'charged_amount' => $chargedAmount,
+            'snapshot' => $snapshot,
+        ];
     }
 
     protected function calculateLessonProration(Course $course, Carbon $periodStart, Carbon $periodEnd, Carbon $clientStart): array

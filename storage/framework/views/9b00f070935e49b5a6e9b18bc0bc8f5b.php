@@ -2,7 +2,7 @@
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div class="space-y-1">
             <h3 class="text-2xl font-semibold text-stone-900">Gestione corsi</h3>
-            <p class="text-sm text-stone-500">Gestisci in modo rapido i corsi attivi e crea nuove sessioni.</p>
+            <p class="text-sm text-stone-500">I campi contrassegnati con <span class="text-rose-600 font-semibold">*</span> sono obbligatori.</p>
         </div>
         <button
             type="button"
@@ -15,6 +15,12 @@
             <span x-text="showCreateCourse ? 'Nascondi nuovo corso' : 'Nuovo corso'"></span>
         </button>
     </div>
+
+    <?php if($errors->any()): ?>
+        <div class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+            Impossibile salvare il corso. Controlla i campi evidenziati e riprova.
+        </div>
+    <?php endif; ?>
 
     <div
         class="border border-teal-200/60 rounded-2xl bg-teal-50/60 p-6 shadow-inner"
@@ -32,17 +38,37 @@
             <?php echo csrf_field(); ?>
             <div class="space-y-3">
                 <div class="space-y-1.5">
-                    <label class="text-xs uppercase font-semibold text-stone-500">Titolo</label>
-                    <input type="text" name="title" required class="input-field text-sm" placeholder="Titolo del corso">
+                    <label class="text-xs uppercase font-semibold text-stone-500">Titolo <span class="text-rose-600">*</span></label>
+                    <input type="text" name="title" value="<?php echo e(old('title')); ?>" required class="input-field text-sm" placeholder="Titolo del corso">
+                    <?php $__errorArgs = ['title'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                        <p class="text-xs text-rose-600"><?php echo e($message); ?></p>
+                    <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                 </div>
                 <div class="space-y-1.5">
-                    <label class="text-xs uppercase font-semibold text-stone-500">Docente</label>
+                    <label class="text-xs uppercase font-semibold text-stone-500">Docente <span class="text-rose-600">*</span></label>
                     <select name="teacher_id" required class="input-field text-sm">
-                        <option value="" disabled selected>Seleziona un docente</option>
+                        <option value="" disabled <?php echo e(old('teacher_id') ? '' : 'selected'); ?>>Seleziona un docente</option>
                         <?php $__currentLoopData = $teacherOptions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $teacherId => $teacherName): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                            <option value="<?php echo e($teacherId); ?>"><?php echo e($teacherName); ?></option>
+                            <option value="<?php echo e($teacherId); ?>" <?php if(old('teacher_id') == $teacherId): echo 'selected'; endif; ?>><?php echo e($teacherName); ?></option>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </select>
+                    <?php $__errorArgs = ['teacher_id'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                        <p class="text-xs text-rose-600"><?php echo e($message); ?></p>
+                    <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                 </div>
                 <div class="space-y-1.5">
                     <label class="text-xs uppercase font-semibold text-stone-500">Prezzi abbonamenti (€)</label>
@@ -55,23 +81,75 @@
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <div class="space-y-1.5">
-                        <label class="text-xs uppercase font-semibold text-stone-500">Data inizio</label>
-                        <input type="date" name="start_date" required class="input-field text-sm">
+                        <label class="text-xs uppercase font-semibold text-stone-500">Data inizio <span class="text-rose-600">*</span></label>
+                        <input type="date" name="start_date" value="<?php echo e(old('start_date')); ?>" required class="input-field text-sm">
+                        <?php $__errorArgs = ['start_date'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                            <p class="text-xs text-rose-600"><?php echo e($message); ?></p>
+                        <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                     </div>
                     <div class="space-y-1.5">
-                        <label class="text-xs uppercase font-semibold text-stone-500">Data fine</label>
-                        <input type="date" name="end_date" required class="input-field text-sm">
+                        <label class="text-xs uppercase font-semibold text-stone-500">Data fine <span class="text-rose-600">*</span></label>
+                        <input type="date" name="end_date" value="<?php echo e(old('end_date')); ?>" required class="input-field text-sm">
+                        <?php $__errorArgs = ['end_date'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                            <p class="text-xs text-rose-600"><?php echo e($message); ?></p>
+                        <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                     </div>
                 </div>
                 <div class="space-y-1.5">
                     <label class="text-xs uppercase font-semibold text-stone-500">Specialità / focus</label>
                     <input type="text" name="speciality_description" class="input-field text-sm" placeholder="Es. Yoga dinamico">
                 </div>
+                <div class="flex items-start gap-3 rounded-xl border border-teal-100 bg-white px-3 py-2">
+                    <input type="checkbox" name="allows_extra_day" value="1" class="mt-1 h-4 w-4 rounded border-stone-300 text-teal-600 focus:ring-teal-500">
+                    <div>
+                        <p class="text-sm font-semibold text-stone-700">Disponibile come “Un giorno in più”</p>
+                        <p class="text-xs text-stone-500">Se selezionato, questo corso potrà essere scelto dai clienti come lezione extra.</p>
+                    </div>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-xs uppercase font-semibold text-stone-500">Sconto “Un giorno in più” (%)</label>
+                    <input type="number" step="0.1" min="0" max="100" name="extra_day_discount_percent" value="<?php echo e(old('extra_day_discount_percent', 0)); ?>" class="input-field text-sm" placeholder="Es. 10">
+                    <p class="text-[11px] text-stone-500">Percentuale applicata sul costo extra prima della riduzione per lezioni rimanenti.</p>
+                    <?php $__errorArgs = ['extra_day_discount_percent'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                        <p class="text-xs text-rose-600"><?php echo e($message); ?></p>
+                    <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                </div>
             </div>
             <div class="space-y-3">
                 <div class="space-y-1.5">
-                    <label class="text-xs uppercase font-semibold text-stone-500">Descrizione</label>
-                    <textarea name="description" rows="5" class="input-field text-sm" placeholder="Descrizione sintetica del corso"></textarea>
+                    <label class="text-xs uppercase font-semibold text-stone-500">Descrizione <span class="text-rose-600">*</span></label>
+                    <textarea name="description" rows="5" class="input-field text-sm" placeholder="Descrizione sintetica del corso" required><?php echo e(old('description')); ?></textarea>
+                    <?php $__errorArgs = ['description'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                        <p class="text-xs text-rose-600"><?php echo e($message); ?></p>
+                    <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                 </div>
                 <div class="space-y-2">
                     <div class="flex items-center justify-between text-xs text-stone-600">
@@ -154,11 +232,11 @@
                         <?php echo method_field('PUT'); ?>
                         <div class="space-y-3">
                             <div class="space-y-1.5">
-                                <label class="text-xs uppercase font-semibold text-stone-500">Titolo</label>
+                                <label class="text-xs uppercase font-semibold text-stone-500">Titolo <span class="text-rose-600">*</span></label>
                                 <input type="text" name="title" value="<?php echo e($course['title']); ?>" required class="input-field text-sm">
                             </div>
                             <div class="space-y-1.5">
-                                <label class="text-xs uppercase font-semibold text-stone-500">Docente</label>
+                                <label class="text-xs uppercase font-semibold text-stone-500">Docente <span class="text-rose-600">*</span></label>
                                 <select name="teacher_id" class="input-field text-sm">
                                     <option value="">Non assegnato</option>
                                     <?php $__currentLoopData = $teacherOptions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $teacherId => $teacherName): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -176,11 +254,11 @@
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 <div class="space-y-1.5">
-                                    <label class="text-xs uppercase font-semibold text-stone-500">Data inizio</label>
+                                    <label class="text-xs uppercase font-semibold text-stone-500">Data inizio <span class="text-rose-600">*</span></label>
                                     <input type="date" name="start_date" value="<?php echo e($course['start_date'] ?? ''); ?>" required class="input-field text-sm">
                                 </div>
                                 <div class="space-y-1.5">
-                                    <label class="text-xs uppercase font-semibold text-stone-500">Data fine</label>
+                                    <label class="text-xs uppercase font-semibold text-stone-500">Data fine <span class="text-rose-600">*</span></label>
                                     <input type="date" name="end_date" value="<?php echo e($course['end_date'] ?? ''); ?>" required class="input-field text-sm">
                                 </div>
                             </div>
@@ -188,12 +266,44 @@
                                 <label class="text-xs uppercase font-semibold text-stone-500">Specialità / focus</label>
                                 <input type="text" name="speciality_description" value="<?php echo e($course['speciality_description'] ?? ''); ?>" class="input-field text-sm">
                             </div>
+                            <div class="flex items-start gap-3 rounded-xl border border-teal-100 bg-white px-3 py-2">
+                                <input type="checkbox" name="allows_extra_day" value="1" class="mt-1 h-4 w-4 rounded border-stone-300 text-teal-600 focus:ring-teal-500" <?php if($course['allows_extra_day'] ?? false): echo 'checked'; endif; ?>>
+                                <div>
+                                    <p class="text-sm font-semibold text-stone-700">Disponibile come “Un giorno in più”</p>
+                                    <p class="text-xs text-stone-500">Consente ai clienti di scegliere una lezione settimanale extra da questo corso.</p>
+                                </div>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-xs uppercase font-semibold text-stone-500">Sconto “Un giorno in più” (%)</label>
+                                <input type="number" step="0.1" min="0" max="100" name="extra_day_discount_percent" value="<?php echo e(number_format($course['extra_day_discount_percent'] ?? 0, 1, '.', '')); ?>" class="input-field text-sm">
+                                <p class="text-[11px] text-stone-500">Applicato sul costo extra prima del calcolo delle lezioni rimanenti.</p>
+                                <?php $__errorArgs = ['extra_day_discount_percent'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                    <p class="text-xs text-rose-600"><?php echo e($message); ?></p>
+                                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                            </div>
                         </div>
 
                         <div class="space-y-3">
                             <div class="space-y-1.5">
-                                <label class="text-xs uppercase font-semibold text-stone-500">Descrizione</label>
-                                <textarea name="description" rows="4" class="input-field text-sm"><?php echo e($course['description']); ?></textarea>
+                                <label class="text-xs uppercase font-semibold text-stone-500">Descrizione <span class="text-rose-600">*</span></label>
+                                <textarea name="description" rows="4" class="input-field text-sm" required><?php echo e($course['description']); ?></textarea>
+                                <?php $__errorArgs = ['description'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                    <p class="text-xs text-rose-600"><?php echo e($message); ?></p>
+                                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                             </div>
                             <div class="space-y-2">
                                 <div class="flex items-center justify-between text-xs text-stone-600">

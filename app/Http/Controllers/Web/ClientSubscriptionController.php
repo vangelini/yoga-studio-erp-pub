@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\Payment;
 use App\Models\Subscription;
+use App\Models\Setting;
 use App\Services\CourseSubscriptionManager;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -25,6 +26,7 @@ class ClientSubscriptionController extends Controller
             'plan_type' => ['required', Rule::in(['monthly', 'quarterly', 'annual'])],
             'start_option' => ['required', Rule::in(['current_month', 'next_month'])],
             'start_date' => ['nullable', 'date', 'required_if:start_option,current_month'],
+            'extra_course_id' => ['nullable', 'integer', 'different:course_id'],
         ]);
 
         $course = Course::findOrFail($data['course_id']);
@@ -35,6 +37,46 @@ class ClientSubscriptionController extends Controller
                 'plan_type' => __('Il piano selezionato non è disponibile per questo corso.'),
             ]);
         }
+        $extraDayEnabled = (bool) optional(Setting::find('extra_day_enabled'))->value;
+        $extraCourse = null;
+
+        if (!empty($data['extra_course_id'])) {
+            if (!$extraDayEnabled) {
+                throw ValidationException::withMessages([
+                    'extra_course_id' => __('La modalità "Un giorno in più" non è disponibile in questo momento.'),
+                ]);
+            }
+
+            $extraCourse = Course::query()
+                ->whereKey($data['extra_course_id'])
+                ->where('allows_extra_day', true)
+                ->first();
+
+            if (!$extraCourse) {
+                throw ValidationException::withMessages([
+                    'extra_course_id' => __('Il corso selezionato non può essere usato come lezione extra.'),
+                ]);
+            }
+
+            if ((int) $extraCourse->id === (int) $course->id) {
+                throw ValidationException::withMessages([
+                    'extra_course_id' => __('Scegli un corso diverso per la lezione extra.'),
+                ]);
+            }
+
+            $alreadySubscribed = Subscription::query()
+                ->where('client_id', $client->id)
+                ->where('course_id', $extraCourse->id)
+                ->where('status', '!=', 'cancelled')
+                ->exists();
+
+            if ($alreadySubscribed) {
+                throw ValidationException::withMessages([
+                    'extra_course_id' => __('Sei già iscritto a questo corso, non può essere selezionato come extra.'),
+                ]);
+            }
+        }
+
         $startDateInput = $data['start_option'] === 'current_month' ? ($data['start_date'] ?? null) : null;
 
         /** @var CourseSubscriptionManager $manager */
@@ -46,7 +88,8 @@ class ClientSubscriptionController extends Controller
                 $course,
                 $data['plan_type'],
                 $data['start_option'],
-                $startDateInput
+                $startDateInput,
+                $extraCourse
             );
         } catch (ValidationException $exception) {
             throw $exception;
@@ -135,7 +178,10 @@ class ClientSubscriptionController extends Controller
             Payment::whereIn('id', $removedPaymentIds)->delete();
         }
 
-        $subscription->refresh()->load('course:id,title,price,monthly_price,quarterly_price,annual_price');
+        $subscription->refresh()->load([
+            'course:id,title,price,monthly_price,quarterly_price,annual_price',
+            'extraCourse:id,title,monthly_price,teacher_id',
+        ]);
 
         $message = __('Iscrizione al corso annullata con successo.');
 
@@ -186,6 +232,19 @@ class ClientSubscriptionController extends Controller
                 'quarterly_price',
                 'annual_price',
             ]),
+            'extra_course_id' => $subscription->extra_course_id,
+            'extraCourseId' => $subscription->extra_course_id,
+            'extra_course_plan_amount' => $subscription->extra_course_plan_amount,
+            'extraCoursePlanAmount' => $subscription->extra_course_plan_amount,
+            'extra_course_snapshot' => $subscription->extra_course_snapshot,
+            'extraCourseSnapshot' => $subscription->extra_course_snapshot,
+            'extra_course' => optional($subscription->extraCourse)?->only([
+                'id',
+                'title',
+                'monthly_price',
+                'teacher_id',
+            ]),
+            'hasExtraDay' => $subscription->hasExtraDay(),
         ];
     }
 

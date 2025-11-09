@@ -32,6 +32,10 @@
         'membershipPayment' => $membership_payment ?? null,
         'payments' => $payments ?? collect(),
         'documents' => $documents,
+        'extraDay' => [
+            'enabled' => $extra_day_config['enabled'] ?? false,
+            'candidateCourseIds' => $extra_day_config['candidateCourseIds'] ?? [],
+        ],
         'routes' => [
             'book' => route('client.bookings.store'),
             'cancelBase' => url('/client/bookings'),
@@ -194,6 +198,26 @@
                         <span class="text-sm font-semibold text-stone-800" x-text="payment.type === 'membership' ? 'Quota associativa' : (payment.type === 'course_subscription' ? 'Iscrizione corso' : 'Lezione privata')"></span>
                         <span class="text-xs font-semibold px-2.5 py-1 rounded-full" :class="paymentStatusClass(payment.status)" x-text="payment.status === 'paid' ? 'Pagato' : 'In attesa'"></span>
                     </div>
+                    <template x-if="payment.is_course_payment">
+                        <div class="text-[11px] text-stone-500 space-y-1">
+                            <p>
+                                <span class="font-semibold text-stone-600">Corso:</span>
+                                <span x-text="payment.course_title ?? '—'"></span>
+                            </p>
+                            <p x-show="payment.plan_label">
+                                <span class="font-semibold text-stone-600">Tipo abbonamento:</span>
+                                <span x-text="payment.plan_label"></span>
+                            </p>
+                            <p x-show="payment.subscriptionStartDateDisplay">
+                                <span class="font-semibold text-stone-600">Data inizio:</span>
+                                <span x-text="payment.subscriptionStartDateDisplay"></span>
+                            </p>
+                            <p x-show="payment.has_extra_day">
+                                <span class="font-semibold text-stone-600">Modalità “Un giorno in più”:</span>
+                                <span x-text="payment.extra_day?.course_title ?? 'Aggiunta'"></span>
+                            </p>
+                        </div>
+                    </template>
                     <div class="text-xs text-stone-500 flex items-center justify-between gap-4">
                         <div class="flex items-center gap-3">
                             <span x-text="payment.due_date ? `Scadenza ${formatDateString(payment.due_date)}` : ''"></span>
@@ -239,6 +263,14 @@
                             <p class="text-sm text-stone-500">
                                 Insegnante: <span x-text="course.teacher_name ?? 'Da assegnare'"></span>
                             </p>
+                            <template x-if="course.allows_extra_day">
+                                <span class="mt-1 inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                    Candidato per “Un giorno in più”
+                                </span>
+                            </template>
                         </div>
                         <div class="text-right">
                             <template x-if="course.availablePlans?.length">
@@ -286,6 +318,17 @@
                             <p class="mt-1 text-stone-500">
                                 <span class="font-semibold text-stone-600">Piano:</span>
                                 <span x-text="subscriptionByCourse(course.id)?.planLabel"></span>
+                            </p>
+                        </template>
+                        <template x-if="subscriptionByCourse(course.id)?.hasExtraDay">
+                            <p class="mt-1 text-[11px] font-semibold text-emerald-600">
+                                Include “Un giorno in più” su
+                                <span
+                                    x-text="subscriptionByCourse(course.id)?.extra_course?.title
+                                        ?? subscriptionByCourse(course.id)?.extraCourseSnapshot?.course_title
+                                        ?? subscriptionByCourse(course.id)?.extra_course_snapshot?.course_title
+                                        ?? 'altro corso'">
+                                </span>
                             </p>
                         </template>
                     </div>
@@ -682,9 +725,53 @@
                                 </label>
                             </div>
 
-                            <div class="flex items-center justify-between rounded-lg border border-stone-200 bg-white px-4 py-3 text-sm">
-                                <span class="text-stone-600">Importo dovuto ora</span>
-                                <span class="font-semibold text-teal-700">€ <span x-text="subscriptionModal.preview"></span></span>
+                            <template x-if="extraDayEnabled()">
+                                <div class="rounded-lg border border-stone-200 bg-white px-4 py-3 space-y-3">
+                                    <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                                        <div>
+                                            <p class="text-sm font-semibold text-stone-700">Modalità “Un giorno in più”</p>
+                                            <p class="text-xs text-stone-500">Aggiungi una lezione settimanale da un altro corso candidato.</p>
+                                        </div>
+                                        <template x-if="Number(subscriptionModal.previewExtra) > 0">
+                                            <span class="text-sm font-semibold text-emerald-600">+ € <span x-text="subscriptionModal.previewExtra"></span></span>
+                                        </template>
+                                    </div>
+                                    <template x-if="extraDayCandidates().length > 0">
+                                        <div class="space-y-2">
+                                            <select
+                                                class="w-full rounded-lg border border-stone-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                                x-model="subscriptionModal.selectedExtraCourseId"
+                                                @change="handleExtraCourseChange($event.target.value)"
+                                            >
+                                                <option value="">Nessuna lezione extra</option>
+                                                <template x-for="candidate in extraDayCandidates()" :key="candidate.id">
+                                                    <option
+                                                        :value="candidate.id"
+                                                        :disabled="isSubscribed(candidate.id)"
+                                                        x-text="candidate.title"
+                                                    ></option>
+                                                </template>
+                                            </select>
+                                            <p class="text-xs text-stone-500">Il costo aggiuntivo viene calcolato in base alle lezioni rimanenti del corso selezionato.</p>
+                                        </div>
+                                    </template>
+                                    <template x-if="extraDayCandidates().length === 0">
+                                        <p class="text-xs text-stone-500">Al momento non ci sono corsi disponibili come lezione extra.</p>
+                                    </template>
+                                </div>
+                            </template>
+
+                            <div class="flex flex-col gap-2 rounded-lg border border-stone-200 bg-white px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <span class="text-stone-600 block">Importo dovuto ora</span>
+                                    <span class="text-[11px] text-stone-500">
+                                        Base € <span x-text="subscriptionModal.previewBase"></span>
+                                        <template x-if="Number(subscriptionModal.previewExtra) > 0">
+                                            <span> · Extra € <span x-text="subscriptionModal.previewExtra"></span></span>
+                                        </template>
+                                    </span>
+                                </div>
+                                <span class="text-lg font-semibold text-teal-700">€ <span x-text="subscriptionModal.preview"></span></span>
                             </div>
                         </div>
                     </div>
@@ -715,7 +802,7 @@
     </div>
 </section>
 
-<?php if (! $__env->hasRenderedOnce('e268568e-bf50-48ec-bbab-f56b9b91cf9f')): $__env->markAsRenderedOnce('e268568e-bf50-48ec-bbab-f56b9b91cf9f'); ?>
+<?php if (! $__env->hasRenderedOnce('e24fb410-67b3-4e56-8360-0b064f0d054d')): $__env->markAsRenderedOnce('e24fb410-67b3-4e56-8360-0b064f0d054d'); ?>
     <?php $__env->startPush('scripts'); ?>
         <script>
             document.addEventListener('alpine:init', () => {
@@ -774,6 +861,10 @@
                         membershipPayment: payload.membershipPayment ?? null,
                         payments: normalize(payload.payments ?? []).map(payment => ({ ...payment })),
                         documents: normalize(payload.documents ?? []),
+                        extraDay: {
+                            enabled: Boolean(payload.extraDay?.enabled),
+                            candidateCourseIds: normalize(payload.extraDay?.candidateCourseIds ?? []),
+                        },
                         showPayments: false,
                         routes: payload.routes,
                         statusMessage: payload.flash?.status ?? '',
@@ -794,6 +885,9 @@
                             supportsProration: true,
                             startDate: null,
                             preview: '0.00',
+                            previewBase: '0.00',
+                            previewExtra: '0.00',
+                            selectedExtraCourseId: null,
                             nextMonthLabel: '',
                             limits: {
                                 today: null,
@@ -886,6 +980,13 @@
                             });
                         },
 
+                        parseDate(value) {
+                            if (!value) return null;
+                            const normalized = value.includes('T') ? value : `${value}T00:00:00`;
+                            const date = new Date(normalized);
+                            return Number.isNaN(date.getTime()) ? null : date;
+                        },
+
                         coursePlans(course) {
                             return normalize(course?.availablePlans ?? course?.available_plans ?? []);
                         },
@@ -901,19 +1002,78 @@
                             this.updateSubscriptionPreview();
                         },
 
-                        calculateSubscriptionAmount(option, startDate, plan) {
-                            const basePrice = Number(plan?.amount ?? plan?.price ?? 0);
-                            if (!plan || option === 'next_month' || plan.type !== 'monthly') {
-                                return basePrice.toFixed(2);
+                        extraDayEnabled() {
+                            return Boolean(this.extraDay?.enabled);
+                        },
+
+                        extraDayCandidateIds() {
+                            return (this.extraDay?.candidateCourseIds ?? []).map(id => Number(id));
+                        },
+
+                        extraDayCourseById(id) {
+                            if (!id) return null;
+                            const numeric = Number(id);
+                            return this.courses.find(course => Number(course.id) === numeric) ?? null;
+                        },
+
+                        extraDayCandidates() {
+                            if (!this.extraDayEnabled()) {
+                                return [];
                             }
 
-                            const course = this.subscriptionModal.course;
+                            const candidateIds = this.extraDayCandidateIds();
+                            if (!candidateIds.length) {
+                                return [];
+                            }
+
+                            const baseCourseId = this.subscriptionModal.course?.id ?? null;
+
+                            return this.courses
+                                .filter(course => candidateIds.includes(Number(course.id)))
+                                .filter(course => Number(course.id) !== Number(baseCourseId))
+                                .filter(course => !this.isSubscribed(course.id));
+                        },
+
+                        handleExtraCourseChange(value) {
+                            const parsed = value ? Number(value) : null;
+                            this.subscriptionModal.selectedExtraCourseId = parsed || null;
+                            this.updateSubscriptionPreview();
+                        },
+
+                        calculateSubscriptionAmount(option, startDate, plan) {
+                            if (!plan) {
+                                return { base: 0, extra: 0, total: 0 };
+                            }
+
+                            const extraCourse = this.subscriptionModal.selectedExtraCourseId
+                                ? this.extraDayCourseById(this.subscriptionModal.selectedExtraCourseId)
+                                : null;
+
+                            const baseAmount = this.calculateBaseAmount(option, startDate, plan, this.subscriptionModal.course);
+                            const extraAmount = extraCourse
+                                ? this.calculateExtraDayAmount(extraCourse, plan, option, startDate)
+                                : 0;
+
+                            return {
+                                base: Number(baseAmount.toFixed(2)),
+                                extra: Number(extraAmount.toFixed(2)),
+                                total: Number((baseAmount + extraAmount).toFixed(2)),
+                            };
+                        },
+
+                        calculateBaseAmount(option, startDate, plan, course) {
+                            if (!plan) return 0;
+                            const basePrice = Number(plan?.amount ?? plan?.price ?? 0);
+                            if (option === 'next_month' || plan.type !== 'monthly') {
+                                return basePrice;
+                            }
+
                             const target = startDate ? new Date(`${startDate}T00:00:00`) : new Date(`${this.isoToday()}T00:00:00`);
                             const periodStart = new Date(target.getFullYear(), target.getMonth(), 1);
                             const periodEnd = new Date(target.getFullYear(), target.getMonth() + 1, 0);
 
-                            const courseStart = course?.start_date ? new Date(`${course.start_date}T00:00:00`) : null;
-                            const courseEnd = course?.end_date ? new Date(`${course.end_date}T00:00:00`) : null;
+                            const courseStart = this.parseDate(course?.start_date ?? course?.startDate);
+                            const courseEnd = this.parseDate(course?.end_date ?? course?.endDate);
 
                             const scheduleDays = this.normalizeScheduleDays(course?.schedule);
                             const lessonInfo = this.calculateLessonProration(scheduleDays, periodStart, periodEnd, target, courseStart, courseEnd);
@@ -923,7 +1083,7 @@
                                 if (basePrice > 0 && lessonAmount < 0.01) {
                                     lessonAmount = 0.01;
                                 }
-                                return lessonAmount.toFixed(2);
+                                return lessonAmount;
                             }
 
                             const totalDays = periodEnd.getDate();
@@ -935,7 +1095,54 @@
                                 amount = 0.01;
                             }
 
-                            return amount.toFixed(2);
+                            return amount;
+                        },
+
+                        calculateExtraDayAmount(extraCourse, plan, option, startDate) {
+                            if (!extraCourse) return 0;
+                            const monthlyPrice = Number(extraCourse?.monthly_price ?? extraCourse?.monthlyPrice ?? extraCourse?.price ?? 0);
+                            const scheduleDays = this.normalizeScheduleDays(extraCourse?.schedule);
+                            if (monthlyPrice <= 0 || !scheduleDays.length) {
+                                return 0;
+                            }
+
+                            const lessonsPerWeek = Math.max(1, scheduleDays.length);
+                            const planMonths = this.planMonths(plan?.type);
+                            let basePlanAmount = Number(((monthlyPrice / lessonsPerWeek) * planMonths).toFixed(2));
+
+                            const discountPercentRaw = extraCourse?.extra_day_discount_percent ?? extraCourse?.extraDayDiscountPercent ?? 0;
+                            const discountPercent = Math.min(100, Math.max(0, Number(discountPercentRaw ?? 0)));
+                            const discountAmount = Number((basePlanAmount * (discountPercent / 100)).toFixed(2));
+                            let planAmount = Math.max(basePlanAmount - discountAmount, 0);
+                            if (planAmount > 0 && planAmount < 0.01) {
+                                planAmount = 0.01;
+                            }
+
+                            if (!(plan?.type === 'monthly' && option === 'current_month')) {
+                                return planAmount;
+                            }
+
+                            const target = startDate ? new Date(`${startDate}T00:00:00`) : new Date(`${this.isoToday()}T00:00:00`);
+                            const periodStart = new Date(target.getFullYear(), target.getMonth(), 1);
+                            const periodEnd = new Date(target.getFullYear(), target.getMonth() + 1, 0);
+                            const courseStart = this.parseDate(extraCourse?.start_date ?? extraCourse?.startDate);
+                            const courseEnd = this.parseDate(extraCourse?.end_date ?? extraCourse?.endDate);
+
+                            const lessonInfo = this.calculateLessonProration(scheduleDays, periodStart, periodEnd, target, courseStart, courseEnd);
+                            if (lessonInfo.total > 0 && lessonInfo.remaining >= 0) {
+                                let prorated = Number((planAmount * (lessonInfo.remaining / lessonInfo.total)).toFixed(2));
+                                if (planAmount > 0 && prorated < 0.01) {
+                                    prorated = 0.01;
+                                }
+                                return prorated;
+                            }
+
+                            return planAmount;
+                        },
+
+                        planMonths(planType) {
+                            const map = { monthly: 1, quarterly: 3, annual: 12 };
+                            return map[planType] ?? 1;
                         },
 
                         normalizeScheduleDays(rawSchedule) {
@@ -1013,11 +1220,14 @@
                                 return;
                             }
 
-                            this.subscriptionModal.preview = this.calculateSubscriptionAmount(
+                            const amounts = this.calculateSubscriptionAmount(
                                 this.subscriptionModal.option,
                                 this.subscriptionModal.startDate,
                                 plan
                             );
+                            this.subscriptionModal.previewBase = amounts.base.toFixed(2);
+                            this.subscriptionModal.previewExtra = amounts.extra.toFixed(2);
+                            this.subscriptionModal.preview = amounts.total.toFixed(2);
                         },
 
                         openSubscriptionModal(course) {
@@ -1044,6 +1254,9 @@
                             this.subscriptionModal.supportsProration = this.subscriptionModal.planType === 'monthly';
                             this.subscriptionModal.option = 'current_month';
                             this.subscriptionModal.startDate = today;
+                            this.subscriptionModal.selectedExtraCourseId = null;
+                            this.subscriptionModal.previewBase = '0.00';
+                            this.subscriptionModal.previewExtra = '0.00';
                             this.subscriptionModal.limits = {
                                 today,
                                 endOfMonth,
@@ -1061,6 +1274,9 @@
                             this.subscriptionModal.supportsProration = true;
                             this.subscriptionModal.startDate = null;
                             this.subscriptionModal.preview = '0.00';
+                            this.subscriptionModal.previewBase = '0.00';
+                            this.subscriptionModal.previewExtra = '0.00';
+                            this.subscriptionModal.selectedExtraCourseId = null;
                         },
 
                         handleSubscriptionOptionChange(option) {
@@ -1130,6 +1346,9 @@
 
                             if (this.subscriptionModal.option === 'current_month') {
                                 payload.start_date = this.subscriptionModal.startDate;
+                            }
+                            if (this.subscriptionModal.selectedExtraCourseId) {
+                                payload.extra_course_id = this.subscriptionModal.selectedExtraCourseId;
                             }
 
                             this.sendRequest(this.routes.subscribe, 'POST', payload)

@@ -28,6 +28,8 @@ class AdminCourseController extends Controller
                 'monthly_price' => $data['monthly_price'],
                 'quarterly_price' => $data['quarterly_price'],
                 'annual_price' => $data['annual_price'],
+                'allows_extra_day' => $data['allows_extra_day'],
+                'extra_day_discount_percent' => $data['extra_day_discount_percent'],
                 'speciality_description' => $data['speciality_description'],
                 'start_date' => $data['start_date'],
                 'end_date' => $data['end_date'],
@@ -56,6 +58,8 @@ class AdminCourseController extends Controller
                 'monthly_price' => $data['monthly_price'],
                 'quarterly_price' => $data['quarterly_price'],
                 'annual_price' => $data['annual_price'],
+                'allows_extra_day' => $data['allows_extra_day'],
+                'extra_day_discount_percent' => $data['extra_day_discount_percent'],
                 'speciality_description' => $data['speciality_description'],
                 'start_date' => $data['start_date'],
                 'end_date' => $data['end_date'],
@@ -87,6 +91,8 @@ class AdminCourseController extends Controller
             'schedule_day.*' => ['nullable', 'string'],
             'schedule_time' => ['nullable', 'array'],
             'schedule_time.*' => ['nullable', 'string'],
+            'allows_extra_day' => ['nullable', 'boolean'],
+            'extra_day_discount_percent' => ['nullable', 'numeric', 'min:0', 'max:100'],
         ]);
 
         $teacher = User::where('id', $data['teacher_id'])->where('role', 'Teacher')->exists();
@@ -127,6 +133,10 @@ class AdminCourseController extends Controller
             'monthly_price' => $monthlyPrice,
             'quarterly_price' => $quarterlyPrice,
             'annual_price' => $annualPrice,
+            'allows_extra_day' => (bool) ($request->boolean('allows_extra_day')),
+            'extra_day_discount_percent' => isset($data['extra_day_discount_percent'])
+                ? (float) $data['extra_day_discount_percent']
+                : 0,
             'speciality_description' => $data['speciality_description'] ?? null,
             'start_date' => $data['start_date'],
             'end_date' => $data['end_date'],

@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Illuminate\Support\Carbon;
 
 class DashboardPageController extends Controller
 {
@@ -53,6 +54,10 @@ class DashboardPageController extends Controller
                     'monthlyPrice' => $course->monthly_price,
                     'quarterlyPrice' => $course->quarterly_price,
                     'annualPrice' => $course->annual_price,
+                    'allows_extra_day' => (bool) $course->allows_extra_day,
+                    'allowsExtraDay' => (bool) $course->allows_extra_day,
+                    'extra_day_discount_percent' => $course->extra_day_discount_percent ?? 0,
+                    'extraDayDiscountPercent' => $course->extra_day_discount_percent ?? 0,
                     'available_plans' => $plans,
                     'availablePlans' => $plans,
                     'speciality_description' => $course->speciality_description,
@@ -75,6 +80,11 @@ class DashboardPageController extends Controller
                 ];
             })
             ->values();
+
+        $extraDayEnabled = (bool) optional(Setting::find('extra_day_enabled'))->value;
+        $extraDayCandidates = $extraDayEnabled
+            ? $courses->filter(fn ($course) => !empty($course['allows_extra_day']))->pluck('id')->values()->all()
+            : [];
 
         $teachers = Teacher::with(['user', 'availability.bookedBy'])
             ->get()
@@ -125,6 +135,10 @@ class DashboardPageController extends Controller
             'user' => $user,
             'courses' => $courses,
             'teachers' => $teachers,
+            'extra_day_config' => [
+                'enabled' => $extraDayEnabled,
+                'candidateCourseIds' => $extraDayCandidates,
+            ],
             ...$extra,
         ]);
     }
@@ -541,7 +555,7 @@ class DashboardPageController extends Controller
             })
             ->values();
 
-        $subscriptions = Subscription::with('course')
+        $subscriptions = Subscription::with(['course', 'extraCourse'])
             ->where('client_id', $clientId)
             ->get()
             ->map(function (Subscription $subscription) {
@@ -579,6 +593,19 @@ class DashboardPageController extends Controller
                     'cancelledAt' => optional($subscription->cancelled_at)?->toIso8601String(),
                     'cancelledAtDisplay' => optional($subscription->cancelled_at)?->translatedFormat('d/m/Y H:i'),
                     'course' => $courseData,
+                    'extra_course_id' => $subscription->extra_course_id,
+                    'extraCourseId' => $subscription->extra_course_id,
+                    'extra_course_plan_amount' => $subscription->extra_course_plan_amount,
+                    'extraCoursePlanAmount' => $subscription->extra_course_plan_amount,
+                    'extra_course_snapshot' => $subscription->extra_course_snapshot,
+                    'extraCourseSnapshot' => $subscription->extra_course_snapshot,
+                    'extra_course' => optional($subscription->extraCourse)?->only([
+                        'id',
+                        'title',
+                        'monthly_price',
+                        'teacher_id',
+                    ]),
+                    'hasExtraDay' => $subscription->hasExtraDay(),
                 ];
             })
             ->values();
@@ -633,6 +660,13 @@ class DashboardPageController extends Controller
     private function formatPayment(Payment $payment): array
     {
         $meta = $payment->meta ?? [];
+        $courseTitle = $payment->course?->title ?? ($meta['course_title'] ?? null);
+        $planLabel = $meta['plan_label'] ?? null;
+        $planType = $meta['plan_type'] ?? null;
+        $startDate = $meta['start_date'] ?? $meta['renewal_cycle_start'] ?? optional($payment->due_date)?->format('Y-m-d');
+        $startDateDisplay = $startDate ? Carbon::parse($startDate)->translatedFormat('d/m/Y') : null;
+        $extraDay = $meta['extra_day'] ?? null;
+
         return [
             'id' => $payment->id,
             'type' => $payment->type,
@@ -642,11 +676,21 @@ class DashboardPageController extends Controller
             'paid_at' => optional($payment->paid_at)?->format('Y-m-d H:i'),
             'method' => $payment->method,
             'meta' => $meta,
-            'plan_type' => $meta['plan_type'] ?? null,
-            'plan_label' => $meta['plan_label'] ?? null,
+            'plan_type' => $planType,
+            'plan_label' => $planLabel,
             'course_id' => $payment->course_id,
+            'course_title' => $courseTitle,
+            'courseTitle' => $courseTitle,
+            'planLabel' => $planLabel,
+            'planType' => $planType,
+            'subscription_start_date' => $startDate,
+            'subscriptionStartDate' => $startDate,
+            'subscriptionStartDateDisplay' => $startDateDisplay,
+            'extra_day' => $extraDay,
+            'has_extra_day' => !empty($extraDay),
             'receipt_url' => $payment->receipt_url,
             'receipt_route' => $payment->receipt_url ? route('payments.receipt', $payment->id) : null,
+            'is_course_payment' => $payment->type === 'course_subscription',
         ];
     }
 

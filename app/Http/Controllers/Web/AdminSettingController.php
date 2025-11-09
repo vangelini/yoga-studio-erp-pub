@@ -27,6 +27,7 @@ class AdminSettingController extends Controller
                 'course_payment_lead_days',
                 'course_payment_last_run',
                 'membership_last_run',
+                'extra_day_enabled',
             ])
             ->pluck('value', 'key');
 
@@ -48,6 +49,7 @@ class AdminSettingController extends Controller
             'course_payment_auto_generate' => isset($settings['course_payment_auto_generate']) ? (bool) $settings['course_payment_auto_generate'] : false,
             'course_payment_lead_days' => isset($settings['course_payment_lead_days']) ? (int) $settings['course_payment_lead_days'] : 10,
             'course_payment_last_run' => $coursePaymentLastRun,
+            'extra_day_enabled' => isset($settings['extra_day_enabled']) ? (bool) $settings['extra_day_enabled'] : false,
         ]);
     }
 
@@ -64,6 +66,7 @@ class AdminSettingController extends Controller
             'receipt_user_password_custom' => ['nullable', 'string', 'max:255', 'required_if:receipt_user_password_mode,custom'],
             'course_payment_auto_generate' => ['nullable', 'boolean'],
             'course_payment_lead_days' => ['required', 'integer', 'min:1', 'max:120'],
+            'extra_day_enabled' => ['nullable', 'boolean'],
         ], [
             'receipt_user_password_custom.required_if' => 'Inserisci la password personalizzata quando scegli la modalità "Password personalizzata".',
         ]);
@@ -79,6 +82,7 @@ class AdminSettingController extends Controller
                 : '',
             'course_payment_auto_generate' => $request->boolean('course_payment_auto_generate') ? '1' : '0',
             'course_payment_lead_days' => (string) $data['course_payment_lead_days'],
+            'extra_day_enabled' => $request->boolean('extra_day_enabled') ? '1' : '0',
         ];
 
         foreach ($settingsToPersist as $key => $value) {

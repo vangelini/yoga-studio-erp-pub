@@ -60,8 +60,8 @@
                             <p class="text-xs text-rose-600 mt-1">{{ $message }}</p>
                         @enderror
                     </div>
-                    <div class="flex flex-wrap items-center gap-2">
-                        <button type="button" class="inline-flex items-center gap-1 rounded-lg border border-stone-300 px-3 py-1.5 text-xs font-semibold text-stone-600 hover:bg-stone-100 transition" onclick="if (confirm('Generare subito le pendenze per i corsi?')) document.getElementById('course-payments-generate-form').submit();">
+                <div class="flex flex-wrap items-center gap-2">
+                    <button type="button" class="inline-flex items-center gap-1 rounded-lg border border-stone-300 px-3 py-1.5 text-xs font-semibold text-stone-600 hover:bg-stone-100 transition" onclick="if (confirm('Generare subito le pendenze per i corsi?')) document.getElementById('course-payments-generate-form').submit();">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2h-5.586a1 1 0 01-.707-.293l-1.414-1.414A2 2 0 009.586 3H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                             </svg>
@@ -87,6 +87,14 @@
                 @error('membership_morosita_page_size')
                     <p class="text-xs text-rose-600 mt-1">{{ $message }}</p>
                 @enderror
+            </div>
+
+            <div class="space-y-2">
+                <div class="flex flex-wrap items-center gap-2">
+                    <input type="checkbox" name="extra_day_enabled" value="1" id="extra-day" {{ old('extra_day_enabled', $extra_day_enabled) ? 'checked' : '' }} class="rounded border-stone-300 text-teal-600 focus:ring-teal-500">
+                    <label for="extra-day" class="text-sm text-stone-600">Abilita la modalità “Un giorno in più” (lezione extra da corso candidato).</label>
+                </div>
+                <p class="text-xs text-stone-500">Quando attivo, i clienti possono aggiungere una lezione settimanale extra scegliendo tra i corsi candidati. Il costo della lezione extra viene aggiunto al prezzo base e proratato sulle lezioni rimanenti.</p>
             </div>
 
             <div class="space-y-3">
