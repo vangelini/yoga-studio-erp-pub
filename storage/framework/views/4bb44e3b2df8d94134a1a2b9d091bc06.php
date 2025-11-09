@@ -27,7 +27,7 @@
                 <p class="text-sm text-stone-500">Gestisci anagrafica degli insegnanti.</p>
             </div>
             <button type="button" class="btn-primary text-xs self-start md:self-auto" @click="showCreateTeacher = !showCreateTeacher">
-                <span class="text-sm font-semibold" x-text="showCreateTeacher ? 'Nascondi form docente' : 'Nuovo docente'"></span>
+                <span class="text-sm font-semibold" x-text="showCreateTeacher ? 'Nascondi ' : 'Nuovo Insegnante'"></span>
             </button>
         </div>
 
@@ -50,7 +50,7 @@
             </div>
             <div>
                 <label class="text-xs uppercase text-stone-500 font-semibold">Email</label>
-                <input type="email" name="email" required class="input-field text-sm" placeholder="docente@example.com">
+                <input type="email" name="email" required class="input-field text-sm" placeholder="insegnante@example.com">
             </div>
             <div>
                 <label class="text-xs uppercase text-stone-500 font-semibold">Password temporanea</label>
@@ -105,7 +105,7 @@
                 <label for="teacher-private" class="text-sm text-stone-600">Abilita immediatamente le lezioni private</label>
             </div>
             <div class="md:col-span-2 flex justify-end">
-                <button type="submit" class="btn-primary text-sm">Registra docente</button>
+                <button type="submit" class="btn-primary text-sm">Registra insegnante</button>
             </div>
         </form>
 
@@ -289,7 +289,7 @@
                         </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                         <tr>
-                            <td colspan="6" class="px-4 py-6 text-center text-stone-500">Nessun docente registrato al momento.</td>
+                            <td colspan="6" class="px-4 py-6 text-center text-stone-500">Nessun insegnante registrato al momento.</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
