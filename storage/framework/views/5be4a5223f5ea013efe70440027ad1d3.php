@@ -111,54 +111,51 @@
             </div>
         </div>
 
-        <div class="card p-6 space-y-5">
+        <div class="card p-6 space-y-4">
             <div class="flex items-center justify-between">
                 <h3 class="text-xl font-semibold text-stone-900">Documenti personali</h3>
                 <span class="text-xs text-stone-400 uppercase tracking-wide">Obbligatori</span>
             </div>
-            <p class="text-xs text-stone-500">Carica i documenti richiesti in formato PDF o immagine (max 5 MB). Puoi sostituirli in qualsiasi momento caricando una nuova versione.</p>
-            <?php $__currentLoopData = $documentDefinitions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $type => $definition): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                <div class="border border-stone-200 rounded-xl p-4 space-y-3 bg-stone-50">
-                    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                        <div>
-                            <p class="text-sm font-semibold text-stone-800"><?php echo e($definition['label']); ?></p>
-                            <p class="text-xs text-stone-500"><?php echo e($definition['description']); ?></p>
-                        </div>
-                        <div class="text-right space-y-1">
-                            <template x-if="documentByType('<?php echo e($type); ?>')">
-                                <div class="space-y-1">
-                                    <a
-                                        :href="documentByType('<?php echo e($type); ?>').url"
-                                        target="_blank"
-                                        rel="noopener"
-                                        class="inline-flex items-center gap-1 text-xs font-semibold text-teal-600 hover:text-teal-700 underline decoration-dotted"
-                                    >
-                                        Scarica documento
-                                    </a>
-                                    <p class="text-[11px] text-stone-400">
-                                        Aggiornato il <span x-text="documentByType('<?php echo e($type); ?>').uploadedAtDisplay ?? '—'"></span>
-                                    </p>
-                                </div>
-                            </template>
-                            <template x-if="!documentByType('<?php echo e($type); ?>')">
-                                <span class="text-xs text-rose-500 font-semibold">Documento mancante</span>
-                            </template>
-                        </div>
+            <div class="text-xs text-stone-500">Carica PDF o immagini (max 5 MB). La sostituzione è immediata.</div>
+
+            <div class="flex flex-wrap items-center gap-2">
+                <?php $__currentLoopData = $documentDefinitions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $type => $definition): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <div class="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-stone-50 px-3 py-1.5">
+                        <span class="text-xs font-semibold text-stone-700"><?php echo e($definition['label']); ?></span>
+                        <template x-if="documentByType('<?php echo e($type); ?>')">
+                            <span class="inline-flex items-center gap-1 text-[11px] rounded-full bg-emerald-100 text-emerald-700 px-2 py-0.5">
+                                Pronto
+                            </span>
+                        </template>
+                        <template x-if="!documentByType('<?php echo e($type); ?>')">
+                            <span class="inline-flex items-center gap-1 text-[11px] rounded-full bg-rose-100 text-rose-700 px-2 py-0.5">
+                                Mancante
+                            </span>
+                        </template>
+
+                        <template x-if="documentByType('<?php echo e($type); ?>')">
+                            <a
+                                :href="documentByType('<?php echo e($type); ?>').url"
+                                target="_blank"
+                                rel="noopener"
+                                class="inline-flex items-center gap-1 text-[11px] font-semibold text-teal-600 hover:text-teal-700 underline decoration-dotted"
+                                title="Scarica documento"
+                            >
+                                Scarica
+                            </a>
+                        </template>
+
+                        <form method="POST" action="<?php echo e(route('client.documents.store')); ?>" enctype="multipart/form-data" class="inline-flex items-center gap-2">
+                            <?php echo csrf_field(); ?>
+                            <input type="hidden" name="document_type" value="<?php echo e($type); ?>">
+                            <label class="inline-flex items-center gap-1 cursor-pointer text-[11px] font-semibold text-stone-600 hover:text-stone-800">
+                                <input type="file" name="document_file" accept="image/*,application/pdf" required class="sr-only" onchange="this.form.submit()">
+                                <span class="inline-flex items-center gap-1 rounded-md bg-stone-200 px-2 py-0.5">Carica</span>
+                            </label>
+                        </form>
                     </div>
-                    <form method="POST" action="<?php echo e(route('client.documents.store')); ?>" enctype="multipart/form-data" class="flex flex-col sm:flex-row sm:items-center gap-3">
-                        <?php echo csrf_field(); ?>
-                        <input type="hidden" name="document_type" value="<?php echo e($type); ?>">
-                        <input
-                            type="file"
-                            name="document_file"
-                            accept="image/*,application/pdf"
-                            required
-                            class="w-full text-sm text-stone-600 file:mr-4 file:py-2 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-teal-100 file:text-teal-700 hover:file:bg-teal-200"
-                        >
-                        <button type="submit" class="btn-primary text-xs whitespace-nowrap">Carica / aggiorna</button>
-                    </form>
-                </div>
-            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+            </div>
         </div>
     </div>
 
@@ -691,7 +688,7 @@
     </div>
 </section>
 
-<?php if (! $__env->hasRenderedOnce('e7cf8290-ec6d-411d-8778-254bf7521d72')): $__env->markAsRenderedOnce('e7cf8290-ec6d-411d-8778-254bf7521d72'); ?>
+<?php if (! $__env->hasRenderedOnce('f0edd837-064b-4401-b6b0-7a7f1916a043')): $__env->markAsRenderedOnce('f0edd837-064b-4401-b6b0-7a7f1916a043'); ?>
     <?php $__env->startPush('scripts'); ?>
         <script>
             document.addEventListener('alpine:init', () => {
