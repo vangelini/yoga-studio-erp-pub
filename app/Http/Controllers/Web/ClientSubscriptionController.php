@@ -92,6 +92,27 @@ class ClientSubscriptionController extends Controller
                 ->with('status', $message);
         }
 
+        $hasPaidPayment = Payment::query()
+            ->where('payable_type', Subscription::class)
+            ->where('payable_id', $subscription->id)
+            ->where('status', 'paid')
+            ->exists();
+
+        if ($hasPaidPayment) {
+            $message = __('Non è possibile annullare un corso già pagato.');
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $message,
+                    'subscription' => $this->formatSubscription($subscription),
+                ], 422);
+            }
+
+            return redirect()
+                ->route('dashboard')
+                ->with('status', $message);
+        }
+
         $subscription->forceFill([
             'status' => 'cancelled',
             'cancelled_at' => now(),

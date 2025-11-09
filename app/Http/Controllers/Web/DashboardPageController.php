@@ -644,6 +644,7 @@ class DashboardPageController extends Controller
             'meta' => $meta,
             'plan_type' => $meta['plan_type'] ?? null,
             'plan_label' => $meta['plan_label'] ?? null,
+            'course_id' => $payment->course_id,
             'receipt_url' => $payment->receipt_url,
             'receipt_route' => $payment->receipt_url ? route('payments.receipt', $payment->id) : null,
         ];

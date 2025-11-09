@@ -308,7 +308,8 @@
                                     </svg>
                                     Iscrizione attiva
                                 </span>
-                                <button
+                                <template x-if="canCancelSubscription(course.id)">
+                                    <button
                                     type="button"
                                     class="inline-flex items-center gap-2 rounded-lg border border-rose-200 bg-white px-3 py-1.5 font-semibold text-rose-600 hover:bg-rose-50 transition-colors disabled:opacity-60"
                                     @click="cancelSubscription(course.id)"
@@ -318,18 +319,22 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                     </svg>
                                     Annulla iscrizione
-                                </button>
+                                    </button>
+                                </template>
                             </div>
                         </template>
                     </div>
-                    <template x-if="course.availablePlans?.length">
-                        <div class="mt-3 flex flex-wrap gap-2">
-                            <template x-for="plan in course.availablePlans" :key="plan.type">
-                                <span class="inline-flex items-center gap-2 rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-700">
-                                    <span x-text="plan.label"></span>
-                                    <span>€ <span x-text="Number(plan.amount ?? 0).toFixed(2)"></span></span>
-                                </span>
-                            </template>
+                    <template x-if="course.availablePlans?.length && !isSubscribed(course.id)">
+                        <div class="mt-3">
+                            <p class="text-[11px] uppercase font-semibold text-stone-500 tracking-wide">Tipi di abbonamento</p>
+                            <div class="mt-2 flex flex-wrap gap-2">
+                                <template x-for="plan in course.availablePlans" :key="plan.type">
+                                    <span class="inline-flex items-center gap-2 rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-700">
+                                        <span x-text="plan.label"></span>
+                                        <span>€ <span x-text="Number(plan.amount ?? 0).toFixed(2)"></span></span>
+                                    </span>
+                                </template>
+                            </div>
                         </div>
                     </template>
                 </div>
@@ -710,7 +715,7 @@
     </div>
 </section>
 
-<?php if (! $__env->hasRenderedOnce('99097188-a9ad-4b24-9d40-4e3284b54e70')): $__env->markAsRenderedOnce('99097188-a9ad-4b24-9d40-4e3284b54e70'); ?>
+<?php if (! $__env->hasRenderedOnce('e268568e-bf50-48ec-bbab-f56b9b91cf9f')): $__env->markAsRenderedOnce('e268568e-bf50-48ec-bbab-f56b9b91cf9f'); ?>
     <?php $__env->startPush('scripts'); ?>
         <script>
             document.addEventListener('alpine:init', () => {
@@ -1462,6 +1467,19 @@
 
                         isSubscribed(courseId) {
                             return Boolean(this.subscriptionByCourse(courseId));
+                        },
+
+                        canCancelSubscription(courseId) {
+                            const subscription = this.subscriptionByCourse(courseId);
+                            if (!subscription) return false;
+
+                            const hasPaidPayment = this.payments.some(payment =>
+                                payment.type === 'course_subscription'
+                                && (payment.course_id ?? null) === courseId
+                                && payment.status === 'paid'
+                            );
+
+                            return !hasPaidPayment;
                         },
 
                         activeSubscriptions() {
