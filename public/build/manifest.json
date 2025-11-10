@@ -1,0 +1,19 @@
+{
+  "resources/css/app.css": {
+    "file": "assets/app-CdRpMSPT.css",
+    "src": "resources/css/app.css",
+    "isEntry": true
+  },
+  "resources/js/alpine.js": {
+    "file": "assets/alpine-C-UthMp4.js",
+    "name": "alpine",
+    "src": "resources/js/alpine.js",
+    "isEntry": true
+  },
+  "resources/js/app.tsx": {
+    "file": "assets/app-5ketKNEh.js",
+    "name": "app",
+    "src": "resources/js/app.tsx",
+    "isEntry": true
+  }
+}
