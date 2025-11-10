@@ -60,6 +60,18 @@
                         <a href="#" class="text-teal-600 hover:text-teal-800">Password dimenticata?</a>
                     </div>
 
+                    @if (config('services.recaptcha.site_key'))
+                        <div class="space-y-2">
+                            <div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') }}"></div>
+                            @error('g-recaptcha-response')
+                                <p class="text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                            @error('captcha')
+                                <p class="text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    @endif
+
                     <button type="submit" class="w-full bg-gradient-to-r from-teal-600 to-emerald-600 text-white font-semibold py-3 rounded-lg hover:from-teal-700 hover:to-emerald-700 transition-colors shadow-md">
                         Accedi
                     </button>
@@ -68,3 +80,7 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+@endpush

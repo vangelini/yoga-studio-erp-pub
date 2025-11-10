@@ -4,16 +4,23 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\MembershipManager;
+use App\Services\RecaptchaValidator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
-use App\Services\MembershipManager;
 
 class AuthSessionController extends Controller
 {
+    public function __construct(
+        private RecaptchaValidator $captcha,
+        private MembershipManager $membershipManager
+    ) {
+    }
+
     public function showLoginForm(): View|RedirectResponse
     {
         if (Auth::check()) {
@@ -34,11 +41,19 @@ class AuthSessionController extends Controller
 
     public function login(Request $request): RedirectResponse
     {
-        $credentials = $request->validate([
+        $rules = [
             'email' => ['required', 'email'],
             'password' => ['required', 'string'],
             'remember' => ['nullable', 'boolean'],
-        ]);
+        ];
+
+        if ($this->captcha->enabled()) {
+            $rules['g-recaptcha-response'] = ['required', 'string'];
+        }
+
+        $credentials = $request->validate($rules);
+
+        $this->validateCaptcha($request);
 
         $user = User::whereRaw('LOWER(email) = ?', [strtolower($credentials['email'])])->first();
 
@@ -67,7 +82,7 @@ class AuthSessionController extends Controller
 
     public function register(Request $request): RedirectResponse
     {
-        $data = $request->validate([
+        $rules = [
             'first_name' => ['required', 'string', 'max:150'],
             'last_name' => ['required', 'string', 'max:150'],
             'email' => ['required', 'email', 'unique:users,email'],
@@ -83,7 +98,15 @@ class AuthSessionController extends Controller
             'codice_fiscale' => ['required', 'string', 'regex:/^[A-Z0-9]{16}$/i'],
             'luogo_nascita' => ['required', 'string', 'max:150'],
             'data_nascita' => ['required', 'date'],
-        ]);
+        ];
+
+        if ($this->captcha->enabled()) {
+            $rules['g-recaptcha-response'] = ['required', 'string'];
+        }
+
+        $data = $request->validate($rules);
+
+        $this->validateCaptcha($request);
 
         $user = User::create([
             'first_name' => $data['first_name'],
@@ -118,7 +141,7 @@ class AuthSessionController extends Controller
 
     protected function syncMembershipFor(User $user): void
     {
-        app(MembershipManager::class)->ensureCurrentMembership($user, false);
+        $this->membershipManager->ensureCurrentMembership($user, false);
     }
 
     public function logout(Request $request): RedirectResponse
@@ -129,5 +152,18 @@ class AuthSessionController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('login');
+    }
+
+    private function validateCaptcha(Request $request): void
+    {
+        if (!$this->captcha->enabled()) {
+            return;
+        }
+
+        if (!$this->captcha->verify($request->input('g-recaptcha-response'), $request->ip())) {
+            throw ValidationException::withMessages([
+                'captcha' => __('Verifica anti-spam non superata. Riprova.'),
+            ]);
+        }
     }
 }

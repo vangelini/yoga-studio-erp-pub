@@ -6,7 +6,6 @@
 /storage/logs
 /vendor
 .env.backup
-.env.production
 .env
 .phpunit.result.cache
 Homestead.json
