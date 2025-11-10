@@ -20,10 +20,14 @@ return new class extends Migration
 
             if (!Schema::hasColumn('payments', 'course_id_key')) {
                 $table->unsignedBigInteger('course_id_key')
-                    ->storedAs('COALESCE(course_id, 0)')
+                    ->default(0)
                     ->after('course_id');
             }
         });
+
+        DB::table('payments')->update([
+            'course_id_key' => DB::raw('COALESCE(course_id, 0)'),
+        ]);
 
         if (!$this->indexExists('payments', 'payments_user_id_index')) {
             DB::statement('CREATE INDEX payments_user_id_index ON payments(user_id)');
