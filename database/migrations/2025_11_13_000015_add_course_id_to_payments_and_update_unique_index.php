@@ -17,6 +17,12 @@ return new class extends Migration
                     ->constrained('courses')
                     ->nullOnDelete();
             }
+
+            if (!Schema::hasColumn('payments', 'course_id_key')) {
+                $table->unsignedBigInteger('course_id_key')
+                    ->storedAs('COALESCE(course_id, 0)')
+                    ->after('course_id');
+            }
         });
 
         if (!$this->indexExists('payments', 'payments_user_id_index')) {
@@ -24,8 +30,11 @@ return new class extends Migration
         }
 
         $this->dropIndexIfExists('payments', 'payments_user_year_type_unique');
+        $this->dropIndexIfExists('payments', 'payments_user_year_type_course_unique');
 
-        DB::statement('CREATE UNIQUE INDEX payments_user_year_type_course_unique ON payments (user_id, receipt_year, type, (COALESCE(course_id, 0)), due_date)');
+        Schema::table('payments', function (Blueprint $table) {
+            $table->unique(['user_id', 'receipt_year', 'type', 'course_id_key', 'due_date'], 'payments_user_year_type_course_unique');
+        });
     }
 
     public function down(): void
@@ -35,6 +44,10 @@ return new class extends Migration
         }
 
         Schema::table('payments', function (Blueprint $table) {
+            if (Schema::hasColumn('payments', 'course_id_key')) {
+                $table->dropColumn('course_id_key');
+            }
+
             if (Schema::hasColumn('payments', 'course_id')) {
                 $table->dropForeign(['course_id']);
                 $table->dropColumn('course_id');

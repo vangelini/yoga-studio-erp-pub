@@ -1,13 +1,13 @@
-@php
+<?php
     $activeTeacher = $teachers->firstWhere('id', auth()->id());
     $teacherReceipts = collect($receipts ?? []);
-@endphp
+?>
 
 <section class="space-y-10">
     <div
         x-data="Object.assign(teacherAvailability({
-            initialAvailability: @json($activeTeacher['availability'] ?? []),
-            fetchUrl: '{{ url('/api/teachers/' . auth()->id() . '/availability') }}'
+            initialAvailability: <?php echo json_encode($activeTeacher['availability'] ?? [], 15, 512) ?>,
+            fetchUrl: '<?php echo e(url('/api/teachers/' . auth()->id() . '/availability')); ?>'
         }), { calendarOpen: false })"
         x-init="init()"
         class="bg-white rounded-xl shadow-sm border border-stone-200 p-6"
@@ -154,27 +154,29 @@
         <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 lg:col-span-2">
             <h3 class="text-2xl font-semibold text-stone-800 mb-4">Prossime lezioni</h3>
             <div class="space-y-4">
-                @forelse ($bookings as $booking)
+                <?php $__empty_1 = true; $__currentLoopData = $bookings; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $booking): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                     <div class="p-4 bg-stone-50 rounded-lg flex justify-between items-center">
                         <div>
                             <p class="text-lg font-semibold text-teal-700">
-                                {{ $booking['date'] ? \Carbon\Carbon::parse($booking['date'])->translatedFormat('l d F') : 'Data da confermare' }}
+                                <?php echo e($booking['date'] ? \Carbon\Carbon::parse($booking['date'])->translatedFormat('l d F') : 'Data da confermare'); ?>
+
                             </p>
                             <p class="text-stone-600 text-sm">
-                                {{ $booking['time'] ?? 'Orario da confermare' }} · con {{ optional($booking['client'])->name ?? 'Cliente' }}
+                                <?php echo e($booking['time'] ?? 'Orario da confermare'); ?> · con <?php echo e(optional($booking['client'])->name ?? 'Cliente'); ?>
+
                             </p>
                         </div>
-                        @php($contactEmail = optional($booking['client'])->email)
+                        <?php ($contactEmail = optional($booking['client'])->email); ?>
                         <a
-                            href="{{ $contactEmail ? 'mailto:' . $contactEmail : '#' }}"
-                            class="text-teal-600 text-sm font-semibold hover:text-teal-800 underline {{ $contactEmail ? '' : 'pointer-events-none opacity-50' }}"
+                            href="<?php echo e($contactEmail ? 'mailto:' . $contactEmail : '#'); ?>"
+                            class="text-teal-600 text-sm font-semibold hover:text-teal-800 underline <?php echo e($contactEmail ? '' : 'pointer-events-none opacity-50'); ?>"
                         >
                             Contatta
                         </a>
                     </div>
-                @empty
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                     <p class="text-stone-500 text-sm">You do not have any upcoming lessons yet.</p>
-                @endforelse
+                <?php endif; ?>
             </div>
         </div>
 
@@ -184,8 +186,8 @@
    
 </section>
 
-@once
-    @push('scripts')
+<?php if (! $__env->hasRenderedOnce('86098822-c775-4480-bdbe-0a644970402a')): $__env->markAsRenderedOnce('86098822-c775-4480-bdbe-0a644970402a'); ?>
+    <?php $__env->startPush('scripts'); ?>
         <script>
             document.addEventListener('alpine:init', () => {
             Alpine.data('teacherAvailability', ({ initialAvailability, fetchUrl }) => ({
@@ -384,5 +386,6 @@
             }));
         });
         </script>
-    @endpush
-@endonce
+    <?php $__env->stopPush(); ?>
+<?php endif; ?>
+<?php /**PATH /Users/vincenzo/Documents/yoga-studio-erp/resources/views/dashboard/partials/teacher.blade.php ENDPATH**/ ?>

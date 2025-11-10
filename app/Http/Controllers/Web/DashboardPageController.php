@@ -507,7 +507,7 @@ class DashboardPageController extends Controller
         $receiptPayments = Payment::with(['user:id,name,email', 'payable'])
             ->where('payable_type', Booking::class)
             ->whereNotNull('receipt_path')
-            ->whereHas('payable', function ($query) use ($teacherId) {
+            ->whereHasMorph('payable', [Booking::class], function ($query) use ($teacherId) {
                 $query->where('teacher_id', $teacherId);
             })
             ->orderByDesc('paid_at')
