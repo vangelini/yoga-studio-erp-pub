@@ -2977,3 +2977,23 @@
 #46 /Users/vincenzo/Documents/yoga-studio-erp/artisan(35): Illuminate\\Foundation\\Console\\Kernel->handle(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
 #47 {main}
 "} 
+[2025-11-10 18:32:31] local.ERROR: filemtime(): stat failed for /Users/vincenzo/Documents/yoga-studio-erp/.env {"exception":"[object] (ErrorException(code: 0): filemtime(): stat failed for /Users/vincenzo/Documents/yoga-studio-erp/.env at /Users/vincenzo/Documents/yoga-studio-erp/vendor/laravel/framework/src/Illuminate/Foundation/Console/ServeCommand.php:102)
+[stacktrace]
+#0 /Users/vincenzo/Documents/yoga-studio-erp/vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/HandleExceptions.php(255): Illuminate\\Foundation\\Bootstrap\\HandleExceptions->handleError(2, 'filemtime(): st...', '/Users/vincenzo...', 102)
+#1 [internal function]: Illuminate\\Foundation\\Bootstrap\\HandleExceptions->{closure:Illuminate\\Foundation\\Bootstrap\\HandleExceptions::forwardsTo():254}(2, 'filemtime(): st...', '/Users/vincenzo...', 102)
+#2 /Users/vincenzo/Documents/yoga-studio-erp/vendor/laravel/framework/src/Illuminate/Foundation/Console/ServeCommand.php(102): filemtime('/Users/vincenzo...')
+#3 /Users/vincenzo/Documents/yoga-studio-erp/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(36): Illuminate\\Foundation\\Console\\ServeCommand->handle()
+#4 /Users/vincenzo/Documents/yoga-studio-erp/vendor/laravel/framework/src/Illuminate/Container/Util.php(41): Illuminate\\Container\\BoundMethod::{closure:Illuminate\\Container\\BoundMethod::call():35}()
+#5 /Users/vincenzo/Documents/yoga-studio-erp/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(93): Illuminate\\Container\\Util::unwrapIfClosure(Object(Closure))
+#6 /Users/vincenzo/Documents/yoga-studio-erp/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(35): Illuminate\\Container\\BoundMethod::callBoundMethod(Object(Illuminate\\Foundation\\Application), Array, Object(Closure))
+#7 /Users/vincenzo/Documents/yoga-studio-erp/vendor/laravel/framework/src/Illuminate/Container/Container.php(662): Illuminate\\Container\\BoundMethod::call(Object(Illuminate\\Foundation\\Application), Array, Array, NULL)
+#8 /Users/vincenzo/Documents/yoga-studio-erp/vendor/laravel/framework/src/Illuminate/Console/Command.php(211): Illuminate\\Container\\Container->call(Array)
+#9 /Users/vincenzo/Documents/yoga-studio-erp/vendor/symfony/console/Command/Command.php(326): Illuminate\\Console\\Command->execute(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Illuminate\\Console\\OutputStyle))
+#10 /Users/vincenzo/Documents/yoga-studio-erp/vendor/laravel/framework/src/Illuminate/Console/Command.php(180): Symfony\\Component\\Console\\Command\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Illuminate\\Console\\OutputStyle))
+#11 /Users/vincenzo/Documents/yoga-studio-erp/vendor/symfony/console/Application.php(1088): Illuminate\\Console\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#12 /Users/vincenzo/Documents/yoga-studio-erp/vendor/symfony/console/Application.php(324): Symfony\\Component\\Console\\Application->doRunCommand(Object(Illuminate\\Foundation\\Console\\ServeCommand), Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#13 /Users/vincenzo/Documents/yoga-studio-erp/vendor/symfony/console/Application.php(175): Symfony\\Component\\Console\\Application->doRun(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#14 /Users/vincenzo/Documents/yoga-studio-erp/vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php(201): Symfony\\Component\\Console\\Application->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#15 /Users/vincenzo/Documents/yoga-studio-erp/artisan(35): Illuminate\\Foundation\\Console\\Kernel->handle(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#16 {main}
+"} 
