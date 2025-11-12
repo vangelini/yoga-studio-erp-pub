@@ -57,7 +57,7 @@
                             <input type="checkbox" name="remember" value="1" class="rounded border-stone-300 text-teal-600 focus:ring-teal-500">
                             Ricordami
                         </label>
-                        <a href="#" class="text-teal-600 hover:text-teal-800">Password dimenticata?</a>
+                        <a href="{{ route('password.request') }}" class="text-teal-600 hover:text-teal-800">Password dimenticata?</a>
                     </div>
 
                     @if (config('services.recaptcha.site_key'))

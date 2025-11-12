@@ -8,6 +8,7 @@ use App\Http\Controllers\Web\AdminUserController;
 use App\Http\Controllers\Web\AuthSessionController;
 use App\Http\Controllers\Web\DashboardPageController;
 use App\Http\Controllers\Web\PasswordResetController;
+use App\Http\Controllers\Web\PasswordResetLinkController;
 use App\Http\Controllers\Web\ClientBookingController;
 use App\Http\Controllers\Web\ClientSubscriptionController;
 use App\Http\Controllers\Web\ClientDocumentController;
@@ -29,6 +30,10 @@ Route::get('/', [AuthSessionController::class, 'showLoginForm'])->name('login');
 Route::get('/register', [AuthSessionController::class, 'showRegisterForm'])->name('register');
 Route::post('/login', [AuthSessionController::class, 'login'])->name('login.attempt');
 Route::post('/register', [AuthSessionController::class, 'register'])->name('register.attempt');
+
+// Password reset link request (public)
+Route::get('/password/forgot', [PasswordResetLinkController::class, 'create'])->name('password.request');
+Route::post('/password/forgot', [PasswordResetLinkController::class, 'store'])->name('password.email');
 
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthSessionController::class, 'logout'])->name('logout');
