@@ -242,7 +242,6 @@
         </div>
     </div>
 
-    @if ($private_lessons_enabled ?? false)
     <div class="bg-white rounded-2xl shadow-sm border border-stone-200/80 p-6 md:p-8 space-y-6">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div class="space-y-1">
@@ -386,6 +385,7 @@
         </div>
     </div>
 
+    @if ($private_lessons_enabled ?? false)
     <div class="bg-white rounded-2xl shadow-sm border border-stone-200/80 p-6 md:p-8 space-y-6">
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div class="space-y-1">

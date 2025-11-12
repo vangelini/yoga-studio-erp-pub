@@ -242,7 +242,6 @@
         </div>
     </div>
 
-    <?php if($private_lessons_enabled ?? false): ?>
     <div class="bg-white rounded-2xl shadow-sm border border-stone-200/80 p-6 md:p-8 space-y-6">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div class="space-y-1">
@@ -386,6 +385,7 @@
         </div>
     </div>
 
+    <?php if($private_lessons_enabled ?? false): ?>
     <div class="bg-white rounded-2xl shadow-sm border border-stone-200/80 p-6 md:p-8 space-y-6">
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div class="space-y-1">
@@ -797,7 +797,7 @@
     </div>
 </section>
 
-<?php if (! $__env->hasRenderedOnce('b6a4d8be-7f23-436a-bd87-c7f44420da8a')): $__env->markAsRenderedOnce('b6a4d8be-7f23-436a-bd87-c7f44420da8a'); ?>
+<?php if (! $__env->hasRenderedOnce('84eeaebd-0151-41d7-b490-2c444e8fdfb3')): $__env->markAsRenderedOnce('84eeaebd-0151-41d7-b490-2c444e8fdfb3'); ?>
     <?php $__env->startPush('scripts'); ?>
         <script>
             document.addEventListener('alpine:init', () => {
