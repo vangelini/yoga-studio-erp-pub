@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use App\Models\Payment;
 
 class Subscription extends Model
 {
@@ -47,6 +49,11 @@ class Subscription extends Model
     public function extraCourse()
     {
         return $this->belongsTo(Course::class, 'extra_course_id');
+    }
+
+    public function payments(): MorphMany
+    {
+        return $this->morphMany(Payment::class, 'payable');
     }
 
     public function planMonths(): int

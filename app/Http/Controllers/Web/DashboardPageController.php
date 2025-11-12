@@ -33,7 +33,14 @@ class DashboardPageController extends Controller
             $this->maybeAutoGenerateCoursePayments();
         }
 
-        $courses = Course::with(['teacher', 'schedule'])
+        $courses = Course::with([
+                'teacher',
+                'schedule',
+                'subscriptions.client',
+                'subscriptions.payments' => function ($query) {
+                    $query->where('type', 'course_subscription');
+                },
+            ])
             ->orderBy('title')
             ->get()
             ->map(function (Course $course) {
@@ -77,6 +84,7 @@ class DashboardPageController extends Controller
                             'time' => $slot->time ? TimeHelper::format($slot->time) : null,
                         ];
                     })->values(),
+                    'students' => $this->mapCourseStudents($course),
                 ];
             })
             ->values();
@@ -777,5 +785,100 @@ class DashboardPageController extends Controller
         Setting::updateOrCreate(['key' => 'course_payment_last_run'], [
             'value' => json_encode($payload),
         ]);
+    }
+
+    private function mapCourseStudents(Course $course): array
+    {
+        $subscriptions = $course->subscriptions ?? collect();
+        if ($subscriptions->isEmpty()) {
+            return [];
+        }
+
+        $now = now();
+        $currentStart = $now->copy()->startOfMonth();
+        $currentEnd = $now->copy()->endOfMonth();
+        $nextStart = $currentStart->copy()->addMonth();
+        $nextEnd = $nextStart->copy()->endOfMonth();
+
+        return $subscriptions
+            ->map(function (Subscription $subscription) use ($currentStart, $currentEnd, $nextStart, $nextEnd) {
+                $client = $subscription->client;
+                if (!$client) {
+                    return null;
+                }
+
+                $status = $this->determineCourseStudentStatus($subscription, $currentStart, $currentEnd, $nextStart, $nextEnd);
+
+                return [
+                    'subscription_id' => $subscription->id,
+                    'client_id' => $client->id,
+                    'name' => $client->name,
+                    'email' => $client->email,
+                    'telephone' => $client->telephone,
+                    'whatsapp' => $this->formatWhatsappLink($client->telephone),
+                    'plan' => $subscription->plan_label,
+                    'status' => $status['label'],
+                    'status_badge' => $status['badge'],
+                ];
+            })
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    private function determineCourseStudentStatus(Subscription $subscription, Carbon $currentStart, Carbon $currentEnd, Carbon $nextStart, Carbon $nextEnd): array
+    {
+        if ($subscription->status === 'cancelled') {
+            return [
+                'label' => 'Cancellata',
+                'badge' => 'bg-rose-100 text-rose-700',
+            ];
+        }
+
+        $payments = $subscription->payments ?? collect();
+
+        $pendingCurrent = $payments->first(function ($payment) use ($currentStart, $currentEnd) {
+            $due = $payment->due_date;
+            return $payment->status === 'pending'
+                && $due
+                && $due->betweenIncluded($currentStart, $currentEnd);
+        });
+
+        if ($pendingCurrent) {
+            return [
+                'label' => 'In attesa di pagamento',
+                'badge' => 'bg-amber-100 text-amber-700',
+            ];
+        }
+
+        $pendingNext = $payments->first(function ($payment) use ($nextStart, $nextEnd) {
+            $due = $payment->due_date;
+            return $payment->status === 'pending'
+                && $due
+                && $due->betweenIncluded($nextStart, $nextEnd);
+        });
+
+        if ($pendingNext) {
+            return [
+                'label' => 'Pendenza prossimo mese',
+                'badge' => 'bg-sky-100 text-sky-700',
+            ];
+        }
+
+        return [
+            'label' => 'Regolare',
+            'badge' => 'bg-emerald-100 text-emerald-700',
+        ];
+    }
+
+    private function formatWhatsappLink(?string $telephone): ?string
+    {
+        if (!$telephone) {
+            return null;
+        }
+
+        $digits = preg_replace('/\D+/', '', $telephone);
+
+        return $digits ? 'https://wa.me/' . $digits : null;
     }
 }

@@ -4,11 +4,23 @@
 <section
     x-data="{
         showCreateClient: false,
-        expandedClient: null,
+        expandedClient: @js($initialExpandedClient),
         toggleClient(id) {
             this.expandedClient = this.expandedClient === id ? null : id;
         },
+        scrollToSelected() {
+            if (!this.expandedClient) {
+                return;
+            }
+            this.$nextTick(() => {
+                const target = document.getElementById('client-' + this.expandedClient);
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        },
     }"
+    x-init="scrollToSelected()"
     class="space-y-10"
 >
    

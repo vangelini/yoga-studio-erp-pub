@@ -101,6 +101,7 @@
                     @enderror
                 </div>
             </div>
+
             <div class="space-y-3">
                 <div class="space-y-1.5">
                     <label class="text-xs uppercase font-semibold text-stone-500">Descrizione <span class="text-rose-600">*</span></label>
@@ -173,17 +174,22 @@
                             </span>
                         @endif
                     </div>
-                    <div class="ml-auto flex items-center gap-2">
-                        <button type="button" class="inline-flex items-center gap-1 rounded-lg border border-stone-300 px-3 py-1 text-[11px] font-semibold text-stone-600 hover:bg-stone-100" @click="open = !open">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                            </svg>
-                            <span x-text="open ? 'Chiudi' : 'Gestisci'"></span>
-                        </button>
-                    </div>
                 </div>
 
-                <div x-show="open" x-cloak x-transition class="mt-4 border-t border-stone-200 pt-4 space-y-4">
+                <div class="mt-3">
+                    <button
+                        type="button"
+                        class="inline-flex items-center gap-2 rounded-lg border border-stone-300 px-3 py-1.5 text-xs font-semibold text-stone-600 hover:bg-stone-100 transition"
+                        @click="open = !open"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                        <span x-text="open ? 'Nascondi dettagli corso' : 'Mostra dettagli corso'"></span>
+                    </button>
+                </div>
+
+                <div x-show="open" x-cloak x-transition class="mt-4 border border-stone-200 rounded-xl bg-stone-50 px-4 py-4 space-y-4">
                     <form method="POST" action="{{ route('admin.courses.update', $course['id']) }}" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         @csrf
                         @method('PUT')
@@ -268,12 +274,70 @@
                                     </template>
                                 </div>
                             </div>
-                            <div class="flex justify-end">
-                                <button type="submit" class="btn-primary text-xs">Salva modifiche</button>
-                            </div>
-                        </div>
-                    </form>
+                    <div class="flex justify-end">
+                        <button type="submit" class="btn-primary text-xs">Salva modifiche</button>
+                    </div>
                 </div>
+            </form>
+
+                </div>
+
+            <div class="mt-6 space-y-3">
+                <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <p class="text-sm font-semibold text-stone-700">Allieve/i iscritti</p>
+                        <p class="text-xs text-stone-500">Clicca il nome per aprire la scheda nel pannello allievi.</p>
+                    </div>
+                    <span class="text-xs font-semibold text-stone-500">{{ count($course['students'] ?? []) }} iscritti</span>
+                </div>
+
+                @if (!empty($course['students']))
+                    <div class="space-y-3">
+                        @foreach ($course['students'] as $student)
+                            <div class="flex flex-col gap-3 rounded-xl border border-stone-200 bg-white px-4 py-3 shadow-sm md:flex-row md:items-center md:justify-between">
+                                <div>
+                                    <a href="{{ route('admin.clients.index', ['client_id' => $student['client_id']]) }}#client-{{ $student['client_id'] }}" class="text-sm font-semibold text-teal-700 hover:text-teal-900">
+                                        {{ $student['name'] }}
+                                    </a>
+                                    <p class="text-xs text-stone-500">Piano: {{ $student['plan'] }}</p>
+                                </div>
+                                <div class="text-xs text-stone-500 space-y-1">
+                                    @if (!empty($student['email']))
+                                        <a href="mailto:{{ $student['email'] }}" class="inline-flex items-center gap-1 text-teal-600 font-semibold hover:text-teal-800">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12l-4 4m0 0l-4-4m4 4V8m-6 4V7a2 2 0 012-2h8a2 2 0 012 2v5"/>
+                                            </svg>
+                                            {{ $student['email'] }}
+                                        </a>
+                                    @endif
+                                    @if (!empty($student['telephone']))
+                                        <div class="flex items-center gap-2">
+                                            <span class="font-semibold text-stone-600">Telefono:</span>
+                                            @if (!empty($student['whatsapp']))
+                                                <a href="{{ $student['whatsapp'] }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-emerald-600 font-semibold hover:text-emerald-800">
+                                                    {{ $student['telephone'] }}
+                                                </a>
+                                            @else
+                                                <span>{{ $student['telephone'] }}</span>
+                                            @endif
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold {{ $student['status_badge'] }}">
+                                        {{ $student['status'] }}
+                                    </span>
+                                    <a href="{{ route('admin.clients.index', ['client_id' => $student['client_id']]) }}#client-{{ $student['client_id'] }}" class="inline-flex items-center gap-1 rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-semibold text-stone-600 hover:bg-stone-100">
+                                        Gestisci
+                                    </a>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <p class="text-sm text-stone-500">Nessun allievo iscritto a questo corso.</p>
+                @endif
+            </div>
             </div>
         @empty
             <div class="rounded-xl border border-dashed border-stone-300 bg-stone-50 px-6 py-6 text-center text-stone-500">

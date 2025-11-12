@@ -120,7 +120,7 @@
                                 ->values();
                             $pendingPaymentsCount = (int) ($client->getAttribute('admin_pending_payments_count') ?? 0);
                         @endphp
-                        <tr class="hover:bg-stone-50">
+                        <tr id="client-{{ $client->id }}" class="hover:bg-stone-50">
                             <td class="px-4 py-3 font-medium text-stone-800">{{ $client->name }}</td>
                             <td class="px-4 py-3 text-stone-600">
                                 @if ($client->email)

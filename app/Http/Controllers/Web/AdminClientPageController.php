@@ -51,6 +51,7 @@ class AdminClientPageController extends Controller
             'clientCount' => $clients->count(),
             'courseUnpaidSummary' => $this->loadCourseUnpaidSummary($showFutureCourses),
             'courseUnpaidShowFuture' => $showFutureCourses,
+            'initialExpandedClient' => $request->integer('client_id') ?: null,
         ]);
     }
 

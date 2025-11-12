@@ -269,7 +269,7 @@
                             <?php if($showFutureCourses): echo 'checked'; endif; ?>
                             onchange="this.form.submit()"
                         >
-                        <span>Mostra anche pagamenti futuri</span>
+                        <span>Mostra morosità prossimo mese</span>
                     </label>
                 </form>
             </div>
