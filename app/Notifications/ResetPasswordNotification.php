@@ -17,7 +17,7 @@ class ResetPasswordNotification extends BaseResetPassword
             ]);
     }
 
-    protected function resetUrl(object $notifiable): string
+    protected function resetUrl($notifiable): string
     {
         return url(route('password.reset', [
             'token' => $this->token,
