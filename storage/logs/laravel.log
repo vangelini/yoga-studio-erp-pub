@@ -3696,3 +3696,7 @@ into your web browser: <span class="break-all" style="box-sizing: border-box; fo
 </html>
 --pX1KOvAm--
   
+[2025-11-12 15:10:10] local.ERROR: Declaration of App\Notifications\ResetPasswordNotification::toMail(object $notifiable): Illuminate\Notifications\Messages\MailMessage must be compatible with Illuminate\Auth\Notifications\ResetPassword::toMail($notifiable) {"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Declaration of App\\Notifications\\ResetPasswordNotification::toMail(object $notifiable): Illuminate\\Notifications\\Messages\\MailMessage must be compatible with Illuminate\\Auth\\Notifications\\ResetPassword::toMail($notifiable) at /Users/vincenzo/Documents/yoga-studio-erp/app/Notifications/ResetPasswordNotification.php:10)
+[stacktrace]
+#0 {main}
+"} 
