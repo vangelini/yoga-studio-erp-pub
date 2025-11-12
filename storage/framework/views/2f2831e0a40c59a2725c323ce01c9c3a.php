@@ -17,6 +17,13 @@
             <p class="text-sm text-stone-500">Configura le impostazioni generali del centro.</p>
         </div>
 
+        <?php if(session('status')): ?>
+            <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                <?php echo e(session('status')); ?>
+
+            </div>
+        <?php endif; ?>
+
         <form method="POST" action="<?php echo e(route('admin.settings.update')); ?>" class="space-y-6">
             <?php echo csrf_field(); ?>
             <?php echo method_field('PUT'); ?>

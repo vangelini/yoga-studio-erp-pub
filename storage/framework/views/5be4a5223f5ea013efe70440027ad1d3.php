@@ -242,6 +242,7 @@
         </div>
     </div>
 
+    <?php if($private_lessons_enabled ?? false): ?>
     <div class="bg-white rounded-2xl shadow-sm border border-stone-200/80 p-6 md:p-8 space-y-6">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div class="space-y-1">
@@ -616,6 +617,7 @@
             </div>
         </div>
     </div>
+    <?php endif; ?>
 
     <!-- Subscription Modal -->
     <div
@@ -795,7 +797,7 @@
     </div>
 </section>
 
-<?php if (! $__env->hasRenderedOnce('426c52fd-d347-4e06-81d8-69d7f4a349f3')): $__env->markAsRenderedOnce('426c52fd-d347-4e06-81d8-69d7f4a349f3'); ?>
+<?php if (! $__env->hasRenderedOnce('b6a4d8be-7f23-436a-bd87-c7f44420da8a')): $__env->markAsRenderedOnce('b6a4d8be-7f23-436a-bd87-c7f44420da8a'); ?>
     <?php $__env->startPush('scripts'); ?>
         <script>
             document.addEventListener('alpine:init', () => {

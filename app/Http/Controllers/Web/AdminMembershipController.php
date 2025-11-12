@@ -37,7 +37,7 @@ class AdminMembershipController extends Controller
         }
 
         return redirect()
-            ->route('dashboard')
-            ->with('status', "Quote verificate. Nuove pendenze create: {$created}");
+            ->route('admin.settings.edit')
+            ->with('status', "Generazione quote completata. Nuove pendenze create: {$created}");
     }
 }
