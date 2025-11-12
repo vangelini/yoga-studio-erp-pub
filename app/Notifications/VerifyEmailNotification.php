@@ -7,7 +7,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 
 class VerifyEmailNotification extends BaseVerifyEmail
 {
-    public function toMail(object $notifiable): MailMessage
+    public function toMail($notifiable): MailMessage
     {
         return (new MailMessage)
             ->subject('Conferma il tuo indirizzo email | Shanti Sadhana')
