@@ -47,6 +47,12 @@
             </button>
         </div>
 
+        <?php if (! ($private_lessons_enabled)): ?>
+            <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                La gestione delle lezioni individuali è disattivata dalle impostazioni generali. I clienti e gli insegnanti non vedranno le relative sezioni.
+            </div>
+        <?php endif; ?>
+
         <form
             x-show="showCreateTeacher"
             x-transition
@@ -116,10 +122,12 @@
                 <label class="text-xs uppercase text-stone-500 font-semibold">Data di nascita</label>
                 <input type="date" name="data_nascita" required class="input-field text-sm">
             </div>
-            <div class="md:col-span-2 flex items-center gap-2">
-                <input id="teacher-private" type="checkbox" name="can_host_private" value="1" class="h-4 w-4 text-teal-600 border-stone-300 rounded">
-                <label for="teacher-private" class="text-sm text-stone-600">Abilita immediatamente le lezioni private</label>
-            </div>
+            <?php if($private_lessons_enabled): ?>
+                <div class="md:col-span-2 flex items-center gap-2">
+                    <input id="teacher-private" type="checkbox" name="can_host_private" value="1" class="h-4 w-4 text-teal-600 border-stone-300 rounded">
+                    <label for="teacher-private" class="text-sm text-stone-600">Abilita immediatamente le lezioni private</label>
+                </div>
+            <?php endif; ?>
             <div class="md:col-span-2 flex justify-end">
                 <button type="submit" class="btn-primary text-sm">Registra insegnante</button>
             </div>
@@ -133,7 +141,9 @@
                         <th class="px-4 py-3 text-left font-semibold">Email</th>
                         <th class="px-4 py-3 text-left font-semibold">Telefono</th>
                         <th class="px-4 py-3 text-left font-semibold">Stato</th>
-                        <th class="px-4 py-3 text-left font-semibold">Lezioni private</th>
+                        <?php if($private_lessons_enabled): ?>
+                            <th class="px-4 py-3 text-left font-semibold">Lezioni private</th>
+                        <?php endif; ?>
                         <th class="px-4 py-3 text-left font-semibold">Azioni</th>
                     </tr>
                 </thead>
@@ -176,12 +186,14 @@
 
                                 </span>
                             </td>
-                            <td class="px-4 py-3 text-stone-600">
-                                <?php echo $teacher->can_host_private
-                                    ? '<span class="text-emerald-600 font-semibold">Abilitate</span>'
-                                    : '<span class="text-stone-500">Disabilitate</span>'; ?>
+                            <?php if($private_lessons_enabled): ?>
+                                <td class="px-4 py-3 text-stone-600">
+                                    <?php echo $teacher->can_host_private
+                                        ? '<span class="text-emerald-600 font-semibold">Abilitate</span>'
+                                        : '<span class="text-stone-500">Disabilitate</span>'; ?>
 
-                            </td>
+                                </td>
+                            <?php endif; ?>
                             <td class="px-4 py-3">
                                 <button type="button" class="text-xs font-semibold inline-flex items-center gap-1 bg-stone-200 text-stone-700 px-3 py-1.5 rounded-lg hover:bg-stone-300 transition-colors" @click="toggleTeacher(<?php echo e($teacher->id); ?>)">
                                     <span x-text="expandedTeacher === <?php echo e($teacher->id); ?> ? 'Nascondi' : 'Gestisci'"></span>
@@ -189,7 +201,7 @@
                             </td>
                         </tr>
                         <tr x-show="expandedTeacher === <?php echo e($teacher->id); ?>" x-cloak x-transition>
-                            <td colspan="6" class="px-4 pb-5">
+                            <td colspan="<?php echo e($private_lessons_enabled ? 6 : 5); ?>" class="px-4 pb-5">
                                 <div class="bg-stone-50 border border-stone-200 rounded-lg p-5 space-y-5">
                                         <form method="POST" action="<?php echo e(route('admin.users.profile', $teacherUser)); ?>" class="grid grid-cols-1 md:grid-cols-2 gap-3 w-full">
                                             <?php echo csrf_field(); ?>
@@ -259,11 +271,13 @@
                                                 </select>
                                             </div>
                                             <?php if($teacherUser->role === 'Teacher'): ?>
+                                            <?php if($private_lessons_enabled): ?>
                                                 <div class="md:col-span-2 flex items-center gap-2">
                                                     <input type="hidden" name="teacher_can_host_private" value="0">
                                                     <input type="checkbox" name="teacher_can_host_private" value="1" <?php if($teacher->can_host_private): echo 'checked'; endif; ?> class="h-4 w-4 text-teal-600 border-stone-300 rounded">
                                                     <label class="text-sm text-stone-600">Può tenere lezioni private</label>
                                                 </div>
+                                            <?php endif; ?>
                                             <?php endif; ?>
                                             <div class="md:col-span-2 flex justify-end gap-2">
                                                 <button type="reset" class="inline-flex items-center gap-2 rounded-lg border border-stone-300 px-3 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-100 transition">Cancella</button>

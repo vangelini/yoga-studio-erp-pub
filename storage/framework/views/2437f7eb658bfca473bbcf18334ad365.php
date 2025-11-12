@@ -4,6 +4,7 @@
 ?>
 
 <section class="space-y-10">
+    <?php if($private_lessons_enabled ?? false): ?>
     <div
         x-data="Object.assign(teacherAvailability({
             initialAvailability: <?php echo json_encode($activeTeacher['availability'] ?? [], 15, 512) ?>,
@@ -149,7 +150,9 @@
             </div>
         </div>
     </div>
+    <?php endif; ?>
 
+    <?php if($private_lessons_enabled ?? false): ?>
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 lg:col-span-2">
             <h3 class="text-2xl font-semibold text-stone-800 mb-4">Prossime lezioni</h3>
@@ -182,11 +185,12 @@
 
        
     </div>
+    <?php endif; ?>
 
    
 </section>
 
-<?php if (! $__env->hasRenderedOnce('86098822-c775-4480-bdbe-0a644970402a')): $__env->markAsRenderedOnce('86098822-c775-4480-bdbe-0a644970402a'); ?>
+<?php if (! $__env->hasRenderedOnce('852ccab8-228d-4efb-9be3-b0799628f536')): $__env->markAsRenderedOnce('852ccab8-228d-4efb-9be3-b0799628f536'); ?>
     <?php $__env->startPush('scripts'); ?>
         <script>
             document.addEventListener('alpine:init', () => {

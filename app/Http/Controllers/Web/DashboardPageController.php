@@ -82,6 +82,7 @@ class DashboardPageController extends Controller
             ->values();
 
         $extraDayEnabled = (bool) optional(Setting::find('extra_day_enabled'))->value;
+        $privateLessonsEnabled = (bool) optional(Setting::find('private_lessons_enabled'))->value;
         $extraDayCandidates = $extraDayEnabled
             ? $courses->filter(fn ($course) => !empty($course['allows_extra_day']))->pluck('id')->values()->all()
             : [];
@@ -139,6 +140,7 @@ class DashboardPageController extends Controller
                 'enabled' => $extraDayEnabled,
                 'candidateCourseIds' => $extraDayCandidates,
             ],
+            'private_lessons_enabled' => $privateLessonsEnabled,
             ...$extra,
         ]);
     }

@@ -4,6 +4,7 @@
 @endphp
 
 <section class="space-y-10">
+    @if ($private_lessons_enabled ?? false)
     <div
         x-data="Object.assign(teacherAvailability({
             initialAvailability: @json($activeTeacher['availability'] ?? []),
@@ -149,7 +150,9 @@
             </div>
         </div>
     </div>
+    @endif
 
+    @if ($private_lessons_enabled ?? false)
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 lg:col-span-2">
             <h3 class="text-2xl font-semibold text-stone-800 mb-4">Prossime lezioni</h3>
@@ -180,6 +183,7 @@
 
        
     </div>
+    @endif
 
    
 </section>

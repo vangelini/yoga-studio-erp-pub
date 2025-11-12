@@ -80,6 +80,22 @@
                 </div>
             </div>
 
+            <div class="space-y-2 border border-amber-200 rounded-xl bg-amber-50 px-4 py-4">
+                <div class="flex items-start gap-3">
+                    <input type="checkbox" name="private_lessons_enabled" value="1" id="private-lessons"
+                        {{ old('private_lessons_enabled', $private_lessons_enabled) ? 'checked' : '' }}
+                        class="mt-1 rounded border-stone-300 text-teal-600 focus:ring-teal-500">
+                    <label for="private-lessons" class="text-sm text-stone-700">
+                        Abilita la gestione delle lezioni individuali. Quando attivo i clienti possono prenotare lezioni private,
+                        gli insegnanti possono gestire disponibilità e prossime lezioni e l'amministratore visualizza il flag
+                        "Può tenere lezioni private" nella gestione docenti.
+                    </label>
+                </div>
+                <p class="text-xs text-stone-500">
+                    Disattivando l'opzione tutte le sezioni relative alle lezioni individuali scompaiono per clienti, insegnanti e amministratori.
+                </p>
+            </div>
+
             <div>
                 <label class="text-xs uppercase font-semibold text-stone-500">Morosità quote per pagina</label>
                 <input type="number" min="1" max="50" name="membership_morosita_page_size" value="{{ old('membership_morosita_page_size', $membership_morosita_page_size) }}" required class="input-field mt-1">

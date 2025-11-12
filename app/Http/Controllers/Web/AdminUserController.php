@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Course;
+use App\Models\Setting;
 use App\Models\Teacher;
 use App\Models\User;
 use App\Models\UserDocument;
@@ -46,7 +47,9 @@ class AdminUserController extends Controller
             'can_host_private' => ['sometimes', 'boolean'],
         ]);
 
-        DB::transaction(function () use ($data) {
+        $allowPrivate = $this->privateLessonsEnabled();
+
+        DB::transaction(function () use ($data, $allowPrivate) {
             $user = User::create([
                 'first_name' => $data['first_name'],
                 'last_name' => $data['last_name'],
@@ -74,7 +77,7 @@ class AdminUserController extends Controller
                         'profile_picture_url' => $user->teacher?->profile_picture_url ?? "https://picsum.photos/seed/{$user->id}/100/100",
                         'bio' => $user->teacher?->bio ?? 'Benvenuto! Aggiorna la tua biografia.',
                         'specializations' => $user->teacher?->specializations ?? [],
-                        'can_host_private' => (bool) ($data['can_host_private'] ?? false),
+                        'can_host_private' => $allowPrivate ? (bool) ($data['can_host_private'] ?? false) : false,
                     ]
                 );
             }
@@ -161,10 +164,11 @@ class AdminUserController extends Controller
         app(MembershipManager::class)->ensureCurrentMembership($user, false);
 
         if ($user->role === 'Teacher') {
+            $allowPrivate = $this->privateLessonsEnabled();
             $teacher = $user->teacherProfile;
             if ($teacher) {
                 $teacher->update([
-                    'can_host_private' => $request->boolean('teacher_can_host_private'),
+                    'can_host_private' => $allowPrivate ? $request->boolean('teacher_can_host_private') : false,
                 ]);
             }
 
@@ -304,11 +308,18 @@ class AdminUserController extends Controller
     {
         $this->authorizeAdmin();
 
+        abort_unless($this->privateLessonsEnabled(), 403);
+
         $teacher->update([
             'can_host_private' => $request->boolean('can_host_private'),
         ]);
 
         return redirect()->route('dashboard')->with('status', 'Impostazioni lezioni private aggiornate.');
+    }
+
+    private function privateLessonsEnabled(): bool
+    {
+        return (bool) optional(Setting::find('private_lessons_enabled'))->value;
     }
 
     public function export(Request $request): StreamedResponse

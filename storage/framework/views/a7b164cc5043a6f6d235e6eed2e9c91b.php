@@ -101,7 +101,7 @@
                         <th class="px-4 py-3 text-left font-semibold">Nome</th>
                         <th class="px-4 py-3 text-left font-semibold">Email</th>
                         <th class="px-4 py-3 text-left font-semibold">Telefono</th>
-                        <th class="px-4 py-3 text-left font-semibold">Stato</th>
+                        <th class="px-4 py-3 text-left font-semibold">Stato Account</th>
                         <th class="px-4 py-3 text-left font-semibold">Azioni</th>
                     </tr>
                 </thead>

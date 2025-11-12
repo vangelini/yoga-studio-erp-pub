@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Models\Setting;
 use App\Models\Teacher;
 use Illuminate\View\View;
 
@@ -20,6 +21,7 @@ class AdminTeacherPageController extends Controller
         return view('admin.teachers.index', [
             'teacherAdminList' => $teachers,
             'teacherCount' => $teachers->count(),
+            'private_lessons_enabled' => (bool) optional(Setting::find('private_lessons_enabled'))->value,
         ]);
     }
 

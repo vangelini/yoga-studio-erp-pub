@@ -51,7 +51,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.5 9.75h15m-13.5 3H12m-7.5 3H12m6.75-6v6.75a2.25 2.25 0 01-2.25 2.25h-9a2.25 2.25 0 01-2.25-2.25V6.75A2.25 2.25 0 016.75 4.5h9a2.25 2.25 0 012.25 2.25V9.75z" />
                         </svg>
-                        Amministrazione clienti
+                        Amministrazione allieve/i
                     </a>
                     <a href="{{ route('admin.teachers.index') }}" class="inline-flex items-center gap-2 rounded-lg bg-white/20 px-4 py-2 text-xs font-semibold text-white border border-white/40 backdrop-blur-sm hover:bg-white/30 transition">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -109,7 +109,7 @@
                 @else
                     <div class="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
                         <div class="flex items-center justify-between border-b border-stone-200 bg-stone-50 px-3 py-2 text-xs text-stone-500">
-                            <span>Quote in sospeso: {{ $membershipSummary['total'] }}</span>
+                    
                             <span>Mostra {{ $membershipSummary['per_page'] }} voci per pagina (configurabile dalle impostazioni)</span>
                         </div>
                         <table class="min-w-full divide-y divide-stone-200 text-xs leading-tight">
@@ -130,7 +130,7 @@
                                     <tr class="hover:bg-stone-50">
                                         <td class="px-3 py-1.5">
                                             <p class="text-sm font-semibold text-stone-800">{{ $entry['name'] }}</p>
-                                            <p class="text-[11px] text-stone-400">ID #{{ $entry['payment_id'] }}</p>
+                                            <p class="text-[11px] text-stone-400">ID pagamento #{{ $entry['payment_id'] }}</p>
                                         </td>
                                         <td class="px-3 py-1.5 space-y-1">
                                             @if(!empty($entry['email']))
@@ -437,25 +437,4 @@
     @endif
 
     @include('dashboard.partials.admin-courses', ['teacherOptions' => $teacherSelectOptions, 'dayOptions' => $dayOptions])
-
-    <div class="card p-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-            <h3 class="text-2xl font-semibold text-stone-900">Gestione clienti dedicata</h3>
-            <p class="text-sm text-stone-500">Registrazione, documenti e morosità dei soci sono ora disponibili in una pagina dedicata, così questo cruscotto resta più leggero.</p>
-        </div>
-        <div class="flex flex-wrap gap-3">
-            <a href="{{ route('admin.clients.index') }}" class="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-5 py-2 text-sm font-semibold text-white shadow hover:bg-teal-700">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7.5h18M3 12h12m-12 4.5h9" />
-                </svg>
-                Apri amministrazione clienti
-            </a>
-            <a href="{{ route('admin.users.export') }}" class="inline-flex items-center gap-2 rounded-xl border border-stone-200 px-5 py-2 text-sm font-semibold text-stone-600 hover:border-stone-300">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" />
-                </svg>
-                Esporta elenco (.csv)
-            </a>
-        </div>
-    </div>
 </section>
