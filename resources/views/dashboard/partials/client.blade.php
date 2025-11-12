@@ -623,18 +623,17 @@
     <div
         x-cloak
         x-show="subscriptionModal.open"
-        class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 px-4"
+        class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 px-4 py-8"
         x-transition
         @keydown.escape.window="closeSubscriptionModal"
     >
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden border border-stone-200/60">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] border border-stone-200/60 flex flex-col">
             <div class="px-6 py-5 border-b border-stone-200 bg-stone-50">
-                <h4 class="text-2xl font-semibold text-stone-900">Conferma iscrizione</h4>
-                <p class="text-sm text-stone-500 mt-1">
-                    Corso: <span class="font-semibold text-teal-700" x-text="subscriptionModal.course?.title"></span>
-                </p>
+                <h4 class="text-2xl font-semibold text-stone-900">Iscrizione al Corso: <span class="font-semibold text-teal-700" x-text="subscriptionModal.course?.title"></span></h4>
+                    
+
             </div>
-            <div class="px-6 py-5 space-y-5 text-sm text-stone-600">
+            <div class="px-6 py-5 space-y-5 text-sm text-stone-600 overflow-y-auto">
                 <template x-if="subscriptionModal.course">
                     <div class="space-y-4">
                         <p x-text="subscriptionModal.course.description"></p>
@@ -642,9 +641,9 @@
                         <div class="space-y-3 rounded-xl border border-stone-200 bg-stone-50 p-4">
                             <h5 class="text-sm font-semibold text-stone-700">Scegli il piano di abbonamento</h5>
                             <template x-if="coursePlans(subscriptionModal.course).length > 0">
-                                <div class="space-y-3">
+                                <div class="grid gap-3 md:grid-cols-2">
                                     <template x-for="plan in coursePlans(subscriptionModal.course)" :key="plan.type">
-                                        <label class="flex items-start gap-3 rounded-lg border border-transparent px-3 py-2 hover:border-teal-200 hover:bg-white transition">
+                                        <label class="flex items-start gap-2 rounded-lg border border-transparent px-3 py-2 text-sm hover:border-teal-200 hover:bg-white transition">
                                             <input
                                                 type="radio"
                                                 name="subscription-plan"
@@ -674,50 +673,53 @@
                             <p class="text-xs text-stone-500" x-text="subscriptionModal.supportsProration ? 'Iniziando nel mese corrente il costo viene calcolato sui giorni rimanenti.' : 'Il costo è fisso per l\'intero periodo selezionato.'"></p>
 
                             <div class="space-y-3">
-                                <label class="flex items-start gap-3 text-sm text-stone-600">
-                                    <input
-                                        type="radio"
-                                        name="subscription-start-option"
-                                        value="current_month"
-                                        class="mt-1 h-4 w-4 text-teal-600 border-stone-300 focus:ring-teal-500"
-                                        :checked="subscriptionModal.option === 'current_month'"
-                                        @change="handleSubscriptionOptionChange('current_month')"
-                                    >
-                                    <span>
-                                        <span class="font-semibold text-stone-700">Inizia questo mese</span>
-                                        <span class="block text-xs text-stone-500" x-text="subscriptionModal.supportsProration ? 'Costo proporzionato ai giorni rimanenti.' : 'Il costo verrà applicato per l\'intera durata del piano.'"></span>
-                                    </span>
-                                </label>
-
-                                <div class="ml-7 space-y-2" x-show="subscriptionModal.option === 'current_month'">
-                                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                                <div class="grid gap-3 md:grid-cols-2">
+                                    <label class="flex items-start gap-3 rounded-xl border border-stone-200 bg-white px-3 py-3 text-sm text-stone-600">
                                         <input
-                                            type="date"
-                                            class="w-full rounded-lg border border-stone-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-                                            :min="subscriptionModal.limits.today"
-                                            :max="subscriptionModal.limits.endOfMonth"
-                                            :value="subscriptionModal.startDate"
-                                            @input="handleSubscriptionDateChange($event.target.value)"
+                                            type="radio"
+                                            name="subscription-start-option"
+                                            value="current_month"
+                                            class="mt-1 h-4 w-4 text-teal-600 border-stone-300 focus:ring-teal-500"
+                                            :checked="subscriptionModal.option === 'current_month'"
+                                            @change="handleSubscriptionOptionChange('current_month')"
                                         >
-                                        <span class="text-xs text-stone-500">Disponibile fino al <span x-text="formatDateLabel(subscriptionModal.limits.endOfMonth)"></span></span>
-                                    </div>
-                                    <p class="text-xs text-rose-500" x-show="subscriptionModal.option === 'current_month' && !isValidSubscriptionDate()">Seleziona una data valida nel mese corrente.</p>
-                                </div>
+                                        <span class="space-y-2">
+                                            <span>
+                                                <span class="font-semibold text-stone-700">Inizia questo mese</span>
+                                                <span class="block text-xs text-stone-500" x-text="subscriptionModal.supportsProration ? 'Costo proporzionato ai giorni rimanenti.' : 'Il costo verrà applicato per l\'intera durata del piano.'"></span>
+                                            </span>
+                                            <div class="space-y-2" x-show="subscriptionModal.option === 'current_month'">
+                                                <div class="flex flex-col gap-2">
+                                                    <input
+                                                        type="date"
+                                                        class="w-full rounded-lg border border-stone-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                                        :min="subscriptionModal.limits.today"
+                                                        :max="subscriptionModal.limits.endOfMonth"
+                                                        :value="subscriptionModal.startDate"
+                                                        @input="handleSubscriptionDateChange($event.target.value)"
+                                                    >
+                                                    <span class="text-xs text-stone-500">Disponibile fino al <span x-text="formatDateLabel(subscriptionModal.limits.endOfMonth)"></span></span>
+                                                </div>
+                                                <p class="text-xs text-rose-500" x-show="subscriptionModal.option === 'current_month' && !isValidSubscriptionDate()">Seleziona una data valida nel mese corrente.</p>
+                                            </div>
+                                        </span>
+                                    </label>
 
-                                <label class="flex items-start gap-3 text-sm text-stone-600">
-                                    <input
-                                        type="radio"
-                                        name="subscription-start-option"
-                                        value="next_month"
-                                        class="mt-1 h-4 w-4 text-teal-600 border-stone-300 focus:ring-teal-500"
-                                        :checked="subscriptionModal.option === 'next_month'"
-                                        @change="handleSubscriptionOptionChange('next_month')"
-                                    >
-                                    <span>
-                                        <span class="font-semibold text-stone-700">Inizia dal prossimo mese</span>
-                                        <span class="block text-xs text-stone-500">Prima lezione il <span x-text="subscriptionModal.nextMonthLabel"></span>. Prezzo intero.</span>
-                                    </span>
-                                </label>
+                                    <label class="flex items-start gap-3 rounded-xl border border-stone-200 bg-white px-3 py-3 text-sm text-stone-600">
+                                        <input
+                                            type="radio"
+                                            name="subscription-start-option"
+                                            value="next_month"
+                                            class="mt-1 h-4 w-4 text-teal-600 border-stone-300 focus:ring-teal-500"
+                                            :checked="subscriptionModal.option === 'next_month'"
+                                            @change="handleSubscriptionOptionChange('next_month')"
+                                        >
+                                        <span>
+                                            <span class="font-semibold text-stone-700">Inizia dal prossimo mese</span>
+                                            <span class="block text-xs text-stone-500">Prima lezione il <span x-text="subscriptionModal.nextMonthLabel"></span>. Prezzo intero.</span>
+                                        </span>
+                                    </label>
+                                </div>
                             </div>
 
                             <template x-if="extraDayEnabled()">
@@ -756,7 +758,7 @@
                                 </div>
                             </template>
 
-                            <div class="flex flex-col gap-2 rounded-lg border border-stone-200 bg-white px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+                            <div class="flex flex-col gap-4 rounded-lg border border-stone-200 bg-white px-4 py-4 text-sm">
                                 <div>
                                     <span class="text-stone-600 block">Importo dovuto ora</span>
                                     <span class="text-[11px] text-stone-500">
@@ -766,7 +768,26 @@
                                         </template>
                                     </span>
                                 </div>
-                                <span class="text-lg font-semibold text-teal-700">€ <span x-text="subscriptionModal.preview"></span></span>
+                                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                    <span class="text-lg font-semibold text-teal-700">€ <span x-text="subscriptionModal.preview"></span></span>
+                                    <div class="flex flex-col gap-2 sm:flex-row">
+                                        <button
+                                            type="button"
+                                            class="inline-flex items-center justify-center gap-2 rounded-lg border border-stone-300 px-4 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-100 transition"
+                                            @click="closeSubscriptionModal"
+                                        >
+                                            Annulla
+                                        </button>
+                                        <button
+                                            type="button"
+                                            class="inline-flex items-center justify-center gap-2 rounded-lg bg-teal-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-teal-700 disabled:bg-stone-300 disabled:text-stone-500 disabled:cursor-not-allowed"
+                                            @click="confirmSubscription"
+                                            :disabled="!canSubmitSubscription() || loading"
+                                        >
+                                            Conferma iscrizione
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -776,23 +797,7 @@
                     <p class="text-sm text-stone-500">Nessun corso selezionato.</p>
                 </template>
             </div>
-            <div class="flex flex-col gap-2 border-t border-stone-200 px-6 py-4 sm:flex-row sm:justify-end">
-                <button
-                    type="button"
-                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-stone-300 px-4 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-100 transition"
-                    @click="closeSubscriptionModal"
-                >
-                    Annulla
-                </button>
-                <button
-                    type="button"
-                    class="inline-flex items-center justify-center gap-2 rounded-lg bg-teal-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-teal-700 disabled:bg-stone-300 disabled:text-stone-500 disabled:cursor-not-allowed"
-                    @click="confirmSubscription"
-                    :disabled="!canSubmitSubscription() || loading"
-                >
-                    Conferma iscrizione
-                </button>
-            </div>
+            <div class="border-t border-stone-200"></div>
         </div>
     </div>
 </section>
