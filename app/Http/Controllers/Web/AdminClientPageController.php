@@ -18,12 +18,31 @@ class AdminClientPageController extends Controller
 {
     public function index(Request $request): View
     {
-        $this->authorizeAdmin();
+        $user = $request->user();
+        $isAdmin = $user?->role === 'Admin';
+        $isTeacher = $user?->role === 'Teacher';
+        $teacherProfile = $isTeacher ? $user?->teacherProfile : null;
+        $teacherCanManageStudents = $isTeacher && $teacherProfile && $teacherProfile->can_manage_students;
 
-        $autoGenerate = $this->shouldAutoGenerateMemberships();
-        $clients = $this->loadClients($autoGenerate);
+        if (!$isAdmin && !$teacherCanManageStudents) {
+            abort(403);
+        }
 
-        $membershipSummary = $this->buildMembershipSummary($clients, $request);
+        $autoGenerate = $isAdmin ? $this->shouldAutoGenerateMemberships() : false;
+        $restrictedClientIds = null;
+
+        if ($teacherCanManageStudents) {
+            $restrictedClientIds = $this->getTeacherStudentIds($user->id);
+
+            if (empty($restrictedClientIds)) {
+                $clients = collect();
+            }
+        }
+
+        $clients = $clients ?? $this->loadClients($autoGenerate, $restrictedClientIds);
+
+        $canViewMembershipSummary = $isAdmin || ($teacherProfile?->can_manage_payments ?? false);
+        $membershipSummary = $canViewMembershipSummary ? $this->buildMembershipSummary($clients, $request) : null;
 
         $phonePrefixes = [
             ['code' => '+39', 'name' => 'Italia'],
@@ -43,6 +62,16 @@ class AdminClientPageController extends Controller
 
         $showFutureCourses = $request->boolean('show_future_course_payments');
 
+        $clientPagePermissions = [
+            'mode' => $isAdmin ? 'admin' : 'teacher',
+            'can_create' => $isAdmin,
+            'can_export' => $isAdmin,
+            'can_manage_account' => $isAdmin,
+            'can_manage_profile' => $isAdmin || $teacherCanManageStudents,
+            'can_manage_documents' => $isAdmin || $teacherCanManageStudents,
+            'can_manage_payments' => $isAdmin || ($teacherProfile?->can_manage_payments ?? false),
+        ];
+
         return view('admin.clients.index', [
             'clients' => $clients,
             'phonePrefixes' => $phonePrefixes,
@@ -52,17 +81,35 @@ class AdminClientPageController extends Controller
             'courseUnpaidSummary' => $this->loadCourseUnpaidSummary($showFutureCourses),
             'courseUnpaidShowFuture' => $showFutureCourses,
             'initialExpandedClient' => $request->integer('client_id') ?: null,
+            'clientPagePermissions' => $clientPagePermissions,
         ]);
     }
 
-    private function loadClients(bool $autoGenerate)
+    private function getTeacherStudentIds(int $teacherId): array
+    {
+        return Subscription::query()
+            ->whereHas('course', function ($query) use ($teacherId) {
+                $query->where('teacher_id', $teacherId);
+            })
+            ->pluck('client_id')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function loadClients(bool $autoGenerate, ?array $restrictToIds = null)
     {
         $manager = app(MembershipManager::class);
         $season = $manager->determineCurrentSeason();
 
         $currentYear = now()->year;
 
-        return User::select([
+        if ($restrictToIds !== null && empty($restrictToIds)) {
+            return collect();
+        }
+
+        $query = User::select([
                 'id',
                 'name',
                 'first_name',
@@ -90,7 +137,13 @@ class AdminClientPageController extends Controller
                 },
                 'documents:id,user_id,type,original_name,updated_at,path',
             ])
-            ->where('role', 'Client')
+            ->where('role', 'Client');
+
+        if ($restrictToIds !== null) {
+            $query->whereIn('id', $restrictToIds);
+        }
+
+        return $query
             ->orderBy('name')
             ->get()
             ->map(function ($user) use ($manager, $autoGenerate, $currentYear) {

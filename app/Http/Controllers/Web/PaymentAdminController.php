@@ -35,7 +35,7 @@ class PaymentAdminController extends Controller
         }
 
         if ($data['action'] === 'cash') {
-            $payment->markAsPaid('cash');
+            $payment->markAsPaid('cash', $request->user()->id);
 
             if ($payment->type === 'membership' && $payment->payable instanceof MembershipSubscription) {
                 $payment->payable->update([
@@ -47,7 +47,7 @@ class PaymentAdminController extends Controller
             $receiptPath = $this->receiptService->generate($payment, $data['reason'] ?? null);
             $message = 'Pagamento registrato in contanti.';
         } else {
-            $payment->markAsWaived($data['reason']);
+            $payment->markAsWaived($data['reason'], $request->user()->id);
             $message = 'Mese annullato con successo.';
         }
 
@@ -182,13 +182,38 @@ class PaymentAdminController extends Controller
             return true;
         }
 
-        if ($user->role === 'Teacher' && $payment->payable_type === Booking::class) {
-            $booking = $payment->payable;
-            if ($booking && (int) $booking->teacher_id === (int) $user->id) {
-                return true;
+        if ($user->role === 'Teacher') {
+            $teacherProfile = $user->teacherProfile;
+
+            if ($payment->payable_type === Booking::class) {
+                $booking = $payment->payable;
+                if ($booking && (int) $booking->teacher_id === (int) $user->id) {
+                    return true;
+                }
+            }
+
+            if ($teacherProfile && $teacherProfile->can_manage_payments) {
+                if ($payment->type === 'course_subscription' && $this->teacherOwnsCoursePayment($user->id, $payment)) {
+                    return true;
+                }
+
+                if ($payment->type === 'membership' && $this->teacherHasStudent($user->id, $payment->user_id)) {
+                    return true;
+                }
             }
         }
 
         return false;
+    }
+
+    private function teacherOwnsCoursePayment(int $teacherId, Payment $payment): bool
+    {
+        if (!$payment->course_id) {
+            return false;
+        }
+
+        return Course::where('id', $payment->course_id)
+            ->where('teacher_id', $teacherId)
+            ->exists();
     }
 }

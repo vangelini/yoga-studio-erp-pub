@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Subscription;
 use App\Services\MembershipManager;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -12,9 +13,29 @@ class AdminMembershipController extends Controller
 {
     public function generate(Request $request, MembershipManager $manager): RedirectResponse
     {
-        abort_unless($request->user()?->role === 'Admin', 403);
+        $user = $request->user();
+        $isAdmin = $user?->role === 'Admin';
+        $teacherId = null;
 
-        $clients = User::where('role', 'Client')->get();
+        if ($isAdmin) {
+            // ok
+        } elseif ($user?->role === 'Teacher' && optional($user->teacherProfile)->can_manage_payments) {
+            $teacherId = $user->id;
+        } else {
+            abort(403);
+        }
+
+        $clientsQuery = User::where('role', 'Client');
+
+        if ($teacherId) {
+            $studentIds = $this->getTeacherStudentIds($teacherId);
+            if (empty($studentIds)) {
+                return redirect()->route('admin.clients.index')->with('status', 'Nessun allievo associato ai tuoi corsi richiede la generazione delle quote.');
+            }
+            $clientsQuery->whereIn('id', $studentIds);
+        }
+
+        $clients = $clientsQuery->get();
         $created = 0;
 
         foreach ($clients as $client) {
@@ -31,13 +52,27 @@ class AdminMembershipController extends Controller
             }
 
             if ($payment->status === 'pending') {
-                // Assicuriamo che importo e scadenza siano aggiornati all'ultima configurazione
                 $manager->ensureCurrentMembership($client, true);
             }
         }
 
+        $redirectRoute = $isAdmin ? 'admin.settings.edit' : 'admin.clients.index';
+
         return redirect()
-            ->route('admin.settings.edit')
+            ->route($redirectRoute)
             ->with('status', "Generazione quote completata. Nuove pendenze create: {$created}");
+    }
+
+    private function getTeacherStudentIds(int $teacherId): array
+    {
+        return Subscription::query()
+            ->whereHas('course', function ($query) use ($teacherId) {
+                $query->where('teacher_id', $teacherId);
+            })
+            ->pluck('client_id')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
     }
 }

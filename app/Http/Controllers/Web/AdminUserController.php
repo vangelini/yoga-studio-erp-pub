@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\Setting;
+use App\Models\Subscription;
 use App\Models\Teacher;
 use App\Models\User;
 use App\Models\UserDocument;
@@ -126,9 +127,11 @@ class AdminUserController extends Controller
 
     public function updateProfile(Request $request, User $user): RedirectResponse
     {
-        $this->authorizeAdmin();
+        $this->authorizeClientManagement($request->user(), $user);
 
-        $data = $request->validate([
+        $isAdmin = $request->user()->role === 'Admin';
+
+        $rules = [
             'first_name' => ['required', 'string', 'max:150'],
             'last_name' => ['required', 'string', 'max:150'],
             'email' => ['required', 'email', Rule::unique('users', 'email')->ignore($user->id)],
@@ -142,16 +145,23 @@ class AdminUserController extends Controller
             'codice_fiscale' => ['required', 'string', 'regex:/^[A-Z0-9]{16}$/i'],
             'luogo_nascita' => ['required', 'string', 'max:150'],
             'data_nascita' => ['required', 'date'],
-            'status' => ['nullable', Rule::in(['active', 'pending', 'disabled'])],
-            'teacher_can_host_private' => ['nullable', 'boolean'],
-            'teacher_can_manage_courses' => ['nullable', 'boolean'],
-            'teacher_can_manage_payments' => ['nullable', 'boolean'],
-            'teacher_can_manage_students' => ['nullable', 'boolean'],
-            'course_ids' => ['sometimes', 'array'],
-            'course_ids.*' => ['integer', 'exists:courses,id'],
-        ]);
+        ];
 
-        $status = $data['status'] ?? $user->status;
+        if ($isAdmin) {
+            $rules = array_merge($rules, [
+                'status' => ['nullable', Rule::in(['active', 'pending', 'disabled'])],
+                'teacher_can_host_private' => ['nullable', 'boolean'],
+                'teacher_can_manage_courses' => ['nullable', 'boolean'],
+                'teacher_can_manage_payments' => ['nullable', 'boolean'],
+                'teacher_can_manage_students' => ['nullable', 'boolean'],
+                'course_ids' => ['sometimes', 'array'],
+                'course_ids.*' => ['integer', 'exists:courses,id'],
+            ]);
+        }
+
+        $data = $request->validate($rules);
+
+        $status = $isAdmin ? ($data['status'] ?? $user->status) : $user->status;
 
         $user->update([
             'first_name' => $data['first_name'],
@@ -172,7 +182,7 @@ class AdminUserController extends Controller
 
         app(MembershipManager::class)->ensureCurrentMembership($user, false);
 
-        if ($user->role === 'Teacher') {
+        if ($isAdmin && $user->role === 'Teacher') {
             $allowPrivate = $this->privateLessonsEnabled();
             $teacher = $user->teacherProfile;
             if ($teacher) {
@@ -230,7 +240,7 @@ class AdminUserController extends Controller
 
     public function storeDocument(Request $request, User $user): JsonResponse|RedirectResponse
     {
-        $this->authorizeAdmin();
+        $this->authorizeClientManagement($request->user(), $user);
 
         Log::info('Admin document upload start', [
             'admin_id' => $request->user()?->id,
@@ -292,9 +302,9 @@ class AdminUserController extends Controller
         return back()->with('status', 'Documento aggiornato correttamente per ' . $user->name . '.');
     }
 
-    public function downloadDocument(User $user, UserDocument $document)
+    public function downloadDocument(Request $request, User $user, UserDocument $document)
     {
-        $this->authorizeAdmin();
+        $this->authorizeClientManagement($request->user(), $user);
 
         abort_unless($document->user_id === $user->id, 404);
 
@@ -327,6 +337,37 @@ class AdminUserController extends Controller
         ]);
 
         return redirect()->route('dashboard')->with('status', 'Impostazioni lezioni private aggiornate.');
+    }
+
+    private function authorizeClientManagement(?User $actor, User $target): void
+    {
+        abort_unless($actor, 403);
+
+        if ($actor->role === 'Admin') {
+            return;
+        }
+
+        if ($actor->role === 'Teacher') {
+            $teacher = $actor->teacherProfile;
+            abort_unless($teacher && $teacher->can_manage_students, 403);
+            abort_unless($this->teacherOwnsStudent($actor->id, $target->id), 403);
+            return;
+        }
+
+        abort(403);
+    }
+
+    private function teacherOwnsStudent(int $teacherId, int $studentId): bool
+    {
+        if ($studentId <= 0) {
+            return false;
+        }
+
+        return Subscription::where('client_id', $studentId)
+            ->whereHas('course', function ($query) use ($teacherId) {
+                $query->where('teacher_id', $teacherId);
+            })
+            ->exists();
     }
 
     private function privateLessonsEnabled(): bool

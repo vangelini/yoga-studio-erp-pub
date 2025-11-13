@@ -475,6 +475,7 @@
         'courseCardSubtitle' => $courseCardSubtitle,
         'currentTeacherId' => $courseCardTeacherId,
         'allowStudentManage' => $allowStudentManage,
+        'viewMode' => $viewConfig['mode'] ?? 'admin',
     ], \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
 </section>
 <?php /**PATH /Users/vincenzo/Documents/yoga-studio-erp/resources/views/dashboard/partials/admin.blade.php ENDPATH**/ ?>

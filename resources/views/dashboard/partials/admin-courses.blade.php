@@ -5,6 +5,9 @@
     $courseCardTitle = $courseCardTitle ?? 'Gestione corsi';
     $courseCardSubtitle = $courseCardSubtitle ?? 'I campi contrassegnati con <span class="text-rose-600 font-semibold">*</span> sono obbligatori.';
     $currentTeacherId = $currentTeacherId ?? null;
+    $viewMode = $viewMode ?? 'admin';
+    $isTeacherView = $viewMode === 'teacher';
+    $currentTeacherName = auth()->user()->name ?? 'Insegnante';
 @endphp
 
 <div class="card p-6 space-y-6" x-data="{ showCreateCourse: false }">
@@ -176,22 +179,27 @@
                     </div>
                     <div class="flex items-center gap-2 text-xs text-stone-500">
                         <span class="font-semibold uppercase text-stone-600">Insegnante:</span>
-                        <span>{{ $course['teacher_name'] ?? 'Non assegnato' }}</span>
+                        <span>
+                            {{ $course['teacher_name'] ?? ($isTeacherView ? $currentTeacherName : 'Non assegnato') }}
+                        </span>
                     </div>
-                    <div class="flex items-center gap-2 text-xs text-stone-500">
-                        <span class="font-semibold uppercase text-stone-600">Periodo:</span>
-                        <span>{{ $course['start_date_human'] ?? '—' }} → {{ $course['end_date_human'] ?? '—' }}</span>
-                    </div>
+                    @if(!empty($course['start_date_human']) || !empty($course['end_date_human']))
+                        <div class="flex items-center gap-2 text-xs text-stone-500">
+                            <span class="font-semibold uppercase text-stone-600">Periodo:</span>
+                            <span>{{ $course['start_date_human'] ?? '—' }} → {{ $course['end_date_human'] ?? '—' }}</span>
+                        </div>
+                    @endif
                     <div class="flex flex-wrap items-center gap-1 text-xs text-stone-500">
-                        @if(!empty($course['available_plans']))
-                            @foreach ($course['available_plans'] as $plan)
+                        @php $plans = $course['available_plans'] ?? $course['availablePlans'] ?? []; @endphp
+                        @if(!empty($plans))
+                            @foreach ($plans as $plan)
                                 <span class="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2 py-0.5 font-semibold text-teal-700">
                                     {{ $plan['label'] }} · € {{ number_format($plan['amount'], 2, ',', '.') }}
                                 </span>
                             @endforeach
                         @else
-                            <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 font-semibold text-amber-700">
-                                Nessun piano configurato
+                            <span class="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5 font-semibold text-stone-500">
+                                Tariffe non configurate
                             </span>
                         @endif
                     </div>

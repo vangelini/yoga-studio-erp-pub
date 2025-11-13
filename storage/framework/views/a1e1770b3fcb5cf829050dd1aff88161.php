@@ -1,4 +1,15 @@
 <?php $__env->startSection('content'); ?>
+<?php
+    $clientPagePermissions = $clientPagePermissions ?? [
+        'mode' => 'admin',
+        'can_create' => true,
+        'can_export' => true,
+        'can_manage_account' => true,
+        'can_manage_profile' => true,
+        'can_manage_documents' => true,
+        'can_manage_payments' => true,
+    ];
+?>
 <section
     x-data="{
         showCreateClient: false,
@@ -63,4 +74,5 @@
 </section>
 <?php $__env->stopSection(); ?>
               
+
 <?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH /Users/vincenzo/Documents/yoga-studio-erp/resources/views/admin/clients/index.blade.php ENDPATH**/ ?>

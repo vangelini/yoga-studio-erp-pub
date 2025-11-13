@@ -12,13 +12,26 @@ class AdminCoursePaymentController extends Controller
 {
     public function generate(Request $request, CoursePaymentGenerator $generator): RedirectResponse
     {
-        abort_unless($request->user()?->role === 'Admin', 403);
+        $user = $request->user();
+        $isAdmin = $user?->role === 'Admin';
+        $teacherId = null;
+
+        if ($isAdmin) {
+            // allowed
+        } elseif ($user?->role === 'Teacher' && optional($user->teacherProfile)->can_manage_payments) {
+            $teacherId = $user->id;
+        } else {
+            abort(403);
+        }
 
         $leadDaysSetting = Setting::query()->find('course_payment_lead_days');
         $leadDays = $leadDaysSetting ? (int) $leadDaysSetting->value : 10;
 
-        $result = $generator->generate($leadDays);
-        $this->storeRunLog($result, true);
+        $result = $generator->generate($leadDays, $teacherId);
+
+        if ($isAdmin) {
+            $this->storeRunLog($result, true);
+        }
 
         $message = sprintf(
             'Generazione pendenze corsi completata. Verificati %d abbonamenti, create %d nuove pendenze.',
@@ -26,7 +39,9 @@ class AdminCoursePaymentController extends Controller
             $result['created']
         );
 
-        return redirect()->route('admin.settings.edit')->with('status', $message);
+        $redirectRoute = $isAdmin ? 'admin.settings.edit' : 'admin.clients.index';
+
+        return redirect()->route($redirectRoute)->with('status', $message);
     }
 
     protected function storeRunLog(array $result, bool $manual = false): void

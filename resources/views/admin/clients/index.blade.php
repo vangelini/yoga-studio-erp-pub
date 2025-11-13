@@ -1,6 +1,17 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $clientPagePermissions = $clientPagePermissions ?? [
+        'mode' => 'admin',
+        'can_create' => true,
+        'can_export' => true,
+        'can_manage_account' => true,
+        'can_manage_profile' => true,
+        'can_manage_documents' => true,
+        'can_manage_payments' => true,
+    ];
+@endphp
 <section
     x-data="{
         showCreateClient: false,

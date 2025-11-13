@@ -17,6 +17,7 @@ class Payment extends Model
         'payable_type',
         'payable_id',
         'course_id',
+        'processed_by_user_id',
         'type',
         'amount',
         'status',
@@ -55,23 +56,30 @@ class Payment extends Model
         return $this->belongsTo(Course::class);
     }
 
-    public function markAsPaid(?string $method = null): void
+    public function processedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'processed_by_user_id');
+    }
+
+    public function markAsPaid(?string $method = null, ?int $processedBy = null): void
     {
         $this->forceFill([
             'status' => 'paid',
             'paid_at' => now(),
             'method' => $method,
             'status_reason' => null,
+            'processed_by_user_id' => $processedBy ?? $this->processed_by_user_id,
         ])->save();
     }
 
-    public function markAsWaived(?string $reason = null): void
+    public function markAsWaived(?string $reason = null, ?int $processedBy = null): void
     {
         $this->forceFill([
             'status' => 'waived',
             'status_reason' => $reason,
             'paid_at' => null,
             'method' => null,
+            'processed_by_user_id' => $processedBy ?? $this->processed_by_user_id,
         ])->save();
     }
 

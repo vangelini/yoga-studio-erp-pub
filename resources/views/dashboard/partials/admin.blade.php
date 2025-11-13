@@ -463,5 +463,6 @@
         'courseCardSubtitle' => $courseCardSubtitle,
         'currentTeacherId' => $courseCardTeacherId,
         'allowStudentManage' => $allowStudentManage,
+        'viewMode' => $viewConfig['mode'] ?? 'admin',
     ])
 </section>

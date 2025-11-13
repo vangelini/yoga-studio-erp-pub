@@ -13,20 +13,28 @@ class CoursePaymentGenerator
      * Generate upcoming course subscription payments.
      *
      * @param  int  $leadDays
+     * @param  int|null  $teacherId
      * @return array{checked:int,created:int,skipped:int,run_at:string}
      */
-    public function generate(int $leadDays = 10): array
+    public function generate(int $leadDays = 10, ?int $teacherId = null): array
     {
         $leadDays = max(0, $leadDays);
         $now = now();
 
         $subscriptions = Subscription::with([
-                'course:id,title,monthly_price,quarterly_price,annual_price,price',
+                'course:id,title,monthly_price,quarterly_price,annual_price,price,teacher_id',
                 'extraCourse:id,title,monthly_price,teacher_id',
             ])
             ->where('auto_renew', true)
-            ->where('status', 'active')
-            ->get();
+            ->where('status', 'active');
+
+        if ($teacherId) {
+            $subscriptions->whereHas('course', function ($query) use ($teacherId) {
+                $query->where('teacher_id', $teacherId);
+            });
+        }
+
+        $subscriptions = $subscriptions->get();
 
         $created = 0;
         $skipped = 0;

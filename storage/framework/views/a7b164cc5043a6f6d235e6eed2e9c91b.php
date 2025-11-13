@@ -1,4 +1,16 @@
 
+    <?php
+        $clientPermissions = $clientPagePermissions ?? [
+            'mode' => 'admin',
+            'can_create' => true,
+            'can_export' => true,
+            'can_manage_account' => true,
+            'can_manage_profile' => true,
+            'can_manage_documents' => true,
+            'can_manage_payments' => true,
+        ];
+    ?>
+
     <div class="card p-6 space-y-6">
         <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
@@ -6,21 +18,46 @@
                 <p class="text-sm text-stone-500">Gestisci dati anagrafici, stato account e pagamenti.</p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
-                <a
-                    href="<?php echo e(route('admin.users.export')); ?>"
-                    class="inline-flex items-center gap-2 rounded-lg border border-teal-200 bg-white px-4 py-2 text-xs font-semibold text-teal-600 transition-colors hover:border-teal-300 hover:bg-teal-50"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"/>
-                    </svg>
-                    Scarica elenco (.csv)
-                </a>
-                <button type="button" class="btn-primary text-xs self-start md:self-auto" @click="showCreateClient = !showCreateClient">
-                    <span class="text-sm font-semibold" x-text="showCreateClient ? 'Nascondi form' : 'Nuova allieva/o'"></span>
-                </button>
+                <?php if($clientPermissions['can_export'] ?? false): ?>
+                    <a
+                        href="<?php echo e(route('admin.users.export')); ?>"
+                        class="inline-flex items-center gap-2 rounded-lg border border-teal-200 bg-white px-4 py-2 text-xs font-semibold text-teal-600 transition-colors hover:border-teal-300 hover:bg-teal-50"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"/>
+                        </svg>
+                        Scarica elenco (.csv)
+                    </a>
+                <?php endif; ?>
+                <?php if($clientPermissions['can_create'] ?? false): ?>
+                    <button type="button" class="btn-primary text-xs self-start md:self-auto" @click="showCreateClient = !showCreateClient">
+                        <span class="text-sm font-semibold" x-text="showCreateClient ? 'Nascondi form' : 'Nuova allieva/o'"></span>
+                    </button>
+                <?php endif; ?>
             </div>
         </div>
 
+        <?php if($clientPermissions['can_manage_payments'] ?? false): ?>
+            <div class="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 space-y-3">
+                <p class="text-xs font-semibold uppercase tracking-wide text-stone-500">Generazione pendenze</p>
+                <div class="flex flex-wrap items-center gap-2">
+                    <form method="POST" action="<?php echo e(route('admin.memberships.generate')); ?>" onsubmit="return confirm('Generare subito le pendenze delle quote associative?');">
+                        <?php echo csrf_field(); ?>
+                        <button type="submit" class="inline-flex items-center gap-1 rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-xs font-semibold text-stone-600 hover:bg-stone-100">
+                            Genera quote associative
+                        </button>
+                    </form>
+                    <form method="POST" action="<?php echo e(route('admin.courses.payments.generate')); ?>" onsubmit="return confirm('Generare subito le pendenze per i corsi?');">
+                        <?php echo csrf_field(); ?>
+                        <button type="submit" class="inline-flex items-center gap-1 rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-xs font-semibold text-stone-600 hover:bg-stone-100">
+                            Genera pendenze corsi
+                        </button>
+                    </form>
+                </div>
+            </div>
+        <?php endif; ?>
+
+        <?php if($clientPermissions['can_create'] ?? false): ?>
         <form
             x-show="showCreateClient"
             x-transition
@@ -94,6 +131,7 @@
                 <button type="submit" class="btn-primary text-sm">Registra allieva/o</button>
             </div>
         </form>
+        <?php endif; ?>
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-stone-200 text-sm">
                 <thead class="bg-stone-100 text-stone-600 uppercase text-xs tracking-wide">
@@ -265,14 +303,21 @@
                 <input type="date" name="data_nascita" value="<?php echo e(optional($client->data_nascita)->format('Y-m-d')); ?>" required class="input-field text-sm">
             </div>
 
-            <div class="flex flex-wrap items-center gap-3">
-                <label for="status-<?php echo e($client->id); ?>" class="text-xs uppercase text-stone-500 font-semibold">Stato account</label>
-                <select id="status-<?php echo e($client->id); ?>" name="status" class="rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-500">
-                    <?php $__currentLoopData = ['active', 'pending', 'disabled']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $statusOption): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <option value="<?php echo e($statusOption); ?>" <?php if($client->status === $statusOption): echo 'selected'; endif; ?>><?php echo e(ucfirst($statusOption)); ?></option>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                </select>
-            </div>
+            <?php if($clientPermissions['can_manage_account'] ?? true): ?>
+                <div class="flex flex-wrap items-center gap-3">
+                    <label for="status-<?php echo e($client->id); ?>" class="text-xs uppercase text-stone-500 font-semibold">Stato account</label>
+                    <select id="status-<?php echo e($client->id); ?>" name="status" class="rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-500">
+                        <?php $__currentLoopData = ['active', 'pending', 'disabled']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $statusOption): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <option value="<?php echo e($statusOption); ?>" <?php if($client->status === $statusOption): echo 'selected'; endif; ?>><?php echo e(ucfirst($statusOption)); ?></option>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    </select>
+                </div>
+            <?php else: ?>
+                <div class="flex items-center gap-3 text-sm text-stone-600">
+                    <span class="text-xs uppercase text-stone-500 font-semibold">Stato account</span>
+                    <span class="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-semibold text-stone-700"><?php echo e(ucfirst($client->status)); ?></span>
+                </div>
+            <?php endif; ?>
             <div class="flex flex-wrap items-center gap-2 md:justify-end">
                 <span class="text-xs font-semibold uppercase tracking-wide text-stone-500">Verifica Email:</span>
                 <?php if($client->email_verified_at): ?>
@@ -289,25 +334,31 @@
                         </svg>
                         <span>Non verificata</span>
                     </span>
-                    <form method="POST" action="<?php echo e(route('admin.users.resendVerification', $client)); ?>" class="inline-flex"
-                        onsubmit="return confirm('Inviare una nuova email di verifica a <?php echo e($client->email); ?>?');">
+                    <?php if($clientPermissions['can_manage_account'] ?? true): ?>
+                        <form method="POST" action="<?php echo e(route('admin.users.resendVerification', $client)); ?>" class="inline-flex"
+                            onsubmit="return confirm('Inviare una nuova email di verifica a <?php echo e($client->email); ?>?');">
+                            <?php echo csrf_field(); ?>
+                            <button type="submit" class="inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-amber-600 transition-colors">
+                                Reinvia verifica
+                            </button>
+                        </form>
+                    <?php endif; ?>
+                <?php endif; ?>
+                <?php if($clientPermissions['can_manage_account'] ?? true): ?>
+                    <form method="POST" action="<?php echo e(route('admin.users.passwordEmail', $client)); ?>" class="inline-flex"
+                        onsubmit="return confirm('Vuoi inviare un\'email di reset password a <?php echo e($client->email); ?>? L\'utente riceverà un link per impostare una nuova password.');">
                         <?php echo csrf_field(); ?>
-                        <button type="submit" class="inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-amber-600 transition-colors">
-                            Reinvia verifica
+                        <button type="submit" class="inline-flex items-center gap-1.5 rounded-md bg-rose-500 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-rose-600 transition-colors">
+                            Invia reset password
                         </button>
                     </form>
                 <?php endif; ?>
-                <form method="POST" action="<?php echo e(route('admin.users.passwordEmail', $client)); ?>" class="inline-flex"
-                    onsubmit="return confirm('Vuoi inviare un\'email di reset password a <?php echo e($client->email); ?>? L\'utente riceverà un link per impostare una nuova password.');">
-                    <?php echo csrf_field(); ?>
-                    <button type="submit" class="inline-flex items-center gap-1.5 rounded-md bg-rose-500 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-rose-600 transition-colors">
-                        Invia reset password
+                <?php if($clientPermissions['can_manage_profile'] ?? true): ?>
+                    <button type="submit" class="inline-flex items-center gap-1.5 rounded-md bg-teal-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-teal-700 transition"
+                        onclick="return confirm('Salvare le modifiche per <?php echo e($client->name); ?>? Verranno aggiornati i dati del profilo.');">
+                        Salva dati
                     </button>
-                </form>
-                <button type="submit" class="inline-flex items-center gap-1.5 rounded-md bg-teal-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-teal-700 transition"
-                    onclick="return confirm('Salvare le modifiche per <?php echo e($client->name); ?>? Verranno aggiornati i dati del profilo.');">
-                    Salva dati
-                </button>
+                <?php endif; ?>
             </div>
 
         </div>
@@ -737,4 +788,5 @@
                 </tbody>
             </table>
         </div>
-    </div><?php /**PATH /Users/vincenzo/Documents/yoga-studio-erp/resources/views/admin/clients/partials/management.blade.php ENDPATH**/ ?>
+    </div>
+<?php /**PATH /Users/vincenzo/Documents/yoga-studio-erp/resources/views/admin/clients/partials/management.blade.php ENDPATH**/ ?>

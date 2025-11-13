@@ -164,13 +164,15 @@ class DashboardPageController extends Controller
 
             $extra['clients'] = collect();
             $extra['teacherAdminList'] = collect([$user->teacherProfile])->filter();
+            $teacherShowFuture = $canManagePayments ? (bool) $request->boolean('show_future_course_payments', false) : false;
             $extra['courseUnpaidSummary'] = $canManagePayments
                 ? $this->buildTeacherCourseUnpaidSummary(
                     collect($teacherData['teacher_courses'] ?? []),
-                    collect($teacherData['teacher_course_payments'] ?? [])
+                    collect($teacherData['teacher_course_payments'] ?? []),
+                    $teacherShowFuture
                 )
                 : null;
-            $extra['courseUnpaidShowFuture'] = false;
+            $extra['courseUnpaidShowFuture'] = $teacherShowFuture;
             $extra['membershipSummary'] = $canManagePayments
                 ? $this->buildTeacherMembershipSummary(collect($teacherData['teacher_membership_payments'] ?? []))
                 : null;
@@ -179,7 +181,7 @@ class DashboardPageController extends Controller
                 'mode' => 'teacher',
                 'show_membership_panel' => $canManagePayments,
                 'show_course_unpaid' => $canManagePayments,
-                'show_client_admin' => false,
+                'show_client_admin' => (bool) ($teacherProfile['can_manage_students'] ?? false),
                 'show_teacher_admin' => false,
                 'show_course_admin' => $canManageCourses,
                 'allow_course_creation' => false,
@@ -556,7 +558,7 @@ class DashboardPageController extends Controller
         ];
     }
 
-    private function buildTeacherCourseUnpaidSummary(\Illuminate\Support\Collection $courses, \Illuminate\Support\Collection $payments): array
+    private function buildTeacherCourseUnpaidSummary(\Illuminate\Support\Collection $courses, \Illuminate\Support\Collection $payments, bool $includeFuture = false): array
     {
         $now = now();
         $endOfMonth = $now->copy()->endOfMonth();
@@ -585,6 +587,18 @@ class DashboardPageController extends Controller
         $pendingPayments = $payments->filter(function ($payment) {
             return ($payment['status'] ?? null) === 'pending';
         });
+
+        if (!$includeFuture) {
+            $pendingPayments = $pendingPayments->filter(function ($payment) use ($endOfMonth) {
+                if (empty($payment['due_date'])) {
+                    return true;
+                }
+
+                $dueDate = Carbon::parse($payment['due_date']);
+
+                return $dueDate->lessThanOrEqualTo($endOfMonth);
+            });
+        }
 
         foreach ($pendingPayments as $payment) {
             $courseId = $payment['course_id'] ?? null;
@@ -628,10 +642,10 @@ class DashboardPageController extends Controller
 
         if (empty($courseSummaries)) {
             return [
-                'month_label' => $now->translatedFormat('F Y'),
+                'month_label' => $includeFuture ? __('tutte le scadenze') : $now->translatedFormat('F Y'),
                 'total_unpaid' => 0,
                 'future_total' => 0,
-                'showing_future' => false,
+                'showing_future' => $includeFuture,
                 'courses' => [],
             ];
         }
@@ -669,10 +683,10 @@ class DashboardPageController extends Controller
         $futureTotal = array_sum(array_map(fn ($course) => $course['future_count'] ?? 0, $courseSummary));
 
         return [
-            'month_label' => $now->translatedFormat('F Y'),
+            'month_label' => $includeFuture ? __('tutte le scadenze') : $now->translatedFormat('F Y'),
             'total_unpaid' => $totalUnpaid,
             'future_total' => $futureTotal,
-            'showing_future' => false,
+            'showing_future' => $includeFuture,
             'courses' => $courseSummary,
         ];
     }
