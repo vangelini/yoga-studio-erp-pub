@@ -45,9 +45,13 @@ class AdminCourseController extends Controller
 
     public function update(Request $request, Course $course): RedirectResponse
     {
-        $this->authorizeAdmin();
+        $this->authorizeCourseUpdate($request->user(), $course);
 
         $data = $this->validateCourse($request);
+
+        if ($request->user()->role === 'Teacher') {
+            $data['teacher_id'] = $course->teacher_id;
+        }
 
         DB::transaction(function () use ($course, $data) {
             $course->update([
@@ -72,6 +76,24 @@ class AdminCourseController extends Controller
         return redirect()
             ->route('dashboard')
             ->with('status', 'Corso aggiornato con successo.');
+    }
+
+    private function authorizeCourseUpdate(?User $user, Course $course): void
+    {
+        abort_unless($user, 403);
+
+        if ($user->role === 'Admin') {
+            return;
+        }
+
+        if ($user->role === 'Teacher') {
+            $teacher = $user->teacherProfile;
+            abort_unless($teacher && $teacher->can_manage_courses, 403);
+            abort_unless((int) $course->teacher_id === (int) $user->id, 403);
+            return;
+        }
+
+        abort(403);
     }
 
     protected function validateCourse(Request $request): array

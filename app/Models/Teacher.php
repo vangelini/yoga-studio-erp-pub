@@ -15,11 +15,17 @@ class Teacher extends Model
         'bio',
         'specializations',
         'can_host_private',
+        'can_manage_courses',
+        'can_manage_payments',
+        'can_manage_students',
     ];
 
     protected $casts = [
         'specializations' => 'array',
         'can_host_private' => 'boolean',
+        'can_manage_courses' => 'boolean',
+        'can_manage_payments' => 'boolean',
+        'can_manage_students' => 'boolean',
     ];
 
     public function user()

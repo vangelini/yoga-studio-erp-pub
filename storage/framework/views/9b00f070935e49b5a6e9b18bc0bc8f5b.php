@@ -1,19 +1,30 @@
+<?php
+    $allowCourseCreation = $allowCourseCreation ?? true;
+    $allowTeacherSelection = $allowTeacherSelection ?? true;
+    $allowStudentManage = $allowStudentManage ?? true;
+    $courseCardTitle = $courseCardTitle ?? 'Gestione corsi';
+    $courseCardSubtitle = $courseCardSubtitle ?? 'I campi contrassegnati con <span class="text-rose-600 font-semibold">*</span> sono obbligatori.';
+    $currentTeacherId = $currentTeacherId ?? null;
+?>
+
 <div class="card p-6 space-y-6" x-data="{ showCreateCourse: false }">
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div class="space-y-1">
-            <h3 class="text-2xl font-semibold text-stone-900">Gestione corsi</h3>
-            <p class="text-sm text-stone-500">I campi contrassegnati con <span class="text-rose-600 font-semibold">*</span> sono obbligatori.</p>
+            <h3 class="text-2xl font-semibold text-stone-900"><?php echo e($courseCardTitle); ?></h3>
+            <p class="text-sm text-stone-500"><?php echo $courseCardSubtitle; ?></p>
         </div>
-        <button
-            type="button"
-            class="inline-flex items-center gap-2 rounded-lg border border-teal-200 bg-white px-4 py-2 text-xs font-semibold text-teal-600 transition-colors hover:border-teal-300 hover:bg-teal-50"
-            @click="showCreateCourse = !showCreateCourse"
-        >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            <span x-text="showCreateCourse ? 'Nascondi nuovo corso' : 'Nuovo corso'"></span>
-        </button>
+        <?php if($allowCourseCreation): ?>
+            <button
+                type="button"
+                class="inline-flex items-center gap-2 rounded-lg border border-teal-200 bg-white px-4 py-2 text-xs font-semibold text-teal-600 transition-colors hover:border-teal-300 hover:bg-teal-50"
+                @click="showCreateCourse = !showCreateCourse"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                <span x-text="showCreateCourse ? 'Nascondi nuovo corso' : 'Nuovo corso'"></span>
+            </button>
+        <?php endif; ?>
     </div>
 
     <?php if($errors->any()): ?>
@@ -22,6 +33,7 @@
         </div>
     <?php endif; ?>
 
+    <?php if($allowCourseCreation): ?>
     <div
         class="border border-teal-200/60 rounded-2xl bg-teal-50/60 p-6 shadow-inner"
         x-data="{
@@ -53,12 +65,20 @@ unset($__errorArgs, $__bag); ?>
                 </div>
                 <div class="space-y-1.5">
                     <label class="text-xs uppercase font-semibold text-stone-500">Insegnante (opzionale)</label>
-                    <select name="teacher_id" class="input-field text-sm">
-                        <option value="" <?php echo e(old('teacher_id') ? '' : 'selected'); ?>>Non assegnato</option>
-                        <?php $__currentLoopData = $teacherOptions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $teacherId => $teacherName): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                            <option value="<?php echo e($teacherId); ?>" <?php if(old('teacher_id') == $teacherId): echo 'selected'; endif; ?>><?php echo e($teacherName); ?></option>
-                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                    </select>
+                    <?php if($allowTeacherSelection): ?>
+                        <select name="teacher_id" class="input-field text-sm">
+                            <option value="" <?php echo e(old('teacher_id') ? '' : 'selected'); ?>>Non assegnato</option>
+                            <?php $__currentLoopData = $teacherOptions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $teacherId => $teacherName): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($teacherId); ?>" <?php if(old('teacher_id') == $teacherId): echo 'selected'; endif; ?>><?php echo e($teacherName); ?></option>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        </select>
+                    <?php else: ?>
+                        <input type="hidden" name="teacher_id" value="<?php echo e($currentTeacherId); ?>">
+                        <div class="rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm text-stone-600">
+                            <?php echo e(auth()->user()->name ?? 'Docente'); ?>
+
+                        </div>
+                    <?php endif; ?>
                     <?php $__errorArgs = ['teacher_id'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -177,6 +197,8 @@ unset($__errorArgs, $__bag); ?>
                 </div>
             </div>
         </form>
+    <?php endif; ?>
+
     </div>
 
     <div class="space-y-2">
@@ -243,12 +265,20 @@ unset($__errorArgs, $__bag); ?>
                             </div>
                             <div class="space-y-1.5">
                                 <label class="text-xs uppercase font-semibold text-stone-500">Insegnante (opzionale)</label>
-                                <select name="teacher_id" class="input-field text-sm">
-                                    <option value="">Non assegnato</option>
-                                    <?php $__currentLoopData = $teacherOptions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $teacherId => $teacherName): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                        <option value="<?php echo e($teacherId); ?>" <?php if($course['teacher_id'] === $teacherId): echo 'selected'; endif; ?>><?php echo e($teacherName); ?></option>
-                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                </select>
+                                <?php if($allowTeacherSelection): ?>
+                                    <select name="teacher_id" class="input-field text-sm">
+                                        <option value="">Non assegnato</option>
+                                        <?php $__currentLoopData = $teacherOptions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $teacherId => $teacherName): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <option value="<?php echo e($teacherId); ?>" <?php if($course['teacher_id'] === $teacherId): echo 'selected'; endif; ?>><?php echo e($teacherName); ?></option>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                    </select>
+                                <?php else: ?>
+                                    <input type="hidden" name="teacher_id" value="<?php echo e($currentTeacherId); ?>">
+                                    <div class="rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm text-stone-600">
+                                        <?php echo e(auth()->user()->name ?? 'Docente'); ?>
+
+                                    </div>
+                                <?php endif; ?>
                             </div>
                             <div class="space-y-1.5">
                                 <label class="text-xs uppercase font-semibold text-stone-500">Prezzi abbonamenti (€)</label>
@@ -388,9 +418,11 @@ unset($__errorArgs, $__bag); ?>
                                         <?php echo e($student['status']); ?>
 
                                     </span>
-                                    <a href="<?php echo e(route('admin.clients.index', ['client_id' => $student['client_id']])); ?>#client-<?php echo e($student['client_id']); ?>" class="inline-flex items-center gap-1 rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-semibold text-stone-600 hover:bg-stone-100">
-                                        Gestisci
-                                    </a>
+                                    <?php if($allowStudentManage): ?>
+                                        <a href="<?php echo e(route('admin.clients.index', ['client_id' => $student['client_id']])); ?>#client-<?php echo e($student['client_id']); ?>" class="inline-flex items-center gap-1 rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-semibold text-stone-600 hover:bg-stone-100">
+                                            Gestisci
+                                        </a>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>

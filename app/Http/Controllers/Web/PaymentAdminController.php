@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
+use App\Models\Course;
 use App\Models\MembershipSubscription;
 use App\Models\Payment;
+use App\Models\Subscription;
 use App\Services\CashReceiptService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -21,7 +23,7 @@ class PaymentAdminController extends Controller
 
     public function updateStatus(Request $request, Payment $payment)
     {
-        abort_unless($request->user()->role === 'Admin', 403);
+        $this->authorizePaymentManagement($request, $payment);
 
         $data = $request->validate([
             'action' => ['required', Rule::in(['cash', 'waive'])],
@@ -68,7 +70,7 @@ class PaymentAdminController extends Controller
 
     public function reprint(Request $request, Payment $payment)
     {
-        abort_unless($request->user()->role === 'Admin', 403);
+        $this->authorizePaymentManagement($request, $payment);
 
         $data = $request->validate([
             'notes' => ['nullable', 'string', 'max:500'],
@@ -110,6 +112,60 @@ class PaymentAdminController extends Controller
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'inline; filename="' . basename($absolutePath) . '"',
         ]);
+    }
+
+    private function authorizePaymentManagement(Request $request, Payment $payment): void
+    {
+        $user = $request->user();
+        abort_unless($user, 403);
+
+        if ($user->role === 'Admin') {
+            return;
+        }
+
+        if ($user->role === 'Teacher') {
+            $teacher = $user->teacherProfile;
+            abort_unless($teacher && $teacher->can_manage_payments, 403);
+
+            $payment->loadMissing('payable');
+
+            if ($payment->type === 'course_subscription') {
+                abort_unless(
+                    $payment->course_id && Course::where('id', $payment->course_id)->where('teacher_id', $user->id)->exists(),
+                    403
+                );
+                return;
+            }
+
+            if ($payment->type === 'membership') {
+                abort_unless($this->teacherHasStudent($user->id, $payment->user_id), 403);
+                return;
+            }
+
+            if ($payment->type === 'private_lesson' && $payment->payable_type === Booking::class) {
+                $booking = $payment->payable;
+                if (!$booking) {
+                    $booking = $payment->payable()->first();
+                }
+                abort_unless($booking && (int) $booking->teacher_id === (int) $user->id, 403);
+                return;
+            }
+        }
+
+        abort(403);
+    }
+
+    private function teacherHasStudent(int $teacherId, ?int $studentId): bool
+    {
+        if (!$studentId) {
+            return false;
+        }
+
+        return Subscription::where('client_id', $studentId)
+            ->whereHas('course', function ($query) use ($teacherId) {
+                $query->where('teacher_id', $teacherId);
+            })
+            ->exists();
     }
 
     private function canAccessReceipt($user, Payment $payment): bool

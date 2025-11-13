@@ -45,6 +45,9 @@ class AdminUserController extends Controller
             'luogo_nascita' => ['nullable', 'string', 'max:150'],
             'data_nascita' => ['nullable', 'date'],
             'can_host_private' => ['sometimes', 'boolean'],
+            'can_manage_courses' => ['sometimes', 'boolean'],
+            'can_manage_payments' => ['sometimes', 'boolean'],
+            'can_manage_students' => ['sometimes', 'boolean'],
         ]);
 
         $allowPrivate = $this->privateLessonsEnabled();
@@ -78,6 +81,9 @@ class AdminUserController extends Controller
                         'bio' => $user->teacher?->bio ?? 'Benvenuto! Aggiorna la tua biografia.',
                         'specializations' => $user->teacher?->specializations ?? [],
                         'can_host_private' => $allowPrivate ? (bool) ($data['can_host_private'] ?? false) : false,
+                        'can_manage_courses' => (bool) ($data['can_manage_courses'] ?? false),
+                        'can_manage_payments' => (bool) ($data['can_manage_payments'] ?? false),
+                        'can_manage_students' => (bool) ($data['can_manage_students'] ?? false),
                     ]
                 );
             }
@@ -138,6 +144,9 @@ class AdminUserController extends Controller
             'data_nascita' => ['required', 'date'],
             'status' => ['nullable', Rule::in(['active', 'pending', 'disabled'])],
             'teacher_can_host_private' => ['nullable', 'boolean'],
+            'teacher_can_manage_courses' => ['nullable', 'boolean'],
+            'teacher_can_manage_payments' => ['nullable', 'boolean'],
+            'teacher_can_manage_students' => ['nullable', 'boolean'],
             'course_ids' => ['sometimes', 'array'],
             'course_ids.*' => ['integer', 'exists:courses,id'],
         ]);
@@ -169,6 +178,9 @@ class AdminUserController extends Controller
             if ($teacher) {
                 $teacher->update([
                     'can_host_private' => $allowPrivate ? $request->boolean('teacher_can_host_private') : false,
+                    'can_manage_courses' => $request->boolean('teacher_can_manage_courses'),
+                    'can_manage_payments' => $request->boolean('teacher_can_manage_payments'),
+                    'can_manage_students' => $request->boolean('teacher_can_manage_students'),
                 ]);
             }
 

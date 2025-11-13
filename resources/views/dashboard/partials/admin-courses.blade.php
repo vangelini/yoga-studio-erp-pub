@@ -1,19 +1,30 @@
+@php
+    $allowCourseCreation = $allowCourseCreation ?? true;
+    $allowTeacherSelection = $allowTeacherSelection ?? true;
+    $allowStudentManage = $allowStudentManage ?? true;
+    $courseCardTitle = $courseCardTitle ?? 'Gestione corsi';
+    $courseCardSubtitle = $courseCardSubtitle ?? 'I campi contrassegnati con <span class="text-rose-600 font-semibold">*</span> sono obbligatori.';
+    $currentTeacherId = $currentTeacherId ?? null;
+@endphp
+
 <div class="card p-6 space-y-6" x-data="{ showCreateCourse: false }">
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div class="space-y-1">
-            <h3 class="text-2xl font-semibold text-stone-900">Gestione corsi</h3>
-            <p class="text-sm text-stone-500">I campi contrassegnati con <span class="text-rose-600 font-semibold">*</span> sono obbligatori.</p>
+            <h3 class="text-2xl font-semibold text-stone-900">{{ $courseCardTitle }}</h3>
+            <p class="text-sm text-stone-500">{!! $courseCardSubtitle !!}</p>
         </div>
-        <button
-            type="button"
-            class="inline-flex items-center gap-2 rounded-lg border border-teal-200 bg-white px-4 py-2 text-xs font-semibold text-teal-600 transition-colors hover:border-teal-300 hover:bg-teal-50"
-            @click="showCreateCourse = !showCreateCourse"
-        >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            <span x-text="showCreateCourse ? 'Nascondi nuovo corso' : 'Nuovo corso'"></span>
-        </button>
+        @if($allowCourseCreation)
+            <button
+                type="button"
+                class="inline-flex items-center gap-2 rounded-lg border border-teal-200 bg-white px-4 py-2 text-xs font-semibold text-teal-600 transition-colors hover:border-teal-300 hover:bg-teal-50"
+                @click="showCreateCourse = !showCreateCourse"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                <span x-text="showCreateCourse ? 'Nascondi nuovo corso' : 'Nuovo corso'"></span>
+            </button>
+        @endif
     </div>
 
     @if ($errors->any())
@@ -22,6 +33,7 @@
         </div>
     @endif
 
+    @if($allowCourseCreation)
     <div
         class="border border-teal-200/60 rounded-2xl bg-teal-50/60 p-6 shadow-inner"
         x-data="{
@@ -46,12 +58,19 @@
                 </div>
                 <div class="space-y-1.5">
                     <label class="text-xs uppercase font-semibold text-stone-500">Insegnante (opzionale)</label>
-                    <select name="teacher_id" class="input-field text-sm">
-                        <option value="" {{ old('teacher_id') ? '' : 'selected' }}>Non assegnato</option>
-                        @foreach ($teacherOptions as $teacherId => $teacherName)
-                            <option value="{{ $teacherId }}" @selected(old('teacher_id') == $teacherId)>{{ $teacherName }}</option>
-                        @endforeach
-                    </select>
+                    @if($allowTeacherSelection)
+                        <select name="teacher_id" class="input-field text-sm">
+                            <option value="" {{ old('teacher_id') ? '' : 'selected' }}>Non assegnato</option>
+                            @foreach ($teacherOptions as $teacherId => $teacherName)
+                                <option value="{{ $teacherId }}" @selected(old('teacher_id') == $teacherId)>{{ $teacherName }}</option>
+                            @endforeach
+                        </select>
+                    @else
+                        <input type="hidden" name="teacher_id" value="{{ $currentTeacherId }}">
+                        <div class="rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm text-stone-600">
+                            {{ auth()->user()->name ?? 'Docente' }}
+                        </div>
+                    @endif
                     @error('teacher_id')
                         <p class="text-xs text-rose-600">{{ $message }}</p>
                     @enderror
@@ -135,6 +154,8 @@
                 </div>
             </div>
         </form>
+    @endif
+
     </div>
 
     <div class="space-y-2">
@@ -200,12 +221,19 @@
                             </div>
                             <div class="space-y-1.5">
                                 <label class="text-xs uppercase font-semibold text-stone-500">Insegnante (opzionale)</label>
-                                <select name="teacher_id" class="input-field text-sm">
-                                    <option value="">Non assegnato</option>
-                                    @foreach ($teacherOptions as $teacherId => $teacherName)
-                                        <option value="{{ $teacherId }}" @selected($course['teacher_id'] === $teacherId)>{{ $teacherName }}</option>
-                                    @endforeach
-                                </select>
+                                @if($allowTeacherSelection)
+                                    <select name="teacher_id" class="input-field text-sm">
+                                        <option value="">Non assegnato</option>
+                                        @foreach ($teacherOptions as $teacherId => $teacherName)
+                                            <option value="{{ $teacherId }}" @selected($course['teacher_id'] === $teacherId)>{{ $teacherName }}</option>
+                                        @endforeach
+                                    </select>
+                                @else
+                                    <input type="hidden" name="teacher_id" value="{{ $currentTeacherId }}">
+                                    <div class="rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm text-stone-600">
+                                        {{ auth()->user()->name ?? 'Docente' }}
+                                    </div>
+                                @endif
                             </div>
                             <div class="space-y-1.5">
                                 <label class="text-xs uppercase font-semibold text-stone-500">Prezzi abbonamenti (€)</label>
@@ -327,9 +355,11 @@
                                     <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold {{ $student['status_badge'] }}">
                                         {{ $student['status'] }}
                                     </span>
-                                    <a href="{{ route('admin.clients.index', ['client_id' => $student['client_id']]) }}#client-{{ $student['client_id'] }}" class="inline-flex items-center gap-1 rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-semibold text-stone-600 hover:bg-stone-100">
-                                        Gestisci
-                                    </a>
+                                    @if($allowStudentManage)
+                                        <a href="{{ route('admin.clients.index', ['client_id' => $student['client_id']]) }}#client-{{ $student['client_id'] }}" class="inline-flex items-center gap-1 rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-semibold text-stone-600 hover:bg-stone-100">
+                                            Gestisci
+                                        </a>
+                                    @endif
                                 </div>
                             </div>
                         @endforeach

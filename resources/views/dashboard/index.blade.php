@@ -3,10 +3,8 @@
 @section('content')
  
 
-    @if (auth()->user()->role === 'Admin')
+    @if (in_array(auth()->user()->role, ['Admin', 'Teacher']))
         @include('dashboard.partials.admin')
-    @elseif (auth()->user()->role === 'Teacher')
-        @include('dashboard.partials.teacher')
     @else
         @include('dashboard.partials.client')
     @endif

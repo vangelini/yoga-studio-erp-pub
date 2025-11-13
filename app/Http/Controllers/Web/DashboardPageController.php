@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 class DashboardPageController extends Controller
 {
@@ -104,6 +105,9 @@ class DashboardPageController extends Controller
                     'profile_picture_url' => $teacher->profile_picture_url,
                     'bio' => $teacher->bio,
                     'specializations' => $teacher->specializations ?? [],
+                    'can_manage_courses' => (bool) $teacher->can_manage_courses,
+                    'can_manage_payments' => (bool) $teacher->can_manage_payments,
+                    'can_manage_students' => (bool) $teacher->can_manage_students,
                     'availability' => $teacher->availability->map(function ($slot) {
                         return [
                             'id' => $slot->id,
@@ -117,6 +121,23 @@ class DashboardPageController extends Controller
                 ];
             })
             ->values();
+
+        $payments = $user->payments()->latest()->take(20)->get();
+
+        $dashboardViewConfig = [
+            'mode' => 'admin',
+            'show_membership_panel' => true,
+            'show_course_unpaid' => true,
+            'show_client_admin' => true,
+            'show_teacher_admin' => true,
+            'show_course_admin' => true,
+            'allow_course_creation' => true,
+            'allow_teacher_selection' => true,
+            'allow_student_manage' => true,
+            'show_settings' => true,
+            'show_private_lessons' => $privateLessonsEnabled,
+        ];
+        $dashboardStats = null;
 
         $payments = $user->payments()->latest()->take(20)->get();
 
@@ -135,7 +156,52 @@ class DashboardPageController extends Controller
             $extra['courseUnpaidShowFuture'] = $showFuture;
             $extra['membershipSummary'] = $this->buildMembershipSummary($extra['clients'], $request);
         } elseif ($user->role === 'Teacher') {
-            $extra = array_merge($extra, $this->loadTeacherData($user->id));
+            $teacherData = $this->loadTeacherData($user->id);
+            $courses = collect($teacherData['teacher_courses'] ?? []);
+            $teacherProfile = $teacherData['teacher_profile'] ?? [];
+            $canManageCourses = (bool) ($teacherProfile['can_manage_courses'] ?? false);
+            $canManagePayments = (bool) ($teacherProfile['can_manage_payments'] ?? false);
+
+            $extra['clients'] = collect();
+            $extra['teacherAdminList'] = collect([$user->teacherProfile])->filter();
+            $extra['courseUnpaidSummary'] = $canManagePayments
+                ? $this->buildTeacherCourseUnpaidSummary(
+                    collect($teacherData['teacher_courses'] ?? []),
+                    collect($teacherData['teacher_course_payments'] ?? [])
+                )
+                : null;
+            $extra['courseUnpaidShowFuture'] = false;
+            $extra['membershipSummary'] = $canManagePayments
+                ? $this->buildTeacherMembershipSummary(collect($teacherData['teacher_membership_payments'] ?? []))
+                : null;
+
+            $dashboardViewConfig = array_merge($dashboardViewConfig, [
+                'mode' => 'teacher',
+                'show_membership_panel' => $canManagePayments,
+                'show_course_unpaid' => $canManagePayments,
+                'show_client_admin' => false,
+                'show_teacher_admin' => false,
+                'show_course_admin' => $canManageCourses,
+                'allow_course_creation' => false,
+                'allow_teacher_selection' => false,
+                'allow_student_manage' => (bool) ($teacherProfile['can_manage_students'] ?? false),
+                'show_settings' => false,
+                'course_card_title' => 'I miei corsi',
+                'course_card_subtitle' => 'Puoi modificare e aggiornare solo i corsi assegnati.',
+                'current_teacher_id' => $user->id,
+                'show_private_lessons' => ($teacherProfile['can_host_private'] ?? false) && $privateLessonsEnabled,
+            ]);
+
+            $dashboardStats = [
+                'clients' => collect($teacherData['teacher_students'] ?? [])->count(),
+                'courses' => $courses->count(),
+                'teachers' => 1,
+            ];
+
+            $extra['bookings'] = $teacherData['bookings'] ?? [];
+            $extra['clients'] = $extra['clients'];
+            $extra['receipts'] = $teacherData['receipts'] ?? [];
+            $courses = $courses;
         } elseif ($user->role === 'Client') {
             $extra = array_merge($extra, $this->loadClientData($user->id));
         }
@@ -149,6 +215,8 @@ class DashboardPageController extends Controller
                 'candidateCourseIds' => $extraDayCandidates,
             ],
             'private_lessons_enabled' => $privateLessonsEnabled,
+            'dashboardViewConfig' => $dashboardViewConfig,
+            'dashboardStats' => $dashboardStats,
             ...$extra,
         ]);
     }
@@ -488,8 +556,191 @@ class DashboardPageController extends Controller
         ];
     }
 
+    private function buildTeacherCourseUnpaidSummary(\Illuminate\Support\Collection $courses, \Illuminate\Support\Collection $payments): array
+    {
+        $now = now();
+        $endOfMonth = $now->copy()->endOfMonth();
+
+        $courseSummaries = $courses->mapWithKeys(function ($course) {
+            $courseId = $course['id'] ?? null;
+            if (!$courseId) {
+                return [];
+            }
+
+            $plans = $course['availablePlans'] ?? $course['available_plans'] ?? [];
+            $referencePrice = $course['monthly_price'] ?? $course['price'] ?? 0;
+
+            return [
+                $courseId => [
+                    'course_id' => $courseId,
+                    'title' => $course['title'] ?? __('Corso'),
+                    'price' => $referencePrice,
+                    'plans' => $plans,
+                    'unpaid' => [],
+                    'future_count' => 0,
+                ],
+            ];
+        })->all();
+
+        $pendingPayments = $payments->filter(function ($payment) {
+            return ($payment['status'] ?? null) === 'pending';
+        });
+
+        foreach ($pendingPayments as $payment) {
+            $courseId = $payment['course_id'] ?? null;
+            if (!$courseId) {
+                continue;
+            }
+
+            if (!isset($courseSummaries[$courseId])) {
+                $courseSummaries[$courseId] = [
+                    'course_id' => $courseId,
+                    'title' => $payment['course_title'] ?? __('Corso'),
+                    'price' => $payment['amount'] ?? 0,
+                    'plans' => [],
+                    'unpaid' => [],
+                    'future_count' => 0,
+                ];
+            }
+
+            $dueDate = !empty($payment['due_date']) ? Carbon::parse($payment['due_date']) : null;
+            $isFuture = $dueDate ? $dueDate->greaterThan($endOfMonth) : false;
+
+            if ($isFuture) {
+                $courseSummaries[$courseId]['future_count']++;
+            }
+
+            $courseSummaries[$courseId]['unpaid'][] = [
+                'payment_id' => $payment['id'] ?? null,
+                'client_id' => $payment['user_id'] ?? null,
+                'client_name' => $payment['user_name'] ?? null,
+                'client_email' => $payment['user_email'] ?? null,
+                'client_telephone' => $payment['user_telephone'] ?? null,
+                'amount' => $payment['amount'] ?? 0,
+                'due_date' => $payment['due_date'] ?? null,
+                'period_label' => $dueDate ? $dueDate->translatedFormat('F Y') : null,
+                'plan_label' => $payment['plan_label'] ?? null,
+                'plan_type' => $payment['plan_type'] ?? null,
+                'plan_amount' => $payment['plan_amount'] ?? $payment['amount'] ?? 0,
+                'is_future' => $isFuture,
+            ];
+        }
+
+        if (empty($courseSummaries)) {
+            return [
+                'month_label' => $now->translatedFormat('F Y'),
+                'total_unpaid' => 0,
+                'future_total' => 0,
+                'showing_future' => false,
+                'courses' => [],
+            ];
+        }
+
+        $courseSummary = collect($courseSummaries)
+            ->map(function (array $course) {
+                usort($course['unpaid'], function ($a, $b) {
+                    $dateA = !empty($a['due_date']) ? Carbon::parse($a['due_date']) : null;
+                    $dateB = !empty($b['due_date']) ? Carbon::parse($b['due_date']) : null;
+
+                    if ($dateA && $dateB) {
+                        return $dateA->timestamp <=> $dateB->timestamp;
+                    }
+
+                    if ($dateA) {
+                        return -1;
+                    }
+
+                    if ($dateB) {
+                        return 1;
+                    }
+
+                    return 0;
+                });
+
+                $course['count'] = count($course['unpaid']);
+
+                return $course;
+            })
+            ->sortBy('title', SORT_NATURAL | SORT_FLAG_CASE)
+            ->values()
+            ->all();
+
+        $totalUnpaid = array_sum(array_column($courseSummary, 'count'));
+        $futureTotal = array_sum(array_map(fn ($course) => $course['future_count'] ?? 0, $courseSummary));
+
+        return [
+            'month_label' => $now->translatedFormat('F Y'),
+            'total_unpaid' => $totalUnpaid,
+            'future_total' => $futureTotal,
+            'showing_future' => false,
+            'courses' => $courseSummary,
+        ];
+    }
+
+    private function buildTeacherMembershipSummary(\Illuminate\Support\Collection $payments): array
+    {
+        $pending = $payments->filter(fn ($payment) => ($payment['status'] ?? null) === 'pending');
+
+        $entries = $pending->map(function (array $payment) {
+            $seasonLabel = $payment['season_label'] ?? null;
+            if (!$seasonLabel && !empty($payment['due_date'])) {
+                $seasonLabel = Carbon::parse($payment['due_date'])->format('Y');
+            }
+
+            return [
+                'client_id' => $payment['user_id'] ?? null,
+                'name' => $payment['user_name'] ?? __('Allieva/o'),
+                'email' => $payment['user_email'] ?? null,
+                'telephone' => $payment['user_telephone'] ?? null,
+                'amount' => $payment['amount'] ?? 0,
+                'season_label' => $seasonLabel,
+                'payment_id' => $payment['id'] ?? null,
+            ];
+        })->values();
+
+        $total = $entries->count();
+        $perPage = max(1, $total ?: 1);
+
+        return [
+            'total' => $total,
+            'per_page' => $perPage,
+            'current_page' => 1,
+            'last_page' => 1,
+            'entries' => $entries->all(),
+        ];
+    }
+
     private function loadTeacherData(int $teacherId): array
     {
+        $teacher = Teacher::with([
+            'user',
+            'courses.schedule',
+            'courses.subscriptions.client.documents',
+            'courses.subscriptions.payments' => function ($query) {
+                $query->where('type', 'course_subscription');
+            },
+        ])->where('user_id', $teacherId)->first();
+
+        $courseCollection = collect($teacher?->courses ?? []);
+
+        $courseData = $courseCollection->map(function (Course $course) {
+            return $this->formatTeacherCourse($course);
+        });
+
+        $studentIds = $courseCollection
+            ->flatMap(function (Course $course) {
+                return $course->subscriptions->pluck('client_id');
+            })
+            ->filter()
+            ->unique()
+            ->values();
+
+        $courseIds = $courseCollection->pluck('id')->filter()->unique()->values();
+
+        $coursePayments = $this->loadTeacherCoursePayments($courseIds);
+        $membershipPayments = $this->loadTeacherMembershipPayments($studentIds);
+        $students = $this->formatTeacherStudents($teacher, $membershipPayments);
+
         $bookings = Booking::with(['availability', 'client'])
             ->where('teacher_id', $teacherId)
             ->orderByDesc('id')
@@ -542,10 +793,210 @@ class DashboardPageController extends Controller
             ->values();
 
         return [
+            'teacher_profile' => [
+                'can_manage_courses' => (bool) optional($teacher)->can_manage_courses,
+                'can_manage_payments' => (bool) optional($teacher)->can_manage_payments,
+                'can_manage_students' => (bool) optional($teacher)->can_manage_students,
+            ],
+            'teacher_courses' => $courseData->values()->all(),
+            'teacher_students' => $students,
+            'teacher_course_payments' => $coursePayments,
+            'teacher_membership_payments' => $membershipPayments,
             'bookings' => $bookings,
             'clients' => $clients,
             'receipts' => $receiptPayments,
         ];
+    }
+
+    private function formatTeacherCourse(Course $course): array
+    {
+        $plans = $course->availablePlans();
+
+        return [
+            'id' => $course->id,
+            'title' => $course->title,
+            'description' => $course->description,
+            'teacher_id' => $course->teacher_id,
+            'price' => $course->price,
+            'monthly_price' => $course->monthly_price,
+            'quarterly_price' => $course->quarterly_price,
+            'annual_price' => $course->annual_price,
+            'monthlyPrice' => $course->monthly_price,
+            'quarterlyPrice' => $course->quarterly_price,
+            'annualPrice' => $course->annual_price,
+            'allows_extra_day' => (bool) $course->allows_extra_day,
+            'extra_day_discount_percent' => $course->extra_day_discount_percent ?? 0,
+            'start_date' => optional($course->start_date)?->format('Y-m-d'),
+            'end_date' => optional($course->end_date)?->format('Y-m-d'),
+            'startDateHuman' => optional($course->start_date)?->translatedFormat('d/m/Y'),
+            'endDateHuman' => optional($course->end_date)?->translatedFormat('d/m/Y'),
+            'speciality_description' => $course->speciality_description,
+            'availablePlans' => $plans,
+            'schedule' => $course->schedule->map(function ($slot) {
+                return [
+                    'day' => $slot->day_of_week,
+                    'time' => $slot->time ? TimeHelper::format($slot->time) : null,
+                ];
+            })->values(),
+            'students' => $this->mapCourseStudents($course),
+        ];
+    }
+
+    private function loadTeacherCoursePayments(Collection $courseIds): array
+    {
+        if ($courseIds->isEmpty()) {
+            return [];
+        }
+
+        return Payment::with('user:id,name,email,telephone')
+            ->where('type', 'course_subscription')
+            ->whereIn('course_id', $courseIds)
+            ->orderByDesc('due_date')
+            ->limit(50)
+            ->get()
+            ->map(function (Payment $payment) {
+                $meta = $payment->meta ?? [];
+
+                return [
+                    'id' => $payment->id,
+                    'user_id' => $payment->user_id,
+                    'user_name' => optional($payment->user)->name,
+                    'user_email' => optional($payment->user)->email,
+                    'user_telephone' => optional($payment->user)->telephone,
+                    'course_id' => $payment->course_id,
+                    'course_title' => $meta['course_title'] ?? null,
+                    'amount' => $payment->amount,
+                    'amount_formatted' => number_format((float) $payment->amount, 2, ',', '.'),
+                    'status' => $payment->status,
+                    'status_badge' => $this->paymentStatusBadge($payment->status),
+                    'due_date' => optional($payment->due_date)->format('Y-m-d'),
+                    'due_date_display' => optional($payment->due_date)->translatedFormat('d/m/Y'),
+                    'plan_label' => $meta['plan_label'] ?? null,
+                    'plan_type' => $meta['plan_type'] ?? null,
+                    'plan_amount' => $meta['plan_amount'] ?? $payment->amount,
+                    'receipt_url' => $payment->receipt_url ? route('payments.receipt', $payment->id) : null,
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    private function loadTeacherMembershipPayments(Collection $studentIds): array
+    {
+        if ($studentIds->isEmpty()) {
+            return [];
+        }
+
+        return Payment::with('user:id,name,email,telephone')
+            ->where('type', 'membership')
+            ->whereIn('user_id', $studentIds)
+            ->orderByDesc('due_date')
+            ->limit(50)
+            ->get()
+            ->map(function (Payment $payment) {
+                $meta = $payment->meta ?? [];
+                $seasonLabel = $meta['season_label']
+                    ?? ($meta['season_start_year'] ?? null)
+                    ?? $payment->receipt_year;
+
+                return [
+                    'id' => $payment->id,
+                    'user_id' => $payment->user_id,
+                    'user_name' => optional($payment->user)->name,
+                    'user_email' => optional($payment->user)->email,
+                    'user_telephone' => optional($payment->user)->telephone,
+                    'amount' => $payment->amount,
+                    'amount_formatted' => number_format((float) $payment->amount, 2, ',', '.'),
+                    'status' => $payment->status,
+                    'status_badge' => $this->paymentStatusBadge($payment->status),
+                    'due_date' => optional($payment->due_date)->format('Y-m-d'),
+                    'due_date_display' => optional($payment->due_date)->translatedFormat('d/m/Y'),
+                    'season_label' => $seasonLabel,
+                    'receipt_url' => $payment->receipt_url ? route('payments.receipt', $payment->id) : null,
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    private function formatTeacherStudents(?Teacher $teacher, array $membershipPayments): array
+    {
+        if (!$teacher) {
+            return [];
+        }
+
+        $students = [];
+        $membershipPendingMap = collect($membershipPayments)
+            ->where('status', 'pending')
+            ->mapWithKeys(function ($entry) {
+                return [$entry['user_id'] => $entry['due_date_display'] ?? null];
+            });
+
+        $requiredDocs = ['id_front', 'id_back', 'health_card', 'medical_certificate'];
+        $now = now();
+        $currentStart = $now->copy()->startOfMonth();
+        $currentEnd = $now->copy()->endOfMonth();
+        $nextStart = $currentStart->copy()->addMonth();
+        $nextEnd = $nextStart->copy()->endOfMonth();
+
+        foreach ($teacher->courses as $course) {
+            foreach ($course->subscriptions as $subscription) {
+                $client = $subscription->client;
+                if (!$client) {
+                    continue;
+                }
+
+                if (!isset($students[$client->id])) {
+                    $documents = $client->documents ?? collect();
+                    $docTypes = $documents->pluck('type')->all();
+                    $missing = collect($requiredDocs)
+                        ->reject(fn ($type) => in_array($type, $docTypes, true))
+                        ->values();
+
+                    $students[$client->id] = [
+                        'id' => $client->id,
+                        'name' => $client->name,
+                        'email' => $client->email,
+                        'telephone' => $client->telephone,
+                        'whatsapp' => $this->formatWhatsappLink($client->telephone),
+                        'status' => ucfirst($client->status),
+                        'membership_pending' => $membershipPendingMap->has($client->id),
+                        'missing_documents' => $missing->count(),
+                        'courses' => [],
+                    ];
+                }
+
+                $status = $this->determineCourseStudentStatus(
+                    $subscription,
+                    $currentStart,
+                    $currentEnd,
+                    $nextStart,
+                    $nextEnd
+                );
+
+                $students[$client->id]['courses'][] = [
+                    'course_id' => $course->id,
+                    'course_title' => $course->title,
+                    'plan' => $subscription->plan_label,
+                    'status' => $status['label'],
+                    'badge' => $status['badge'],
+                ];
+            }
+        }
+
+        return collect($students)
+            ->sortBy('name')
+            ->values()
+            ->all();
+    }
+
+    private function paymentStatusBadge(string $status): string
+    {
+        return match ($status) {
+            'paid' => 'bg-emerald-100 text-emerald-700',
+            'waived' => 'bg-stone-200 text-stone-600',
+            default => 'bg-amber-100 text-amber-700',
+        };
     }
 
     private function loadClientData(int $clientId): array

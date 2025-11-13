@@ -8,6 +8,18 @@
         ['code' => '+1', 'name' => 'Stati Uniti'],
     ];
 
+    $viewConfig = $dashboardViewConfig ?? [];
+    $showClientAdmin = $viewConfig['show_client_admin'] ?? true;
+    $showTeacherAdmin = $viewConfig['show_teacher_admin'] ?? true;
+    $showCourseAdmin = $viewConfig['show_course_admin'] ?? true;
+    $allowCourseCreation = $viewConfig['allow_course_creation'] ?? true;
+    $allowTeacherSelection = $viewConfig['allow_teacher_selection'] ?? true;
+    $allowStudentManage = $viewConfig['allow_student_manage'] ?? true;
+    $showSettings = $viewConfig['show_settings'] ?? true;
+    $courseCardTitle = $viewConfig['course_card_title'] ?? null;
+    $courseCardSubtitle = $viewConfig['course_card_subtitle'] ?? null;
+    $courseCardTeacherId = $viewConfig['current_teacher_id'] ?? null;
+
     $clientCount = $clients->count();
     $teacherCount = $teacherAdminList->count();
     $courseCount = $courses->count();
@@ -41,24 +53,30 @@
                     Verifica i dati degli iscritti, assegna corsi ai insegnanti e monitora pagamenti e quote associative in un unico posto.
                 </p>
                 <div class="flex flex-wrap items-center gap-3">
+                    @if($showSettings)
                     <a href="{{ route('admin.settings.edit') }}" class="inline-flex items-center gap-2 rounded-lg bg-white/20 px-4 py-2 text-xs font-semibold text-white border border-white/40 backdrop-blur-sm hover:bg-white/30 transition">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.5 3.75a1.5 1.5 0 013 0V5a1.5 1.5 0 01-3 0V3.75zM5.636 5.636a1.5 1.5 0 010 2.121l-.884.884a1.5 1.5 0 01-2.122-2.121l.884-.884a1.5 1.5 0 012.122 0zM3.75 10.5H5a1.5 1.5 0 010 3H3.75a1.5 1.5 0 010-3zM5.636 18.364a1.5 1.5 0 01-2.122 0l-.884-.884a1.5 1.5 0 112.122-2.121l.884.884a1.5 1.5 0 000 2.121zM10.5 18.75V20a1.5 1.5 0 003 0v-1.25a1.5 1.5 0 00-3 0zM18.364 18.364a1.5 1.5 0 002.122 0l.884-.884a1.5 1.5 0 10-2.122-2.121l-.884.884a1.5 1.5 0 000 2.121zM20.25 13.5H19a1.5 1.5 0 110-3h1.25a1.5 1.5 0 110 3zM18.364 5.636l.884-.884a1.5 1.5 0 10-2.122-2.121l-.884.884a1.5 1.5 0 002.122 2.121z"/>
                         </svg>
                         Impostazioni
                     </a>
+                    @endif
+                    @if($showClientAdmin)
                     <a href="{{ route('admin.clients.index') }}" class="inline-flex items-center gap-2 rounded-lg bg-white/20 px-4 py-2 text-xs font-semibold text-white border border-white/40 backdrop-blur-sm hover:bg-white/30 transition">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.5 9.75h15m-13.5 3H12m-7.5 3H12m6.75-6v6.75a2.25 2.25 0 01-2.25 2.25h-9a2.25 2.25 0 01-2.25-2.25V6.75A2.25 2.25 0 016.75 4.5h9a2.25 2.25 0 012.25 2.25V9.75z" />
                         </svg>
                         Amministrazione allieve/i
                     </a>
+                    @endif
+                    @if($showTeacherAdmin)
                     <a href="{{ route('admin.teachers.index') }}" class="inline-flex items-center gap-2 rounded-lg bg-white/20 px-4 py-2 text-xs font-semibold text-white border border-white/40 backdrop-blur-sm hover:bg-white/30 transition">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 14l-3 3m3-3l3 3m-3-3V4m9 5v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9" />
                         </svg>
                         Amministrazione insegnanti
                     </a>
+                    @endif
                 </div>
             </div>
             <div class="grid grid-cols-3 gap-4 bg-white/20 backdrop-blur-sm rounded-2xl px-6 py-4 border border-white/30 shadow-inner text-center text-xs uppercase tracking-widest">
@@ -436,5 +454,14 @@
         </div>
     @endif
 
-    @include('dashboard.partials.admin-courses', ['teacherOptions' => $teacherSelectOptions, 'dayOptions' => $dayOptions])
+    @include('dashboard.partials.admin-courses', [
+        'teacherOptions' => $teacherSelectOptions,
+        'dayOptions' => $dayOptions,
+        'allowCourseCreation' => $allowCourseCreation,
+        'allowTeacherSelection' => $allowTeacherSelection,
+        'courseCardTitle' => $courseCardTitle,
+        'courseCardSubtitle' => $courseCardSubtitle,
+        'currentTeacherId' => $courseCardTeacherId,
+        'allowStudentManage' => $allowStudentManage,
+    ])
 </section>

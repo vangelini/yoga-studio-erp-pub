@@ -6,6 +6,19 @@
         toggleClient(id) {
             this.expandedClient = this.expandedClient === id ? null : id;
         },
+        setInitialClient() {
+            const url = new URL(window.location.href);
+            const queryClient = Number(url.searchParams.get('client_id'));
+            if (queryClient) {
+                this.expandedClient = queryClient;
+            } else if (!this.expandedClient && url.hash.startsWith('#client-')) {
+                const fromHash = Number(url.hash.replace('#client-', ''));
+                if (fromHash) {
+                    this.expandedClient = fromHash;
+                }
+            }
+            this.scrollToSelected();
+        },
         scrollToSelected() {
             if (!this.expandedClient) {
                 return;
@@ -18,7 +31,7 @@
             });
         },
     }"
-    x-init="scrollToSelected()"
+    x-init="setInitialClient()"
     class="space-y-10"
 >
    

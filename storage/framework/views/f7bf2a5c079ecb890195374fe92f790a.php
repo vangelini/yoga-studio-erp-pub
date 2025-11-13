@@ -1,10 +1,8 @@
 <?php $__env->startSection('content'); ?>
  
 
-    <?php if(auth()->user()->role === 'Admin'): ?>
+    <?php if(in_array(auth()->user()->role, ['Admin', 'Teacher'])): ?>
         <?php echo $__env->make('dashboard.partials.admin', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
-    <?php elseif(auth()->user()->role === 'Teacher'): ?>
-        <?php echo $__env->make('dashboard.partials.teacher', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
     <?php else: ?>
         <?php echo $__env->make('dashboard.partials.client', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
     <?php endif; ?>
