@@ -38,10 +38,13 @@ class CoursePaymentGenerator
 
         $created = 0;
         $skipped = 0;
+        $createdIds = [];
 
         foreach ($subscriptions as $subscription) {
-            if ($this->ensureUpcomingPayment($subscription, $leadDays, $now)) {
+            $payment = $this->ensureUpcomingPayment($subscription, $leadDays, $now);
+            if ($payment) {
                 $created++;
+                $createdIds[] = $payment->id;
             } else {
                 $skipped++;
             }
@@ -50,19 +53,20 @@ class CoursePaymentGenerator
         return [
             'checked' => $subscriptions->count(),
             'created' => $created,
+            'created_ids' => $createdIds,
             'skipped' => $skipped,
             'run_at' => $now->toDateTimeString(),
         ];
     }
 
-    protected function ensureUpcomingPayment(Subscription $subscription, int $leadDays, Carbon $now): bool
+    protected function ensureUpcomingPayment(Subscription $subscription, int $leadDays, Carbon $now): ?Payment
     {
         if ($subscription->status !== 'active') {
-            return false;
+            return null;
         }
 
         if (!$subscription->course_id || !$subscription->course) {
-            return false;
+            return null;
         }
 
         $planMonths = max($subscription->planMonths(), 1);
@@ -76,7 +80,7 @@ class CoursePaymentGenerator
             ->first();
 
         if (!$lastPayment) {
-            return false;
+            return null;
         }
 
         $lastDue = $lastPayment->due_date
@@ -88,7 +92,7 @@ class CoursePaymentGenerator
         $leadDate = $nextDue->copy()->subDays($leadDays);
 
         if ($now->lt($leadDate)) {
-            return false;
+            return null;
         }
 
         $existing = Payment::query()
@@ -100,7 +104,7 @@ class CoursePaymentGenerator
             ->exists();
 
         if ($existing) {
-            return false;
+            return null;
         }
 
         $amount = $subscription->plan_amount
@@ -109,7 +113,7 @@ class CoursePaymentGenerator
             ?? 0;
 
         if ($amount <= 0) {
-            return false;
+            return null;
         }
 
         $cycleStart = $nextDue->copy();
@@ -140,8 +144,10 @@ class CoursePaymentGenerator
             $meta['extra_day'] = $extraMeta;
         }
 
-        DB::transaction(function () use ($subscription, $amount, $nextDue, $meta) {
-            Payment::create([
+        $payment = null;
+
+        DB::transaction(function () use ($subscription, $amount, $nextDue, $meta, &$payment) {
+            $payment = Payment::create([
                 'user_id' => $subscription->client_id,
                 'payable_type' => Subscription::class,
                 'payable_id' => $subscription->id,
@@ -155,6 +161,6 @@ class CoursePaymentGenerator
             ]);
         });
 
-        return true;
+        return $payment;
     }
 }

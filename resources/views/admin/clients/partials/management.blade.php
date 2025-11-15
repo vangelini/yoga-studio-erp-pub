@@ -43,12 +43,14 @@
                 <div class="flex flex-wrap items-center gap-2">
                     <form method="POST" action="{{ route('admin.memberships.generate') }}" onsubmit="return confirm('Generare subito le pendenze delle quote associative?');">
                         @csrf
+                        <input type="hidden" name="send_notifications" value="1">
                         <button type="submit" class="inline-flex items-center gap-1 rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-xs font-semibold text-stone-600 hover:bg-stone-100">
                             Genera quote associative
                         </button>
                     </form>
                     <form method="POST" action="{{ route('admin.courses.payments.generate') }}" onsubmit="return confirm('Generare subito le pendenze per i corsi?');">
                         @csrf
+                        <input type="hidden" name="send_notifications" value="1">
                         <button type="submit" class="inline-flex items-center gap-1 rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-xs font-semibold text-stone-600 hover:bg-stone-100">
                             Genera pendenze corsi
                         </button>

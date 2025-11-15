@@ -100,6 +100,12 @@ class ClientSubscriptionController extends Controller
         /** @var Payment|null $paymentRecord */
         $paymentRecord = $result['payment'] ?? null;
 
+        app(\App\Services\NotificationService::class)->handleEvent('new_subscription', [
+            'subscription' => $subscription->toArray(),
+            'course' => $course->toArray(),
+            'client' => $client->toArray(),
+        ]);
+
         if ($request->expectsJson()) {
             return response()->json([
                 'message' => 'Subscription activated.',
@@ -181,6 +187,12 @@ class ClientSubscriptionController extends Controller
         $subscription->refresh()->load([
             'course:id,title,price,monthly_price,quarterly_price,annual_price',
             'extraCourse:id,title,monthly_price,teacher_id',
+        ]);
+
+        app(\App\Services\NotificationService::class)->handleEvent('subscription_cancelled', [
+            'subscription' => $subscription->toArray(),
+            'course' => optional($subscription->course)->toArray(),
+            'client' => $client->toArray(),
         ]);
 
         $message = __('Iscrizione al corso annullata con successo.');

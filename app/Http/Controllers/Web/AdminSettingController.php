@@ -29,6 +29,9 @@ class AdminSettingController extends Controller
                 'membership_last_run',
                 'extra_day_enabled',
                 'private_lessons_enabled',
+                'notification_overdue_days',
+                'notification_overdue_message',
+                'notification_pending_message',
             ])
             ->pluck('value', 'key');
 
@@ -52,6 +55,9 @@ class AdminSettingController extends Controller
             'course_payment_last_run' => $coursePaymentLastRun,
             'extra_day_enabled' => isset($settings['extra_day_enabled']) ? (bool) $settings['extra_day_enabled'] : false,
             'private_lessons_enabled' => isset($settings['private_lessons_enabled']) ? (bool) $settings['private_lessons_enabled'] : false,
+            'notification_overdue_days' => isset($settings['notification_overdue_days']) ? (int) $settings['notification_overdue_days'] : 7,
+            'notification_overdue_message' => $settings['notification_overdue_message'] ?? 'Hai un pagamento in sospeso. Ti preghiamo di regolarizzarlo.',
+            'notification_pending_message' => $settings['notification_pending_message'] ?? 'Sono state generate nuove pendenze per il tuo corso.',
         ]);
     }
 
@@ -70,6 +76,9 @@ class AdminSettingController extends Controller
             'course_payment_lead_days' => ['required', 'integer', 'min:1', 'max:120'],
             'extra_day_enabled' => ['nullable', 'boolean'],
             'private_lessons_enabled' => ['nullable', 'boolean'],
+            'notification_overdue_days' => ['required', 'integer', 'min:1', 'max:60'],
+            'notification_overdue_message' => ['required', 'string', 'max:2000'],
+            'notification_pending_message' => ['required', 'string', 'max:2000'],
         ], [
             'receipt_user_password_custom.required_if' => 'Inserisci la password personalizzata quando scegli la modalità "Password personalizzata".',
         ]);
@@ -87,6 +96,9 @@ class AdminSettingController extends Controller
             'course_payment_lead_days' => (string) $data['course_payment_lead_days'],
             'extra_day_enabled' => $request->boolean('extra_day_enabled') ? '1' : '0',
             'private_lessons_enabled' => $request->boolean('private_lessons_enabled') ? '1' : '0',
+            'notification_overdue_days' => (string) $data['notification_overdue_days'],
+            'notification_overdue_message' => $data['notification_overdue_message'],
+            'notification_pending_message' => $data['notification_pending_message'],
         ];
 
         foreach ($settingsToPersist as $key => $value) {

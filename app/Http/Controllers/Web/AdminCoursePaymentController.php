@@ -4,13 +4,14 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Services\CoursePaymentGenerator;
+use App\Services\NotificationService;
 use App\Models\Setting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class AdminCoursePaymentController extends Controller
 {
-    public function generate(Request $request, CoursePaymentGenerator $generator): RedirectResponse
+    public function generate(Request $request, CoursePaymentGenerator $generator, NotificationService $notifications): RedirectResponse
     {
         $user = $request->user();
         $isAdmin = $user?->role === 'Admin';
@@ -31,6 +32,10 @@ class AdminCoursePaymentController extends Controller
 
         if ($isAdmin) {
             $this->storeRunLog($result, true);
+        }
+
+        if ($request->boolean('send_notifications') && !empty($result['created_ids'])) {
+            $notifications->sendPendingPaymentNotification($result['created_ids']);
         }
 
         $message = sprintf(

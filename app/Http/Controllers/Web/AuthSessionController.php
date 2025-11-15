@@ -129,6 +129,11 @@ class AuthSessionController extends Controller
 
         $this->syncMembershipFor($user);
 
+        app(\App\Services\NotificationService::class)->handleEvent('new_client', [
+            'user' => $user->toArray(),
+            'client' => $user->toArray(),
+        ]);
+
         $user->sendEmailVerificationNotification();
 
         Auth::login($user);

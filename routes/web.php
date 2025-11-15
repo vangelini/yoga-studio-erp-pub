@@ -12,6 +12,8 @@ use App\Http\Controllers\Web\PasswordResetLinkController;
 use App\Http\Controllers\Web\ClientBookingController;
 use App\Http\Controllers\Web\ClientSubscriptionController;
 use App\Http\Controllers\Web\ClientDocumentController;
+use App\Http\Controllers\Web\NotificationController;
+use App\Http\Controllers\Web\NotificationFeedController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -106,6 +108,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     Route::get('/payments/{payment}/receipt', [\App\Http\Controllers\Web\PaymentAdminController::class, 'showReceipt'])->name('payments.receipt');
+
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications', [NotificationController::class, 'store'])->name('notifications.store');
+    Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+    Route::post('/notifications/{notification}/send', [NotificationController::class, 'send'])->name('notifications.send');
+    Route::post('/notifications/pending/resend', [NotificationController::class, 'resendPending'])->name('notifications.pending.resend');
+    Route::post('/notifications/jobs/purge', [NotificationController::class, 'purgeLogs'])->name('notifications.jobs.purge');
+
+    Route::get('/notifications/feed', [NotificationFeedController::class, 'index'])->name('notifications.feed');
+    Route::post('/notifications/dispatches/{dispatch}/read', [NotificationFeedController::class, 'markAsRead'])->name('notifications.dispatch.read');
+    Route::delete('/notifications/dispatches/{dispatch}', [NotificationFeedController::class, 'destroy'])->name('notifications.dispatch.delete');
 
     Route::prefix('account')->group(function () {
         Route::get('/password', [\App\Http\Controllers\Web\PasswordUpdateController::class, 'edit'])->name('account.password.edit');
