@@ -21,7 +21,7 @@
                 </form>
             @endif
         </div>
-        <form method="POST" action="{{ route('notifications.store') }}" class="grid grid-cols-1 gap-4">
+        <form method="POST" action="{{ route('notifications.store') }}" class="grid grid-cols-1 gap-4" x-data="{ triggerType: '{{ old('trigger_type', 'manual') }}' }">
             @csrf
             <div class="grid md:grid-cols-2 gap-4">
                 <div>
@@ -31,8 +31,8 @@
                 </div>
                 <div>
                     <label class="text-xs uppercase font-semibold text-stone-500">Trigger</label>
-                    <select name="trigger_type" class="input-field mt-1">
-                        <option value="manual" @selected(old('trigger_type') === 'manual')>Invio manuale</option>
+                    <select name="trigger_type" class="input-field mt-1" x-model="triggerType">
+                        <option value="manual" @selected(old('trigger_type', 'manual') === 'manual')>Invio manuale</option>
                         <option value="event" @selected(old('trigger_type') === 'event')>Evento</option>
                         <option value="scheduled" @selected(old('trigger_type') === 'scheduled')>Programmata</option>
                     </select>
@@ -85,6 +85,31 @@
                 <textarea name="message_body" rows="4" class="input-field mt-1" placeholder="Testo della notifica">{{ old('message_body') }}</textarea>
                 <p class="text-xs text-stone-500 mt-1">Placeholder disponibili: <code>{{ '{' }}{{ 'user.name' }}{{ '}' }}</code>, <code>{{ '{' }}{{ 'course.title' }}{{ '}' }}</code>, <code>{{ '{' }}{{ 'payment.due_date' }}{{ '}' }}</code></p>
                 @error('message_body')<p class="text-xs text-rose-600 mt-1">{{ $message }}</p>@enderror
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4" x-show="triggerType === 'scheduled'" x-cloak>
+                <div>
+                    <label class="text-xs uppercase font-semibold text-stone-500">Frequenza programmata</label>
+                    <div class="flex flex-wrap items-center gap-2 mt-1">
+                        <input type="number" name="schedule_interval_value" min="1" max="365" value="{{ old('schedule_interval_value') }}" class="input-field w-24" placeholder="Es. 2">
+                        <select name="schedule_interval_unit" class="input-field">
+                            <option value="">—</option>
+                            <option value="hour" @selected(old('schedule_interval_unit') === 'hour')>Ore</option>
+                            <option value="day" @selected(old('schedule_interval_unit') === 'day')>Giorni</option>
+                            <option value="week" @selected(old('schedule_interval_unit') === 'week')>Settimane</option>
+                            <option value="month" @selected(old('schedule_interval_unit') === 'month')>Mesi</option>
+                        </select>
+                        <input type="time" name="schedule_time" value="{{ old('schedule_time', '09:00') }}" class="input-field w-36">
+                    </div>
+                    <p class="text-xs text-stone-500 mt-1">Es.: “2 settimane alle 09:00” invia la notifica ogni 14 giorni all’orario scelto.</p>
+                    @error('schedule_interval_value')<p class="text-xs text-rose-600 mt-1">{{ $message }}</p>@enderror
+                    @error('schedule_interval_unit')<p class="text-xs text-rose-600 mt-1">{{ $message }}</p>@enderror
+                    @error('schedule_time')<p class="text-xs text-rose-600 mt-1">{{ $message }}</p>@enderror
+                </div>
+                <div class="text-xs text-stone-500">
+                    <p class="font-semibold text-stone-600">Suggerimenti</p>
+                    <p>Le notifiche programmate partono dall’orario indicato e continuano finché la notifica resta attiva. WhatsApp non viene inviato per i job programmati.</p>
+                </div>
             </div>
 
             <div class="grid md:grid-cols-2 gap-4">
@@ -177,6 +202,14 @@
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="inline-flex items-center gap-1 rounded-lg border border-rose-200 px-3 py-1.5 text-[11px] font-semibold text-rose-600 hover:bg-rose-50">Elimina</button>
+                                    </form>
+                                @endif
+                                @if($notification->trigger_type === 'scheduled' && ($notification->created_by === $user->id || $user->role === 'Admin'))
+                                    <form method="POST" action="{{ route('notifications.toggle', $notification) }}" class="inline-flex ml-2">
+                                        @csrf
+                                        <button type="submit" class="inline-flex items-center gap-1 rounded-lg border border-stone-200 px-3 py-1.5 text-[11px] font-semibold {{ $notification->is_active ? 'text-stone-600 hover:bg-stone-100' : 'text-emerald-600 border-emerald-200 hover:bg-emerald-50' }}">
+                                            {{ $notification->is_active ? 'Disattiva' : 'Attiva' }}
+                                        </button>
                                     </form>
                                 @endif
                             </td>

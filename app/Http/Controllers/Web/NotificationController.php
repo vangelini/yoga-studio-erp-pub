@@ -12,6 +12,7 @@ use App\Models\Setting;
 use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -113,8 +114,9 @@ class NotificationController extends Controller
             'target_all_admins' => ['nullable', 'boolean'],
             'course_ids' => ['nullable', 'array'],
             'course_ids.*' => ['integer', 'exists:courses,id'],
-            'schedule_interval_value' => ['nullable', 'integer', 'min:1', 'max:365'],
-            'schedule_interval_unit' => ['nullable', Rule::in(['hour', 'day', 'week', 'month'])],
+            'schedule_interval_value' => ['nullable', 'integer', 'min:1', 'max:365', 'required_if:trigger_type,scheduled'],
+            'schedule_interval_unit' => ['nullable', Rule::in(['hour', 'day', 'week', 'month']), 'required_if:trigger_type,scheduled'],
+            'schedule_time' => ['nullable', 'date_format:H:i', 'required_if:trigger_type,scheduled'],
             'send_now' => ['nullable', 'boolean'],
         ]);
 
@@ -136,6 +138,15 @@ class NotificationController extends Controller
             return back()->withErrors(['course_ids' => 'Seleziona almeno un gruppo di destinatari.'])->withInput();
         }
 
+        $scheduleNextRunAt = null;
+        if ($data['trigger_type'] === 'scheduled') {
+            $scheduleNextRunAt = $this->calculateNextRunAt(
+                $data['schedule_time'],
+                (int) $data['schedule_interval_value'],
+                $data['schedule_interval_unit']
+            );
+        }
+
         $notification = Notification::create([
             'title' => $data['title'],
             'description' => $data['description'] ?? null,
@@ -150,7 +161,8 @@ class NotificationController extends Controller
             'is_active' => true,
             'schedule_interval_unit' => $data['schedule_interval_unit'] ?? null,
             'schedule_interval_value' => $data['schedule_interval_value'] ?? null,
-            'schedule_next_run_at' => ($data['schedule_interval_value'] ?? null) ? now() : null,
+            'schedule_time' => $data['schedule_time'] ?? null,
+            'schedule_next_run_at' => $scheduleNextRunAt,
             'created_by' => $user->id,
             'updated_by' => $user->id,
         ]);
@@ -244,6 +256,28 @@ class NotificationController extends Controller
         return back()->with('status', 'Log invii notifiche eliminato.');
     }
 
+    public function toggleScheduled(Request $request, Notification $notification): RedirectResponse
+    {
+        $user = $request->user();
+        $this->authorizeNotification($notification, $user);
+        abort_unless($notification->trigger_type === 'scheduled', 403);
+
+        $notification->is_active = !$notification->is_active;
+
+        if ($notification->is_active && $notification->schedule_interval_value && $notification->schedule_interval_unit) {
+            $time = $notification->schedule_time ?? now()->format('H:i');
+            $notification->schedule_next_run_at = $this->calculateNextRunAt(
+                $time,
+                (int) $notification->schedule_interval_value,
+                $notification->schedule_interval_unit
+            );
+        }
+
+        $notification->save();
+
+        return back()->with('status', $notification->is_active ? 'Notifica programmata attivata.' : 'Notifica programmata disattivata.');
+    }
+
     protected function authorizeNotification(Notification $notification, $user): void
     {
         $this->authorizeAccess($user);
@@ -253,5 +287,28 @@ class NotificationController extends Controller
         }
 
         abort_unless($notification->created_by === $user->id, 403);
+    }
+
+    private function calculateNextRunAt(string $time, int $intervalValue, string $intervalUnit): Carbon
+    {
+        $now = now()->timezone(config('app.timezone'));
+        $next = $now->copy()->setTimeFromTimeString($time);
+
+        if ($next->lessThanOrEqualTo($now)) {
+            $next = $this->addInterval($next, $intervalValue, $intervalUnit);
+        }
+
+        return $next;
+    }
+
+    private function addInterval(Carbon $start, int $value, string $unit): Carbon
+    {
+        return match ($unit) {
+            'hour' => $start->copy()->addHours($value),
+            'day' => $start->copy()->addDays($value),
+            'week' => $start->copy()->addWeeks($value),
+            'month' => $start->copy()->addMonths($value),
+            default => $start->copy()->addDays($value),
+        };
     }
 }

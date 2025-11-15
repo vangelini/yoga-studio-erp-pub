@@ -111,6 +111,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications', [NotificationController::class, 'store'])->name('notifications.store');
+    Route::post('/notifications/{notification}/toggle', [NotificationController::class, 'toggleScheduled'])->name('notifications.toggle');
     Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
     Route::post('/notifications/{notification}/send', [NotificationController::class, 'send'])->name('notifications.send');
     Route::post('/notifications/pending/resend', [NotificationController::class, 'resendPending'])->name('notifications.pending.resend');

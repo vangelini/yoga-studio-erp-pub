@@ -20,7 +20,7 @@
                 </form>
             <?php endif; ?>
         </div>
-        <form method="POST" action="<?php echo e(route('notifications.store')); ?>" class="grid grid-cols-1 gap-4">
+        <form method="POST" action="<?php echo e(route('notifications.store')); ?>" class="grid grid-cols-1 gap-4" x-data="{ triggerType: '<?php echo e(old('trigger_type', 'manual')); ?>' }">
             <?php echo csrf_field(); ?>
             <div class="grid md:grid-cols-2 gap-4">
                 <div>
@@ -37,8 +37,8 @@ unset($__errorArgs, $__bag); ?>
                 </div>
                 <div>
                     <label class="text-xs uppercase font-semibold text-stone-500">Trigger</label>
-                    <select name="trigger_type" class="input-field mt-1">
-                        <option value="manual" <?php if(old('trigger_type') === 'manual'): echo 'selected'; endif; ?>>Invio manuale</option>
+                    <select name="trigger_type" class="input-field mt-1" x-model="triggerType">
+                        <option value="manual" <?php if(old('trigger_type', 'manual') === 'manual'): echo 'selected'; endif; ?>>Invio manuale</option>
                         <option value="event" <?php if(old('trigger_type') === 'event'): echo 'selected'; endif; ?>>Evento</option>
                         <option value="scheduled" <?php if(old('trigger_type') === 'scheduled'): echo 'selected'; endif; ?>>Programmata</option>
                     </select>
@@ -112,6 +112,52 @@ $message = $__bag->first($__errorArgs[0]); ?><p class="text-xs text-rose-600 mt-
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4" x-show="triggerType === 'scheduled'" x-cloak>
+                <div>
+                    <label class="text-xs uppercase font-semibold text-stone-500">Frequenza programmata</label>
+                    <div class="flex flex-wrap items-center gap-2 mt-1">
+                        <input type="number" name="schedule_interval_value" min="1" max="365" value="<?php echo e(old('schedule_interval_value')); ?>" class="input-field w-24" placeholder="Es. 2">
+                        <select name="schedule_interval_unit" class="input-field">
+                            <option value="">—</option>
+                            <option value="hour" <?php if(old('schedule_interval_unit') === 'hour'): echo 'selected'; endif; ?>>Ore</option>
+                            <option value="day" <?php if(old('schedule_interval_unit') === 'day'): echo 'selected'; endif; ?>>Giorni</option>
+                            <option value="week" <?php if(old('schedule_interval_unit') === 'week'): echo 'selected'; endif; ?>>Settimane</option>
+                            <option value="month" <?php if(old('schedule_interval_unit') === 'month'): echo 'selected'; endif; ?>>Mesi</option>
+                        </select>
+                        <input type="time" name="schedule_time" value="<?php echo e(old('schedule_time', '09:00')); ?>" class="input-field w-36">
+                    </div>
+                    <p class="text-xs text-stone-500 mt-1">Es.: “2 settimane alle 09:00” invia la notifica ogni 14 giorni all’orario scelto.</p>
+                    <?php $__errorArgs = ['schedule_interval_value'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?><p class="text-xs text-rose-600 mt-1"><?php echo e($message); ?></p><?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                    <?php $__errorArgs = ['schedule_interval_unit'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?><p class="text-xs text-rose-600 mt-1"><?php echo e($message); ?></p><?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                    <?php $__errorArgs = ['schedule_time'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?><p class="text-xs text-rose-600 mt-1"><?php echo e($message); ?></p><?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                </div>
+                <div class="text-xs text-stone-500">
+                    <p class="font-semibold text-stone-600">Suggerimenti</p>
+                    <p>Le notifiche programmate partono dall’orario indicato e continuano finché la notifica resta attiva. WhatsApp non viene inviato per i job programmati.</p>
+                </div>
             </div>
 
             <div class="grid md:grid-cols-2 gap-4">
@@ -212,6 +258,15 @@ unset($__errorArgs, $__bag); ?>
                                         <?php echo csrf_field(); ?>
                                         <?php echo method_field('DELETE'); ?>
                                         <button type="submit" class="inline-flex items-center gap-1 rounded-lg border border-rose-200 px-3 py-1.5 text-[11px] font-semibold text-rose-600 hover:bg-rose-50">Elimina</button>
+                                    </form>
+                                <?php endif; ?>
+                                <?php if($notification->trigger_type === 'scheduled' && ($notification->created_by === $user->id || $user->role === 'Admin')): ?>
+                                    <form method="POST" action="<?php echo e(route('notifications.toggle', $notification)); ?>" class="inline-flex ml-2">
+                                        <?php echo csrf_field(); ?>
+                                        <button type="submit" class="inline-flex items-center gap-1 rounded-lg border border-stone-200 px-3 py-1.5 text-[11px] font-semibold <?php echo e($notification->is_active ? 'text-stone-600 hover:bg-stone-100' : 'text-emerald-600 border-emerald-200 hover:bg-emerald-50'); ?>">
+                                            <?php echo e($notification->is_active ? 'Disattiva' : 'Attiva'); ?>
+
+                                        </button>
                                     </form>
                                 <?php endif; ?>
                             </td>

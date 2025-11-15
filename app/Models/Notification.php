@@ -28,6 +28,7 @@ class Notification extends Model
         'is_active',
         'schedule_interval_unit',
         'schedule_interval_value',
+        'schedule_time',
         'schedule_next_run_at',
         'created_by',
         'updated_by',
