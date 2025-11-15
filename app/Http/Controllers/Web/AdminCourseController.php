@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -18,7 +19,19 @@ class AdminCourseController extends Controller
     {
         $this->authorizeAdmin();
 
-        $data = $this->validateCourse($request);
+        try {
+            $data = $this->validateCourse($request);
+        } catch (ValidationException $e) {
+            Log::warning('Course create validation failed', [
+                'errors' => $e->errors(),
+                'input' => $request->all(),
+            ]);
+
+            return back()
+                ->withErrors($e->errors())
+                ->withInput()
+                ->with('status', 'Impossibile salvare il corso. Controlla i campi evidenziati e riprova.');
+        }
 
         DB::transaction(function () use ($data) {
             $course = Course::create([
@@ -51,7 +64,20 @@ class AdminCourseController extends Controller
     {
         $this->authorizeCourseUpdate($request->user(), $course);
 
-        $data = $this->validateCourse($request);
+        try {
+            $data = $this->validateCourse($request);
+        } catch (ValidationException $e) {
+            Log::warning('Course update validation failed', [
+                'errors' => $e->errors(),
+                'input' => $request->all(),
+                'course_id' => $course->id,
+            ]);
+
+            return back()
+                ->withErrors($e->errors())
+                ->withInput()
+                ->with('status', 'Impossibile salvare il corso. Controlla i campi evidenziati e riprova.');
+        }
 
         if ($request->user()->role === 'Teacher') {
             $data['teacher_id'] = $course->teacher_id;

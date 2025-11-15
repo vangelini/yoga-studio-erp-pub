@@ -28,6 +28,8 @@ class PaymentAdminController extends Controller
         $data = $request->validate([
             'action' => ['required', Rule::in(['cash', 'waive'])],
             'reason' => ['nullable', 'string', 'max:255'],
+            'amount' => ['nullable', 'numeric', 'min:0.01'],
+            'note' => ['nullable', 'string', 'max:500'],
         ]);
 
         if ($data['action'] === 'waive') {
@@ -35,6 +37,21 @@ class PaymentAdminController extends Controller
         }
 
         if ($data['action'] === 'cash') {
+            if (!empty($data['amount'])) {
+                $payment->amount = (float) $data['amount'];
+            }
+
+            $meta = $payment->meta ?? [];
+            if (!empty($data['note'])) {
+                $meta['manual_note'] = $data['note'];
+            }
+            if (!empty($data['amount'])) {
+                $meta['manual_amount'] = (float) $data['amount'];
+            }
+            if (!empty($meta)) {
+                $payment->meta = $meta;
+            }
+
             $payment->markAsPaid('cash', $request->user()->id);
 
             if ($payment->type === 'membership' && $payment->payable instanceof MembershipSubscription) {
@@ -44,7 +61,7 @@ class PaymentAdminController extends Controller
                 ]);
             }
 
-            $receiptPath = $this->receiptService->generate($payment, $data['reason'] ?? null);
+            $receiptPath = $this->receiptService->generate($payment, $data['note'] ?? ($data['reason'] ?? null));
             $message = 'Pagamento registrato in contanti.';
         } else {
             $payment->markAsWaived($data['reason'], $request->user()->id);

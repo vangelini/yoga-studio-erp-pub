@@ -187,13 +187,17 @@
                                                 <form
                                                     method="POST"
                                                     action="{{ route('admin.payments.update', $entry['payment_id']) }}"
-                                                    class="inline-flex"
+                                                    class="inline-flex flex-col gap-1"
                                                     onsubmit="return confirm('Confermi di registrare la quota associativa per {{ $entry['name'] }}?');"
                                                 >
                                                     @csrf
                                                     <input type="hidden" name="action" value="cash">
                                                     <input type="hidden" name="reason" value="">
-                                                    <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-teal-700 transition">
+                                                    <input type="number" step="0.01" name="amount" placeholder="Importo"
+                                                        class="input-field text-[11px] py-1 h-8" value="{{ $entry['amount'] ?? '' }}">
+                                                    <input type="text" name="note" placeholder="Nota (opzionale)"
+                                                        class="input-field text-[11px] py-1 h-8">
+                                                    <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-lg bg-teal-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-teal-700 transition">
                                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-10c1.486 0-2.737.81-2.959 1.893M12 6c-1.486 0-2.737.81-2.959 1.893M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                         </svg>
@@ -400,12 +404,14 @@
                                                             <form
                                                                 method="POST"
                                                                 action="{{ route('admin.payments.update', $entry['payment_id']) }}"
-                                                                class="flex"
+                                                                class="flex flex-wrap gap-1"
                                                                 onsubmit="return confirm('Confermi di registrare in contanti il pagamento per {{ $entry['client_name'] ?? 'questa allieva-o' }}?');"
                                                             >
                                                                 @csrf
                                                                 <input type="hidden" name="action" value="cash">
                                                                 <input type="hidden" name="reason" value="">
+                                                                <input type="number" step="0.01" name="amount" placeholder="Importo" class="input-field text-[11px] py-1 h-8 w-24" value="{{ $entry['amount'] ?? '' }}">
+                                                                <input type="text" name="note" placeholder="Nota (opz.)" class="input-field text-[11px] py-1 h-8 w-32">
                                                                 <button type="submit" class="inline-flex items-center justify-center gap-1.5 rounded-md bg-teal-600 px-2.5 py-1.5 text-[11px] font-semibold text-white transition-colors hover:bg-teal-700">
                                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-10c1.486 0 2.737.81 2.959 1.893M12 6c-1.486 0-2.737.81-2.959 1.893M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
