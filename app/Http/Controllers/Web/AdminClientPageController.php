@@ -39,7 +39,11 @@ class AdminClientPageController extends Controller
             }
         }
 
-        $clients = $clients ?? $this->loadClients($autoGenerate, $restrictedClientIds);
+        $search = trim((string) $request->get('q', ''));
+        $sort = $request->get('sort', 'name');
+        $dir = strtolower($request->get('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        $clients = $clients ?? $this->loadClients($autoGenerate, $restrictedClientIds, $search, $sort, $dir);
 
         $canViewMembershipSummary = $isAdmin || ($teacherProfile?->can_manage_payments ?? false);
         $membershipSummary = $canViewMembershipSummary ? $this->buildMembershipSummary($clients, $request) : null;
@@ -82,6 +86,9 @@ class AdminClientPageController extends Controller
             'courseUnpaidShowFuture' => $showFutureCourses,
             'initialExpandedClient' => $request->integer('client_id') ?: null,
             'clientPagePermissions' => $clientPagePermissions,
+            'search' => $search,
+            'sort' => $sort,
+            'dir' => $dir,
         ]);
     }
 
@@ -98,7 +105,7 @@ class AdminClientPageController extends Controller
             ->all();
     }
 
-    private function loadClients(bool $autoGenerate, ?array $restrictToIds = null)
+    private function loadClients(bool $autoGenerate, ?array $restrictToIds = null, string $search = '', string $sort = 'name', string $dir = 'asc')
     {
         $manager = app(MembershipManager::class);
         $season = $manager->determineCurrentSeason();
@@ -143,8 +150,22 @@ class AdminClientPageController extends Controller
             $query->whereIn('id', $restrictToIds);
         }
 
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $like = '%' . $search . '%';
+                $q->where('name', 'like', $like)
+                    ->orWhere('first_name', 'like', $like)
+                    ->orWhere('last_name', 'like', $like)
+                    ->orWhere('email', 'like', $like);
+            });
+        }
+
+        $allowedSorts = ['name', 'email', 'status'];
+        $sortColumn = in_array($sort, $allowedSorts, true) ? $sort : 'name';
+        $sortDir = $dir === 'desc' ? 'desc' : 'asc';
+
         return $query
-            ->orderBy('name')
+            ->orderBy($sortColumn, $sortDir)
             ->get()
             ->map(function ($user) use ($manager, $autoGenerate, $currentYear) {
                 $current = $manager->ensureCurrentMembership($user, $autoGenerate);

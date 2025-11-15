@@ -381,7 +381,8 @@ class AdminUserController extends Controller
 
         $filename = 'utenti_' . now()->format('Y-m-d_H-i-s') . '.csv';
 
-        $users = User::orderBy('last_name')
+        $users = User::where('role', 'Client')
+            ->orderBy('last_name')
             ->orderBy('first_name')
             ->get();
 

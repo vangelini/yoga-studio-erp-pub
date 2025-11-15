@@ -72,7 +72,7 @@ unset($__errorArgs, $__bag); ?>
                         <a href="<?php echo e(route('password.request')); ?>" class="text-teal-600 hover:text-teal-800">Password dimenticata?</a>
                     </div>
 
-                    <?php if(config('services.recaptcha.site_key')): ?>
+                    <?php if(config('services.recaptcha.enabled') && config('services.recaptcha.site_key')): ?>
                         <div class="space-y-2">
                             <div class="g-recaptcha" data-sitekey="<?php echo e(config('services.recaptcha.site_key')); ?>"></div>
                             <?php $__errorArgs = ['g-recaptcha-response'];
@@ -108,7 +108,9 @@ unset($__errorArgs, $__bag); ?>
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startPush('scripts'); ?>
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <?php if(config('services.recaptcha.enabled') && config('services.recaptcha.site_key')): ?>
+        <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <?php endif; ?>
 <?php $__env->stopPush(); ?>
 
 <?php echo $__env->make('layouts.base', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH /Users/vincenzo/Documents/yoga-studio-erp/resources/views/auth/login.blade.php ENDPATH**/ ?>

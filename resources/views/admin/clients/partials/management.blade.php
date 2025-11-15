@@ -18,6 +18,20 @@
                 <p class="text-sm text-stone-500">Gestisci dati anagrafici, stato account e pagamenti.</p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
+                <form method="GET" action="{{ route('admin.clients.index') }}" class="flex items-center gap-2">
+                    <input
+                        type="search"
+                        name="q"
+                        value="{{ $search ?? '' }}"
+                        placeholder="Cerca nome, cognome o email"
+                        class="input-field text-sm w-56"
+                    >
+                    <input type="hidden" name="sort" value="{{ $sort ?? 'name' }}">
+                    <input type="hidden" name="dir" value="{{ $dir ?? 'asc' }}">
+                    <button type="submit" class="inline-flex items-center gap-1 rounded-lg border border-stone-300 px-3 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-100">
+                        Cerca
+                    </button>
+                </form>
                 @if($clientPermissions['can_export'] ?? false)
                     <a
                         href="{{ route('admin.users.export') }}"
@@ -37,27 +51,6 @@
             </div>
         </div>
 
-        @if($clientPermissions['can_manage_payments'] ?? false)
-            <div class="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 space-y-3">
-                <p class="text-xs font-semibold uppercase tracking-wide text-stone-500">Generazione pendenze</p>
-                <div class="flex flex-wrap items-center gap-2">
-                    <form method="POST" action="{{ route('admin.memberships.generate') }}" onsubmit="return confirm('Generare subito le pendenze delle quote associative?');">
-                        @csrf
-                        <input type="hidden" name="send_notifications" value="1">
-                        <button type="submit" class="inline-flex items-center gap-1 rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-xs font-semibold text-stone-600 hover:bg-stone-100">
-                            Genera quote associative
-                        </button>
-                    </form>
-                    <form method="POST" action="{{ route('admin.courses.payments.generate') }}" onsubmit="return confirm('Generare subito le pendenze per i corsi?');">
-                        @csrf
-                        <input type="hidden" name="send_notifications" value="1">
-                        <button type="submit" class="inline-flex items-center gap-1 rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-xs font-semibold text-stone-600 hover:bg-stone-100">
-                            Genera pendenze corsi
-                        </button>
-                    </form>
-                </div>
-            </div>
-        @endif
 
         @if($clientPermissions['can_create'] ?? false)
         <form
@@ -136,12 +129,43 @@
         @endif
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-stone-200 text-sm">
+                @php
+                    $currentSort = $sort ?? 'name';
+                    $currentDir = $dir ?? 'asc';
+                    $toggleDir = $currentDir === 'asc' ? 'desc' : 'asc';
+
+                    $sortUrl = function ($field) use ($currentSort, $toggleDir) {
+                        $dir = $currentSort === $field ? $toggleDir : 'asc';
+                        return request()->fullUrlWithQuery(['sort' => $field, 'dir' => $dir]);
+                    };
+                    $sortIndicator = function ($field) use ($currentSort, $currentDir) {
+                        if ($currentSort !== $field) {
+                            return '';
+                        }
+                        return $currentDir === 'asc' ? '▲' : '▼';
+                    };
+                @endphp
                 <thead class="bg-stone-100 text-stone-600 uppercase text-xs tracking-wide">
                     <tr>
-                        <th class="px-4 py-3 text-left font-semibold">Nome</th>
-                        <th class="px-4 py-3 text-left font-semibold">Email</th>
+                        <th class="px-4 py-3 text-left font-semibold">
+                            <a href="{{ $sortUrl('name') }}" class="inline-flex items-center gap-1 hover:text-stone-800">
+                                Nome
+                                <span class="text-[10px]">{{ $sortIndicator('name') }}</span>
+                            </a>
+                        </th>
+                        <th class="px-4 py-3 text-left font-semibold">
+                            <a href="{{ $sortUrl('email') }}" class="inline-flex items-center gap-1 hover:text-stone-800">
+                                Email
+                                <span class="text-[10px]">{{ $sortIndicator('email') }}</span>
+                            </a>
+                        </th>
                         <th class="px-4 py-3 text-left font-semibold">Telefono</th>
-                        <th class="px-4 py-3 text-left font-semibold">Stato Account</th>
+                        <th class="px-4 py-3 text-left font-semibold">
+                            <a href="{{ $sortUrl('status') }}" class="inline-flex items-center gap-1 hover:text-stone-800">
+                                Stato Account
+                                <span class="text-[10px]">{{ $sortIndicator('status') }}</span>
+                            </a>
+                        </th>
                         <th class="px-4 py-3 text-left font-semibold">Azioni</th>
                     </tr>
                 </thead>
