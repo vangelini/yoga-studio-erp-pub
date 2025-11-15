@@ -239,6 +239,11 @@ class NotificationService
         $dispatch->update([
             'status' => 'sent',
             'sent_at' => now(),
+            'payload' => [
+                'message' => $message,
+                'subject' => $subject,
+                'email' => $user->email,
+            ],
         ]);
     }
 
@@ -257,6 +262,10 @@ class NotificationService
         $dispatch->update([
             'status' => 'sent',
             'sent_at' => now(),
+            'payload' => [
+                'message' => $message,
+                'telephone' => $user->telephone,
+            ],
         ]);
     }
 

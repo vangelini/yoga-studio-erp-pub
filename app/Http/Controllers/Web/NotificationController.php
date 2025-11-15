@@ -37,7 +37,7 @@ class NotificationController extends Controller
 
         $notifications = $notificationsQuery->get();
 
-        $jobs = NotificationJob::with('notification')
+        $jobs = NotificationJob::with(['notification', 'dispatches.user'])
             ->latest()
             ->limit(20)
             ->get();
@@ -86,6 +86,15 @@ class NotificationController extends Controller
             ],
         ];
 
+        $editingId = $request->query('edit') ?? $request->session()->getOldInput('notification_id');
+        $editingNotification = null;
+        if ($editingId) {
+            $candidate = $notifications->firstWhere('id', (int) $editingId) ?? Notification::query()->with('courseTargets')->find($editingId);
+            if ($candidate && ($user->role === 'Admin' || $candidate->created_by === $user->id)) {
+                $editingNotification = $candidate->loadMissing('courseTargets');
+            }
+        }
+
         return view('admin.notifications.index', [
             'notifications' => $notifications,
             'jobs' => $jobs,
@@ -93,6 +102,7 @@ class NotificationController extends Controller
             'canBroadcastAll' => $user->role === 'Admin',
             'user' => $user,
             'eventOptions' => $eventOptions,
+            'editingNotification' => $editingNotification,
         ]);
     }
 
@@ -100,6 +110,14 @@ class NotificationController extends Controller
     {
         $user = $request->user();
         $this->authorizeAccess($user);
+
+        $editingId = $request->input('notification_id');
+        $notification = null;
+        if ($editingId) {
+            $notification = Notification::query()->with('courseTargets')->findOrFail($editingId);
+            $this->authorizeNotification($notification, $user);
+            abort_unless(!$notification->is_system, 403);
+        }
 
         $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
@@ -147,7 +165,11 @@ class NotificationController extends Controller
             );
         }
 
-        $notification = Notification::create([
+        if (!$notification) {
+            $notification = new Notification(['created_by' => $user->id]);
+        }
+
+        $notification->fill([
             'title' => $data['title'],
             'description' => $data['description'] ?? null,
             'trigger_type' => $data['trigger_type'],
@@ -158,14 +180,19 @@ class NotificationController extends Controller
             'target_all_clients' => $request->boolean('target_all_clients'),
             'target_all_admins' => $request->boolean('target_all_admins'),
             'is_system' => false,
-            'is_active' => true,
             'schedule_interval_unit' => $data['schedule_interval_unit'] ?? null,
             'schedule_interval_value' => $data['schedule_interval_value'] ?? null,
             'schedule_time' => $data['schedule_time'] ?? null,
             'schedule_next_run_at' => $scheduleNextRunAt,
-            'created_by' => $user->id,
+            'is_active' => $data['trigger_type'] === 'scheduled' ? ($notification->is_active ?? true) : true,
             'updated_by' => $user->id,
         ]);
+
+        $notification->save();
+
+        if ($notification->wasRecentlyCreated === false) {
+            $notification->courseTargets()->delete();
+        }
 
         $courseIds = collect($data['course_ids'] ?? []);
         if ($user->role === 'Teacher') {
@@ -184,7 +211,9 @@ class NotificationController extends Controller
             $service->dispatch($notification, $user);
         }
 
-        return redirect()->route('notifications.index')->with('status', 'Notifica salvata con successo.');
+        $message = $notification->wasRecentlyCreated ? 'Notifica salvata con successo.' : 'Notifica aggiornata con successo.';
+
+        return redirect()->route('notifications.index')->with('status', $message);
     }
 
     public function send(Request $request, Notification $notification, NotificationService $service)
@@ -276,6 +305,51 @@ class NotificationController extends Controller
         $notification->save();
 
         return back()->with('status', $notification->is_active ? 'Notifica programmata attivata.' : 'Notifica programmata disattivata.');
+    }
+
+    public function exportJobs(Request $request)
+    {
+        $user = $request->user();
+        $this->authorizeAccess($user);
+
+        $jobs = NotificationJob::with(['notification', 'dispatches.user'])
+            ->latest()
+            ->limit(200)
+            ->get();
+
+        $lines = [];
+        foreach ($jobs as $job) {
+            $lines[] = sprintf(
+                "[%s] #%d %s | Trigger: %s | Stato: %s | Target: %d | Inviate: %d | Errore: %s",
+                optional($job->completed_at)->format('Y-m-d H:i:s') ?? '----',
+                $job->id,
+                $job->notification->title ?? 'N/D',
+                $job->trigger_type,
+                $job->status,
+                $job->target_count,
+                $job->sent_count,
+                $job->error_message ?: '-'
+            );
+
+            foreach ($job->dispatches as $dispatch) {
+                $lines[] = sprintf(
+                    "    - %s (%s) [%s] => %s",
+                    $dispatch->user->name ?? ('Utente #' . $dispatch->user_id),
+                    $dispatch->channel,
+                    $dispatch->status,
+                    trim($dispatch->payload['message'] ?? 'Messaggio non disponibile')
+                );
+            }
+
+            $lines[] = str_repeat('-', 80);
+        }
+
+        $content = implode("\n", $lines);
+        $filename = 'notification-log-' . now()->format('Ymd_His') . '.txt';
+
+        return response($content)
+            ->header('Content-Type', 'text/plain')
+            ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
     }
 
     protected function authorizeNotification(Notification $notification, $user): void

@@ -116,6 +116,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/notifications/{notification}/send', [NotificationController::class, 'send'])->name('notifications.send');
     Route::post('/notifications/pending/resend', [NotificationController::class, 'resendPending'])->name('notifications.pending.resend');
     Route::post('/notifications/jobs/purge', [NotificationController::class, 'purgeLogs'])->name('notifications.jobs.purge');
+    Route::get('/notifications/jobs/export', [NotificationController::class, 'exportJobs'])->name('notifications.jobs.export');
 
     Route::get('/notifications/feed', [NotificationFeedController::class, 'index'])->name('notifications.feed');
     Route::post('/notifications/dispatches/{dispatch}/read', [NotificationFeedController::class, 'markAsRead'])->name('notifications.dispatch.read');

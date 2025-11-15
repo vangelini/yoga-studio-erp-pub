@@ -51,6 +51,12 @@
                         </svg>
                         Genera quote ora
                     </button>
+                    <form method="POST" action="{{ route('notifications.pending.resend') }}" onsubmit="return confirm('Reinviare le notifiche delle pendenze generate per i corsi?');">
+                        @csrf
+                        <button type="submit" class="inline-flex items-center gap-2 rounded-lg border border-stone-300 px-3 py-1.5 text-xs font-semibold text-teal-700 hover:bg-stone-100 transition">
+                            Reinvia notifica pendenze
+                        </button>
+                    </form>
                 </div>
             </div>
 
