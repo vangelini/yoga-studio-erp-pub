@@ -270,20 +270,19 @@
                             </span>
                         @endif
                     </div>
+                        <button
+                            type="button"
+                            class=" flex justify-end items-center gap-2 rounded-lg border border-stone-300 px-3 py-1.5 text-xs font-semibold text-stone-600 hover:bg-stone-100 transition"
+                            @click="open = !open"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                            <span x-text="open ? 'Nascondi dettagli corso' : 'Mostra dettagli corso'"></span>
+                        </button>
                 </div>
 
-                <div class="mt-3">
-                    <button
-                        type="button"
-                        class="inline-flex items-center gap-2 rounded-lg border border-stone-300 px-3 py-1.5 text-xs font-semibold text-stone-600 hover:bg-stone-100 transition"
-                        @click="open = !open"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
-                        <span x-text="open ? 'Nascondi dettagli corso' : 'Mostra dettagli corso'"></span>
-                    </button>
-                </div>
+                
 
                 <div x-show="open" x-cloak x-transition class="mt-4 border border-stone-200 rounded-xl bg-stone-50 px-4 py-4 space-y-4">
                     <form method="POST" action="{{ route('admin.courses.update', $course['id']) }}" class="grid grid-cols-1 lg:grid-cols-2 gap-4">

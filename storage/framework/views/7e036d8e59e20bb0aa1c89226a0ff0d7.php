@@ -95,6 +95,15 @@
                         Centro notifiche
                     </a>
                     <?php endif; ?>
+
+                    <?php if(auth()->user()->role === 'Admin'): ?>
+                    <a href="<?php echo e(route('admin.accounting.index')); ?>" class="inline-flex items-center gap-2 rounded-lg bg-white/20 px-4 py-2 text-xs font-semibold text-white border border-white/40 backdrop-blur-sm hover:bg-white/30 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M3 14h18M10 6h11M3 6h4m-4 12h4m6 0h9" />
+                        </svg>
+                        Contabilità
+                    </a>
+                    <?php endif; ?>
                     <?php if($showTeacherAdmin): ?>
                     <a href="<?php echo e(route('admin.teachers.index')); ?>" class="inline-flex items-center gap-2 rounded-lg bg-white/20 px-4 py-2 text-xs font-semibold text-white border border-white/40 backdrop-blur-sm hover:bg-white/30 transition">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -74,6 +74,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', DashboardPageController::class)->name('dashboard');
 
     Route::middleware('throttle:15,1')->group(function () {
+        Route::get('/admin/accounting', [\App\Http\Controllers\Web\AdminAccountingController::class, 'index'])->name('admin.accounting.index');
+        Route::get('/admin/accounting/export-receipts', [\App\Http\Controllers\Web\AdminAccountingController::class, 'exportReceipts'])->name('admin.accounting.exportReceipts');
+        Route::get('/admin/accounting/export', [\App\Http\Controllers\Web\AdminAccountingController::class, 'export'])->name('admin.accounting.export');
         Route::get('/admin/clients', [AdminClientPageController::class, 'index'])->name('admin.clients.index');
         Route::get('/admin/teachers', [AdminTeacherPageController::class, 'index'])->name('admin.teachers.index');
         Route::get('/admin/users/export', [AdminUserController::class, 'export'])->name('admin.users.export');
