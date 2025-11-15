@@ -637,6 +637,12 @@
                 <template x-if="subscriptionModal.course">
                     <div class="space-y-4">
                         <p x-text="subscriptionModal.course.description"></p>
+                        <p
+                            class="text-xs font-semibold text-rose-600"
+                            x-show="courseEnrollmentFull(subscriptionModal.course)"
+                        >
+                            Questo corso ha raggiunto il numero massimo di iscritti. Potrai iscriverti quando si libererà un posto.
+                        </p>
 
                         <div class="space-y-3 rounded-xl border border-stone-200 bg-stone-50 p-4">
                             <h5 class="text-sm font-semibold text-stone-700">Scegli il piano di abbonamento</h5>
@@ -655,8 +661,15 @@
                                             <span>
                                                 <span class="font-semibold text-stone-700" x-text="plan.label"></span>
                                                 <span class="block text-xs text-stone-500">
-                                                    € <span x-text="Number(plan.amount ?? 0).toFixed(2)"></span>
-                                                    · <span x-text="plan.months === 1 ? '1 mese' : `${plan.months} mesi`"></span>
+                                                    <template x-if="plan.lesson_based">
+                                                        <span>da € <span x-text="Number(plan.amount ?? 0).toFixed(2)"></span> · prezzo in base alle lezioni scelte</span>
+                                                    </template>
+                                                    <template x-if="!plan.lesson_based">
+                                                        <span>
+                                                            € <span x-text="Number(plan.amount ?? 0).toFixed(2)"></span>
+                                                            · <span x-text="plan.months === 1 ? '1 mese' : `${plan.months} mesi`"></span>
+                                                        </span>
+                                                    </template>
                                                 </span>
                                             </span>
                                         </label>
@@ -665,6 +678,50 @@
                             </template>
                             <template x-if="coursePlans(subscriptionModal.course).length === 0">
                                 <p class="text-xs text-rose-500">Nessun piano disponibile.</p>
+                            </template>
+
+                            <template x-if="isLessonBasedCourse(subscriptionModal.course)">
+                                <div class="space-y-3 rounded-xl border border-amber-100 bg-amber-50/70 px-4 py-3">
+                                    <div class="space-y-1">
+                                        <h6 class="text-sm font-semibold text-stone-700">Seleziona le lezioni settimanali</h6>
+                                        <p class="text-xs text-stone-500">Indica i giorni/orari in cui parteciperai. Il costo si aggiornerà automaticamente in base al numero di lezioni scelte.</p>
+                                    </div>
+                                    <template x-if="courseSchedule(subscriptionModal.course).length > 0">
+                                        <div class="space-y-2">
+                                            <template x-for="slot in courseSchedule(subscriptionModal.course)" :key="slot.id">
+                                                <label
+                                                    class="flex flex-col gap-1 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-700"
+                                                    :class="(slot.full && !subscriptionModal.selectedLessons.includes(slot.id)) ? 'opacity-50' : ''"
+                                                >
+                                                    <div class="flex flex-wrap items-center justify-between gap-3">
+                                                        <div class="flex items-center gap-3">
+                                                            <input
+                                                                type="checkbox"
+                                                                class="h-4 w-4 text-teal-600 border-stone-300 focus:ring-teal-500"
+                                                                :value="slot.id"
+                                                                x-model="subscriptionModal.selectedLessons"
+                                                                :disabled="slot.full && !subscriptionModal.selectedLessons.includes(slot.id)"
+                                                                @change="handleLessonSelectionChange()"
+                                                            >
+                                                            <div>
+                                                                <span class="font-semibold" x-text="slot.day"></span>
+                                                                <span class="block text-xs text-stone-500" x-text="slot.time ? `Ore ${slot.time}` : 'Orario da definire'"></span>
+                                                            </div>
+                                                        </div>
+                                                        <span class="text-[11px] font-semibold text-stone-500" x-text="lessonCapacityLabel(slot)"></span>
+                                                    </div>
+                                                </label>
+                                            </template>
+                                        </div>
+                                    </template>
+                                    <template x-if="courseSchedule(subscriptionModal.course).length === 0">
+                                        <p class="text-xs text-rose-600">Non sono stati ancora configurati orari per questo corso.</p>
+                                    </template>
+                                    <div class="flex flex-col gap-1 text-xs text-stone-600 sm:flex-row sm:items-center sm:justify-between">
+                                        <span class="font-semibold text-teal-700" x-text="lessonSelectionPriceLabel()"></span>
+                                    </div>
+                                    <p class="text-xs text-rose-600" x-show="subscriptionModal.lessonError" x-text="subscriptionModal.lessonError"></p>
+                                </div>
                             </template>
 
                             <div class="h-px w-full bg-stone-200"></div>
@@ -695,8 +752,9 @@
                                                         class="w-full rounded-lg border border-stone-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                                                         :min="subscriptionModal.limits.today"
                                                         :max="subscriptionModal.limits.endOfMonth"
-                                                        :value="subscriptionModal.startDate"
+                                                        x-model="subscriptionModal.startDate"
                                                         @input="handleSubscriptionDateChange($event.target.value)"
+                                                        @change="handleSubscriptionDateChange($event.target.value)"
                                                     >
                                                     <span class="text-xs text-stone-500">Disponibile fino al <span x-text="formatDateLabel(subscriptionModal.limits.endOfMonth)"></span></span>
                                                 </div>
@@ -721,6 +779,13 @@
                                     </label>
                                 </div>
                             </div>
+
+                            <template x-if="subscriptionModal.prorationInfo">
+                                <div class="rounded-xl border border-teal-100 bg-teal-50 px-4 py-3 text-xs text-teal-800 space-y-1">
+                                    <p class="font-semibold">Calcolo parziale applicato</p>
+                                    <p x-text="formatProrationLabel(subscriptionModal.prorationInfo)"></p>
+                                </div>
+                            </template>
 
                             <template x-if="extraDayEnabled()">
                                 <div class="rounded-lg border border-stone-200 bg-white px-4 py-3 space-y-3">
@@ -802,7 +867,7 @@
     </div>
 </section>
 
-<?php if (! $__env->hasRenderedOnce('f18a710d-c62e-4e72-a8df-67c1602b8891')): $__env->markAsRenderedOnce('f18a710d-c62e-4e72-a8df-67c1602b8891'); ?>
+<?php if (! $__env->hasRenderedOnce('a148aa95-f5a6-4ced-9870-8bb417076395')): $__env->markAsRenderedOnce('a148aa95-f5a6-4ced-9870-8bb417076395'); ?>
     <?php $__env->startPush('scripts'); ?>
         <script>
             document.addEventListener('alpine:init', () => {
@@ -888,6 +953,9 @@
                             previewBase: '0.00',
                             previewExtra: '0.00',
                             selectedExtraCourseId: null,
+                            selectedLessons: [],
+                            lessonError: '',
+                            prorationInfo: null,
                             nextMonthLabel: '',
                             limits: {
                                 today: null,
@@ -991,6 +1059,100 @@
                             return normalize(course?.availablePlans ?? course?.available_plans ?? []);
                         },
 
+                        isLessonBasedCourse(course) {
+                            if (!course) return false;
+                            const mode = course.pricing_mode ?? course.pricingMode ?? 'block';
+                            return mode === 'per_lesson';
+                        },
+
+                        courseSchedule(course) {
+                            return normalize(course?.schedule ?? []);
+                        },
+
+                        courseEnrollmentFull(course) {
+                            if (!course) return false;
+                            return Boolean(course.enrollment_full ?? course.enrollmentFull ?? false);
+                        },
+
+                        lessonPricingOptions(course, planType) {
+                            if (!course || !planType) return {};
+                            const pricing = course.lessonPricing ?? course.lesson_pricing ?? {};
+                            const planPricing = pricing[planType] ?? {};
+                            const normalized = {};
+                            Object.entries(planPricing).forEach(([lessons, value]) => {
+                                const count = Number(lessons);
+                                const amount = Number(value);
+                                if (!Number.isNaN(count) && count > 0 && !Number.isNaN(amount) && amount > 0) {
+                                    normalized[count] = amount;
+                                }
+                            });
+                            return normalized;
+                        },
+
+                        lessonPlanPrice(course, planType, lessonCount) {
+                            if (!lessonCount) return null;
+                            const options = this.lessonPricingOptions(course, planType);
+                            return options[lessonCount] ?? null;
+                        },
+
+                        selectedLessonSlots(course) {
+                            if (!course) return [];
+                            const schedule = this.courseSchedule(course);
+                            return schedule.filter(slot => this.subscriptionModal.selectedLessons.includes(slot.id));
+                        },
+
+                        lessonCapacityLabel(slot) {
+                            if (!slot) return '';
+                            if (slot.capacity === null || typeof slot.capacity === 'undefined') {
+                                return slot.used ? `${slot.used} iscritti` : 'Posti disponibili';
+                            }
+                            const available = Math.max(0, slot.available ?? 0);
+                            return `${available}/${slot.capacity} posti`;
+                        },
+
+                        lessonSelectionPriceLabel() {
+                            if (!this.subscriptionModal.course || !this.subscriptionModal.planType) return '';
+                            const count = this.subscriptionModal.selectedLessons.length;
+                            if (!count) return '';
+                            const price = this.lessonPlanPrice(this.subscriptionModal.course, this.subscriptionModal.planType, count);
+                            if (!price) return '';
+                            return `Tariffa configurata per ${count} ${count === 1 ? 'lezione' : 'lezioni'}: € ${Number(price).toFixed(2)}`;
+                        },
+
+                        handleLessonSelectionChange() {
+                            this.subscriptionModal.selectedLessons = this.subscriptionModal.selectedLessons
+                                .map(id => Number(id))
+                                .filter((id, index, arr) => !Number.isNaN(id) && arr.indexOf(id) === index);
+                            this.updateSubscriptionPreview();
+                        },
+
+                        validateLessonSelection(plan) {
+                            if (!this.isLessonBasedCourse(this.subscriptionModal.course)) {
+                                this.subscriptionModal.lessonError = '';
+                                return true;
+                            }
+
+                            const count = this.subscriptionModal.selectedLessons.length;
+                            if (!count) {
+                                this.subscriptionModal.lessonError = 'Seleziona almeno una lezione disponibile.';
+                                return false;
+                            }
+
+                            if (!plan) {
+                                this.subscriptionModal.lessonError = 'Seleziona un piano di abbonamento.';
+                                return false;
+                            }
+
+                            const price = this.lessonPlanPrice(this.subscriptionModal.course, plan.type, count);
+                            if (!price) {
+                                this.subscriptionModal.lessonError = 'Non hai raggiunto ilnumero minimo di lezzioni. Aggiungi altre lezioni al tuo piano.';
+                                return false;
+                            }
+
+                            this.subscriptionModal.lessonError = '';
+                            return true;
+                        },
+
                         selectedPlan() {
                             return this.coursePlans(this.subscriptionModal.course)
                                 .find(plan => plan.type === this.subscriptionModal.planType) ?? null;
@@ -1062,7 +1224,53 @@
                         },
 
                         calculateBaseAmount(option, startDate, plan, course) {
+                            this.subscriptionModal.prorationInfo = null;
                             if (!plan) return 0;
+
+                            const lessonBased = this.isLessonBasedCourse(course);
+                            if (lessonBased) {
+                                if (!this.validateLessonSelection(plan)) {
+                                    return 0;
+                                }
+
+                                const baseLessonPrice = Number(this.lessonPlanPrice(course, plan.type, this.subscriptionModal.selectedLessons.length) ?? 0);
+                                if (!baseLessonPrice) {
+                                    return 0;
+                                }
+
+                                if (option === 'next_month' || plan.type !== 'monthly') {
+                                    return baseLessonPrice;
+                                }
+
+                                const target = startDate ? new Date(`${startDate}T00:00:00`) : new Date(`${this.isoToday()}T00:00:00`);
+                                const periodStart = new Date(target.getFullYear(), target.getMonth(), 1);
+                                const periodEnd = new Date(target.getFullYear(), target.getMonth() + 1, 0);
+                                const courseStart = this.parseDate(course?.start_date ?? course?.startDate);
+                                const courseEnd = this.parseDate(course?.end_date ?? course?.endDate);
+                                const selectedSlots = this.selectedLessonSlots(course);
+                                const scheduleDays = this.normalizeScheduleDays(selectedSlots);
+                                const lessonInfo = this.calculateLessonProration(scheduleDays, periodStart, periodEnd, target, courseStart, courseEnd);
+
+                                if (lessonInfo.total > 0 && lessonInfo.remaining > 0) {
+                                    const ratio = lessonInfo.remaining / lessonInfo.total;
+                                    let prorated = Number((baseLessonPrice * ratio).toFixed(2));
+                                    if (baseLessonPrice > 0 && prorated < 0.01) {
+                                        prorated = 0.01;
+                                    }
+                                    if (ratio < 0.999) {
+                                        this.subscriptionModal.prorationInfo = {
+                                            basis: 'lessons',
+                                            total: lessonInfo.total,
+                                            remaining: lessonInfo.remaining,
+                                            ratio,
+                                        };
+                                    }
+                                    return prorated;
+                                }
+
+                                return baseLessonPrice;
+                            }
+
                             const basePrice = Number(plan?.amount ?? plan?.price ?? 0);
                             if (option === 'next_month' || plan.type !== 'monthly') {
                                 return basePrice;
@@ -1079,9 +1287,18 @@
                             const lessonInfo = this.calculateLessonProration(scheduleDays, periodStart, periodEnd, target, courseStart, courseEnd);
 
                             if (lessonInfo.total > 0 && lessonInfo.remaining > 0) {
-                                let lessonAmount = Number((basePrice * (lessonInfo.remaining / lessonInfo.total)).toFixed(2));
+                                const ratio = lessonInfo.remaining / lessonInfo.total;
+                                let lessonAmount = Number((basePrice * ratio).toFixed(2));
                                 if (basePrice > 0 && lessonAmount < 0.01) {
                                     lessonAmount = 0.01;
+                                }
+                                if (ratio < 0.999) {
+                                    this.subscriptionModal.prorationInfo = {
+                                        basis: 'lessons',
+                                        total: lessonInfo.total,
+                                        remaining: lessonInfo.remaining,
+                                        ratio,
+                                    };
                                 }
                                 return lessonAmount;
                             }
@@ -1093,6 +1310,15 @@
 
                             if (basePrice > 0 && amount < 0.01) {
                                 amount = 0.01;
+                            }
+
+                            if (ratio < 0.999) {
+                                this.subscriptionModal.prorationInfo = {
+                                    basis: 'days',
+                                    total: totalDays,
+                                    remaining: remainingDays,
+                                    ratio,
+                                };
                             }
 
                             return amount;
@@ -1147,10 +1373,9 @@
 
                         normalizeScheduleDays(rawSchedule) {
                             const items = normalize(rawSchedule ?? []);
-                            const mapped = items
+                            return items
                                 .map(slot => this.weekdayIndex(slot.day ?? slot.day_of_week ?? slot.label))
-                                .filter((day, index, arr) => day !== null && arr.indexOf(day) === index);
-                            return mapped;
+                                .filter(day => day !== null);
                         },
 
                         weekdayIndex(label) {
@@ -1211,15 +1436,20 @@
                         updateSubscriptionPreview() {
                             if (!this.subscriptionModal.course) {
                                 this.subscriptionModal.preview = '0.00';
+                                this.subscriptionModal.previewBase = '0.00';
+                                this.subscriptionModal.previewExtra = '0.00';
                                 return;
                             }
 
                             const plan = this.selectedPlan();
                             if (!plan) {
                                 this.subscriptionModal.preview = '0.00';
+                                this.subscriptionModal.previewBase = '0.00';
+                                this.subscriptionModal.previewExtra = '0.00';
                                 return;
                             }
 
+                            this.subscriptionModal.lessonError = '';
                             const amounts = this.calculateSubscriptionAmount(
                                 this.subscriptionModal.option,
                                 this.subscriptionModal.startDate,
@@ -1255,6 +1485,9 @@
                             this.subscriptionModal.option = 'current_month';
                             this.subscriptionModal.startDate = today;
                             this.subscriptionModal.selectedExtraCourseId = null;
+                            this.subscriptionModal.selectedLessons = [];
+                            this.subscriptionModal.lessonError = '';
+                            this.subscriptionModal.prorationInfo = null;
                             this.subscriptionModal.previewBase = '0.00';
                             this.subscriptionModal.previewExtra = '0.00';
                             this.subscriptionModal.limits = {
@@ -1277,6 +1510,9 @@
                             this.subscriptionModal.previewBase = '0.00';
                             this.subscriptionModal.previewExtra = '0.00';
                             this.subscriptionModal.selectedExtraCourseId = null;
+                            this.subscriptionModal.selectedLessons = [];
+                            this.subscriptionModal.lessonError = '';
+                            this.subscriptionModal.prorationInfo = null;
                         },
 
                         handleSubscriptionOptionChange(option) {
@@ -1310,6 +1546,11 @@
                             if (!this.subscriptionModal.course) return false;
                             if (!this.subscriptionModal.planType || !this.selectedPlan()) return false;
                             if (this.isSubscribed(this.subscriptionModal.course.id)) return false;
+                             if (this.courseEnrollmentFull(this.subscriptionModal.course)) return false;
+                             if (this.isLessonBasedCourse(this.subscriptionModal.course)) {
+                                 if (!this.subscriptionModal.selectedLessons.length) return false;
+                                 if (this.subscriptionModal.lessonError) return false;
+                             }
                             if (this.subscriptionModal.option === 'current_month') {
                                 return this.isValidSubscriptionDate();
                             }
@@ -1350,6 +1591,9 @@
                             if (this.subscriptionModal.selectedExtraCourseId) {
                                 payload.extra_course_id = this.subscriptionModal.selectedExtraCourseId;
                             }
+                            if (this.subscriptionModal.selectedLessons.length) {
+                                payload.selected_lessons = [...this.subscriptionModal.selectedLessons];
+                            }
 
                             this.sendRequest(this.routes.subscribe, 'POST', payload)
                                 .then(response => {
@@ -1361,6 +1605,10 @@
                                             this.subscriptions.push(response.subscription);
                                         }
                                         this.refreshDerivedCollections();
+                                        this.updateCourseMetricsAfterSubscription(
+                                            this.subscriptionModal.course.id,
+                                            response.subscription?.lessons || []
+                                        );
                                     }
                                     this.statusMessage = response.message || 'Subscription activated.';
                                     if (response.payment) {
@@ -1369,6 +1617,62 @@
                                     this.closeSubscriptionModal();
                                 })
                                 .catch(() => {});
+                        },
+
+                        formatProrationLabel(info) {
+                            if (!info) return '';
+                            const total = Number(info.total ?? 0);
+                            const remaining = Number(info.remaining ?? 0);
+                            const ratio = Number(info.ratio ?? 0);
+                            const basisLabel = info.basis === 'lessons' ? 'lezioni' : 'giorni';
+                            if (total <= 0) {
+                                return 'Nessuna riduzione applicata.';
+                            }
+                            return `${remaining} ${basisLabel} rimanenti su ${total} (${Math.round(ratio * 100)}%)`;
+                        },
+
+                        updateCourseMetricsAfterSubscription(courseId, lessons = []) {
+                            const numericId = Number(courseId);
+                            if (Number.isNaN(numericId)) {
+                                return;
+                            }
+                            const course = this.courses.find(item => Number(item.id) === numericId);
+                            if (!course) {
+                                return;
+                            }
+
+                            course.enrollment_count = (course.enrollment_count ?? course.enrollmentCount ?? 0) + 1;
+                            course.enrollmentCount = course.enrollment_count;
+
+                            if (course.max_enrollments) {
+                                const max = Number(course.max_enrollments);
+                                const total = Number(course.enrollment_count);
+                                const isFull = max > 0 && total >= max;
+                                course.enrollment_full = isFull;
+                                course.enrollmentFull = isFull;
+                            }
+
+                            if (!Array.isArray(course.schedule)) {
+                                return;
+                            }
+
+                            lessons.forEach(lesson => {
+                                const slotId = Number(lesson?.course_schedule_id);
+                                if (Number.isNaN(slotId)) {
+                                    return;
+                                }
+                                const slot = course.schedule.find(item => Number(item.id) === slotId);
+                                if (!slot) {
+                                    return;
+                                }
+                                slot.used = (slot.used ?? 0) + 1;
+                                if (slot.capacity !== null && typeof slot.capacity !== 'undefined') {
+                                    const capacity = Number(slot.capacity);
+                                    const used = Number(slot.used);
+                                    slot.available = Math.max(capacity - used, 0);
+                                    slot.full = slot.available <= 0;
+                                }
+                            });
                         },
 
                         membershipStatusClass() {

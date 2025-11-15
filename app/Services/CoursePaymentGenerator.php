@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Payment;
 use App\Models\Subscription;
+use App\Support\TimeHelper;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -22,8 +23,9 @@ class CoursePaymentGenerator
         $now = now();
 
         $subscriptions = Subscription::with([
-                'course:id,title,monthly_price,quarterly_price,annual_price,price,teacher_id',
+                'course:id,title,monthly_price,quarterly_price,annual_price,price,teacher_id,pricing_mode',
                 'extraCourse:id,title,monthly_price,teacher_id',
+                'lessons.schedule',
             ])
             ->where('auto_renew', true)
             ->where('status', 'active');
@@ -127,7 +129,14 @@ class CoursePaymentGenerator
             'renewal_cycle_start' => $cycleStart->toDateString(),
             'renewal_cycle_end' => $cycleEnd->toDateString(),
             'auto_generated' => true,
+            'pricing_mode' => $subscription->course?->pricing_mode ?? 'block',
         ];
+
+        $lessonMeta = $this->mapSubscriptionLessons($subscription);
+        if (!empty($lessonMeta)) {
+            $meta['selected_lessons'] = $lessonMeta;
+            $meta['lessons_per_week'] = count($lessonMeta);
+        }
 
         $extraMeta = null;
         if ($subscription->hasExtraDay() && ($subscription->extra_course_plan_amount ?? 0) > 0) {
@@ -162,5 +171,30 @@ class CoursePaymentGenerator
         });
 
         return $payment;
+    }
+
+    protected function mapSubscriptionLessons(Subscription $subscription): array
+    {
+        $lessons = $subscription->relationLoaded('lessons')
+            ? $subscription->lessons
+            : $subscription->lessons()->with('schedule')->get();
+
+        if ($lessons->isEmpty()) {
+            return [];
+        }
+
+        return $lessons->map(function ($lesson) {
+            $day = $lesson->schedule->day_of_week ?? null;
+            $timeValue = $lesson->schedule->time ?? $lesson->time;
+            $time = $timeValue ? TimeHelper::format($timeValue) : null;
+            $label = trim(($day ?? '') . ' ' . ($time ?? ''));
+
+            return [
+                'course_schedule_id' => $lesson->course_schedule_id,
+                'day' => $day,
+                'time' => $time,
+                'label' => $label,
+            ];
+        })->values()->all();
     }
 }

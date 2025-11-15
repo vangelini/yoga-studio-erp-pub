@@ -20,16 +20,40 @@ class SubscriptionsController extends Controller
             'planType' => ['required', Rule::in(['monthly', 'quarterly', 'annual'])],
             'startOption' => ['required', Rule::in(['current_month', 'next_month'])],
             'startDate' => ['nullable', 'date', 'required_if:startOption,current_month'],
+            'selectedLessons' => ['nullable', 'array'],
+            'selectedLessons.*' => ['integer'],
         ]);
 
         $client = User::findOrFail($data['clientId']);
         $course = Course::findOrFail($data['courseId']);
 
-        $selectedPrice = $course->getPlanPrice($data['planType']);
-        if (is_null($selectedPrice) || $selectedPrice <= 0) {
-            throw ValidationException::withMessages([
-                'planType' => __('Il piano selezionato non è disponibile per questo corso.'),
-            ]);
+        $lessonBased = ($course->pricing_mode ?? 'block') === 'per_lesson';
+        $selectedLessons = collect($data['selectedLessons'] ?? [])
+            ->map(fn ($value) => is_numeric($value) ? (int) $value : null)
+            ->filter(fn ($value) => !is_null($value))
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($lessonBased) {
+            $lessonPricing = $course->lesson_pricing[$data['planType']] ?? [];
+            if (empty($lessonPricing)) {
+                throw ValidationException::withMessages([
+                    'planType' => __('Non è stato configurato un prezzo per questo piano.'),
+                ]);
+            }
+            if (empty($selectedLessons)) {
+                throw ValidationException::withMessages([
+                    'selectedLessons' => __('Seleziona almeno una lezione disponibile.'),
+                ]);
+            }
+        } else {
+            $selectedPrice = $course->getPlanPrice($data['planType']);
+            if (is_null($selectedPrice) || $selectedPrice <= 0) {
+                throw ValidationException::withMessages([
+                    'planType' => __('Il piano selezionato non è disponibile per questo corso.'),
+                ]);
+            }
         }
 
         $startDateInput = $data['startOption'] === 'current_month' ? ($data['startDate'] ?? null) : null;
@@ -43,7 +67,9 @@ class SubscriptionsController extends Controller
                 $course,
                 $data['planType'],
                 $data['startOption'],
-                $startDateInput
+                $startDateInput,
+                null,
+                $selectedLessons
             );
         } catch (ValidationException $exception) {
             $errors = $exception->errors();

@@ -17,6 +17,9 @@ class Course extends Model
         'monthly_price',
         'quarterly_price',
         'annual_price',
+        'pricing_mode',
+        'max_enrollments',
+        'lesson_pricing',
         'allows_extra_day',
         'extra_day_discount_percent',
         'speciality_description',
@@ -30,6 +33,8 @@ class Course extends Model
         'monthly_price' => 'float',
         'quarterly_price' => 'float',
         'annual_price' => 'float',
+        'max_enrollments' => 'int',
+        'lesson_pricing' => 'array',
         'allows_extra_day' => 'boolean',
         'extra_day_discount_percent' => 'float',
         'gallery' => 'array',
@@ -81,7 +86,50 @@ class Course extends Model
     {
         $plans = [];
 
+        $lessonBased = ($this->pricing_mode ?? 'block') === 'per_lesson';
+
         foreach (self::PLAN_MONTHS as $plan => $months) {
+            if ($lessonBased) {
+                $lessonPricing = $this->lesson_pricing[$plan] ?? [];
+                $normalized = [];
+
+                foreach ($lessonPricing as $lessons => $price) {
+                    $count = (int) $lessons;
+                    $amount = is_null($price) ? null : (float) $price;
+                    if ($count <= 0 || is_null($amount) || $amount <= 0) {
+                        continue;
+                    }
+                    $normalized[$count] = round($amount, 2);
+                }
+
+                if (empty($normalized)) {
+                    continue;
+                }
+
+                $minLessons = min(array_keys($normalized));
+                $maxLessons = max(array_keys($normalized));
+                $referenceAmount = min($normalized);
+
+                $plans[] = [
+                    'type' => $plan,
+                    'months' => $months,
+                    'amount' => round((float) $referenceAmount, 2),
+                    'amount_formatted' => number_format((float) $referenceAmount, 2, '.', ''),
+                    'label' => match ($plan) {
+                        'monthly' => __('Mensile'),
+                        'quarterly' => __('Trimestrale'),
+                        'annual' => __('Annuale'),
+                        default => ucfirst($plan),
+                    },
+                    'lesson_based' => true,
+                    'min_lessons' => $minLessons,
+                    'max_lessons' => $maxLessons,
+                    'lesson_prices' => $normalized,
+                ];
+
+                continue;
+            }
+
             $amount = $this->getPlanPrice($plan);
 
             if (is_null($amount) || $amount <= 0) {
@@ -99,6 +147,10 @@ class Course extends Model
                     'annual' => __('Annuale'),
                     default => ucfirst($plan),
                 },
+                'lesson_based' => false,
+                'min_lessons' => null,
+                'max_lessons' => null,
+                'lesson_prices' => [],
             ];
         }
 

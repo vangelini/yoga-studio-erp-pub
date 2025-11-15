@@ -2,17 +2,9 @@
 <div class="max-w-3xl mx-auto space-y-6">
     <div class="card p-6 space-y-4">
         <h2 class="text-2xl font-semibold text-stone-900">Invio WhatsApp manuale</h2>
-        <p class="text-sm text-stone-500">Sono stati generati <?php echo e(count($links)); ?> link WhatsApp per la notifica <strong><?php echo e($notification->title); ?></strong>. Verranno aperti automaticamente in nuove schede (se il browser lo consente) e puoi anche cliccarli manualmente dall'elenco qui sotto.</p>
+        <p class="text-sm text-stone-500">Sono stati generati <?php echo e(count($links)); ?> link WhatsApp per la notifica <strong><?php echo e($notification->title); ?></strong>. Cliccando in "Apri Chat" aprira una TAB del Whatsapp Web, nella nuova TAB inviare il messaggio preconfigurato.</p>
 
-        <?php if(count($links)): ?>
-            <button
-                type="button"
-                id="open-all-whatsapp"
-                class="inline-flex items-center gap-2 rounded-lg border border-teal-200 bg-white px-3 py-2 text-xs font-semibold text-teal-600 hover:bg-teal-50 transition"
-            >
-                Apri tutte le chat WhatsApp
-            </button>
-        <?php endif; ?>
+
 
         <div id="whatsapp-links" class="space-y-3">
             <?php $__empty_1 = true; $__currentLoopData = $links; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $link): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>

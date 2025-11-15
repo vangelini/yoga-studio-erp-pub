@@ -8,6 +8,7 @@ use App\Models\Payment;
 use App\Models\Subscription;
 use App\Models\Setting;
 use App\Services\CourseSubscriptionManager;
+use App\Support\TimeHelper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -27,15 +28,38 @@ class ClientSubscriptionController extends Controller
             'start_option' => ['required', Rule::in(['current_month', 'next_month'])],
             'start_date' => ['nullable', 'date', 'required_if:start_option,current_month'],
             'extra_course_id' => ['nullable', 'integer', 'different:course_id'],
+            'selected_lessons' => ['nullable', 'array'],
+            'selected_lessons.*' => ['integer'],
         ]);
 
         $course = Course::findOrFail($data['course_id']);
+        $lessonBased = ($course->pricing_mode ?? 'block') === 'per_lesson';
+        $selectedLessons = collect($data['selected_lessons'] ?? [])
+            ->map(fn ($value) => is_numeric($value) ? (int) $value : null)
+            ->filter(fn ($value) => !is_null($value))
+            ->unique()
+            ->values()
+            ->all();
 
-        $selectedPrice = $course->getPlanPrice($data['plan_type']);
-        if (is_null($selectedPrice) || $selectedPrice <= 0) {
-            throw ValidationException::withMessages([
-                'plan_type' => __('Il piano selezionato non è disponibile per questo corso.'),
-            ]);
+        if ($lessonBased) {
+            $lessonPricing = $course->lesson_pricing[$data['plan_type']] ?? [];
+            if (empty($lessonPricing)) {
+                throw ValidationException::withMessages([
+                    'plan_type' => __('Non è stato configurato un prezzo per questo piano.'),
+                ]);
+            }
+            if (empty($selectedLessons)) {
+                throw ValidationException::withMessages([
+                    'selected_lessons' => __('Seleziona almeno una lezione disponibile.'),
+                ]);
+            }
+        } else {
+            $selectedPrice = $course->getPlanPrice($data['plan_type']);
+            if (is_null($selectedPrice) || $selectedPrice <= 0) {
+                throw ValidationException::withMessages([
+                    'plan_type' => __('Il piano selezionato non è disponibile per questo corso.'),
+                ]);
+            }
         }
         $extraDayEnabled = (bool) optional(Setting::find('extra_day_enabled'))->value;
         $extraCourse = null;
@@ -89,7 +113,8 @@ class ClientSubscriptionController extends Controller
                 $data['plan_type'],
                 $data['start_option'],
                 $startDateInput,
-                $extraCourse
+                $extraCourse,
+                $selectedLessons
             );
         } catch (ValidationException $exception) {
             throw $exception;
@@ -257,7 +282,33 @@ class ClientSubscriptionController extends Controller
                 'teacher_id',
             ]),
             'hasExtraDay' => $subscription->hasExtraDay(),
+            'lessons' => $this->formatLessons($subscription),
         ];
+    }
+
+    protected function formatLessons(Subscription $subscription): array
+    {
+        $lessons = $subscription->relationLoaded('lessons')
+            ? $subscription->lessons
+            : $subscription->lessons()->with('schedule')->get();
+
+        if ($lessons->isEmpty()) {
+            return [];
+        }
+
+        return $lessons->map(function ($lesson) {
+            $schedule = $lesson->schedule;
+            $day = $schedule->day_of_week ?? null;
+            $timeValue = $schedule->time ?? $lesson->time;
+            $time = $timeValue ? TimeHelper::format($timeValue) : null;
+
+            return [
+                'course_schedule_id' => $lesson->course_schedule_id,
+                'day' => $day,
+                'time' => $time,
+                'label' => trim(($day ?? '') . ' ' . ($time ?? '')),
+            ];
+        })->values()->all();
     }
 
     protected function formatPayment(Payment $payment): array

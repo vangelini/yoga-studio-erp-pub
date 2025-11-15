@@ -41,11 +41,23 @@ class DashboardPageController extends Controller
                 'subscriptions.payments' => function ($query) {
                     $query->where('type', 'course_subscription');
                 },
+                'subscriptions.lessons',
             ])
             ->orderBy('title')
             ->get()
             ->map(function (Course $course) {
                 $plans = $course->availablePlans();
+                $activeSubscriptions = $course->subscriptions
+                    ? $course->subscriptions->filter(fn ($subscription) => $subscription->status !== 'cancelled')
+                    : collect();
+                $lessonUsage = $activeSubscriptions
+                    ->flatMap(function ($subscription) {
+                        return $subscription->lessons ? $subscription->lessons->pluck('course_schedule_id') : collect();
+                    })
+                    ->filter()
+                    ->countBy();
+                $enrollmentCount = $activeSubscriptions->count();
+                $courseFull = $course->max_enrollments && $enrollmentCount >= $course->max_enrollments;
 
                 return [
                     'id' => $course->id,
@@ -66,6 +78,16 @@ class DashboardPageController extends Controller
                     'allowsExtraDay' => (bool) $course->allows_extra_day,
                     'extra_day_discount_percent' => $course->extra_day_discount_percent ?? 0,
                     'extraDayDiscountPercent' => $course->extra_day_discount_percent ?? 0,
+                    'pricing_mode' => $course->pricing_mode ?? 'block',
+                    'pricingMode' => $course->pricing_mode ?? 'block',
+                    'max_enrollments' => $course->max_enrollments,
+                    'maxEnrollments' => $course->max_enrollments,
+                    'lesson_pricing' => $course->lesson_pricing ?? [],
+                    'lessonPricing' => $course->lesson_pricing ?? [],
+                    'enrollment_count' => $enrollmentCount,
+                    'enrollmentCount' => $enrollmentCount,
+                    'enrollment_full' => (bool) $courseFull,
+                    'enrollmentFull' => (bool) $courseFull,
                     'available_plans' => $plans,
                     'availablePlans' => $plans,
                     'speciality_description' => $course->speciality_description,
@@ -79,10 +101,21 @@ class DashboardPageController extends Controller
                     'endDate' => optional($course->end_date)?->format('Y-m-d'),
                     'startDateHuman' => optional($course->start_date)?->format('d/m/Y'),
                     'endDateHuman' => optional($course->end_date)?->format('d/m/Y'),
-                    'schedule' => $course->schedule->map(function ($slot) {
+                    'schedule' => $course->schedule->map(function ($slot) use ($lessonUsage) {
+                        $used = (int) ($lessonUsage[$slot->id] ?? 0);
+                        $capacity = $slot->capacity;
+                        $available = is_null($capacity) ? null : max($capacity - $used, 0);
+                        $label = trim($slot->day_of_week . ' ' . ($slot->time ? TimeHelper::format($slot->time) : ''));
+
                         return [
+                            'id' => $slot->id,
                             'day' => $slot->day_of_week,
                             'time' => $slot->time ? TimeHelper::format($slot->time) : null,
+                            'capacity' => $capacity,
+                            'used' => $used,
+                            'available' => $available,
+                            'full' => $capacity !== null && $used >= $capacity,
+                            'label' => $label,
                         ];
                     })->values(),
                     'students' => $this->mapCourseStudents($course),
@@ -733,6 +766,7 @@ class DashboardPageController extends Controller
             'courses.subscriptions.payments' => function ($query) {
                 $query->where('type', 'course_subscription');
             },
+            'courses.subscriptions.lessons',
         ])->where('user_id', $teacherId)->first();
 
         $courseCollection = collect($teacher?->courses ?? []);
@@ -825,6 +859,17 @@ class DashboardPageController extends Controller
     private function formatTeacherCourse(Course $course): array
     {
         $plans = $course->availablePlans();
+        $activeSubscriptions = $course->subscriptions
+            ? $course->subscriptions->filter(fn ($subscription) => $subscription->status !== 'cancelled')
+            : collect();
+        $lessonUsage = $activeSubscriptions
+            ->flatMap(function ($subscription) {
+                return $subscription->lessons ? $subscription->lessons->pluck('course_schedule_id') : collect();
+            })
+            ->filter()
+            ->countBy();
+        $enrollmentCount = $activeSubscriptions->count();
+        $courseFull = $course->max_enrollments && $enrollmentCount >= $course->max_enrollments;
 
         return [
             'id' => $course->id,
@@ -835,6 +880,16 @@ class DashboardPageController extends Controller
             'monthly_price' => $course->monthly_price,
             'quarterly_price' => $course->quarterly_price,
             'annual_price' => $course->annual_price,
+            'pricing_mode' => $course->pricing_mode ?? 'block',
+            'pricingMode' => $course->pricing_mode ?? 'block',
+            'max_enrollments' => $course->max_enrollments,
+            'maxEnrollments' => $course->max_enrollments,
+            'lesson_pricing' => $course->lesson_pricing ?? [],
+            'lessonPricing' => $course->lesson_pricing ?? [],
+            'enrollment_count' => $enrollmentCount,
+            'enrollmentCount' => $enrollmentCount,
+            'enrollment_full' => (bool) $courseFull,
+            'enrollmentFull' => (bool) $courseFull,
             'monthlyPrice' => $course->monthly_price,
             'quarterlyPrice' => $course->quarterly_price,
             'annualPrice' => $course->annual_price,
@@ -846,10 +901,21 @@ class DashboardPageController extends Controller
             'endDateHuman' => optional($course->end_date)?->translatedFormat('d/m/Y'),
             'speciality_description' => $course->speciality_description,
             'availablePlans' => $plans,
-            'schedule' => $course->schedule->map(function ($slot) {
+            'schedule' => $course->schedule->map(function ($slot) use ($lessonUsage) {
+                $used = (int) ($lessonUsage[$slot->id] ?? 0);
+                $capacity = $slot->capacity;
+                $available = is_null($capacity) ? null : max($capacity - $used, 0);
+                $label = trim($slot->day_of_week . ' ' . ($slot->time ? TimeHelper::format($slot->time) : ''));
+
                 return [
+                    'id' => $slot->id,
                     'day' => $slot->day_of_week,
                     'time' => $slot->time ? TimeHelper::format($slot->time) : null,
+                    'capacity' => $capacity,
+                    'used' => $used,
+                    'available' => $available,
+                    'full' => $capacity !== null && $used >= $capacity,
+                    'label' => $label,
                 ];
             })->values(),
             'students' => $this->mapCourseStudents($course),
@@ -1030,7 +1096,7 @@ class DashboardPageController extends Controller
             })
             ->values();
 
-        $subscriptions = Subscription::with(['course', 'extraCourse'])
+        $subscriptions = Subscription::with(['course', 'extraCourse', 'lessons.schedule'])
             ->where('client_id', $clientId)
             ->get()
             ->map(function (Subscription $subscription) {
@@ -1081,6 +1147,20 @@ class DashboardPageController extends Controller
                         'teacher_id',
                     ]),
                     'hasExtraDay' => $subscription->hasExtraDay(),
+                    'lessons' => $subscription->lessons
+                        ? $subscription->lessons->map(function ($lesson) {
+                            $schedule = $lesson->schedule;
+                            $day = $schedule->day_of_week ?? null;
+                            $timeValue = $schedule->time ?? $lesson->time;
+                            $time = $timeValue ? TimeHelper::format($timeValue) : null;
+                            return [
+                                'course_schedule_id' => $lesson->course_schedule_id,
+                                'day' => $day,
+                                'time' => $time,
+                                'label' => trim(($day ?? '') . ' ' . ($time ?? '')),
+                            ];
+                        })->values()->all()
+                        : [],
                 ];
             })
             ->values();

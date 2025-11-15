@@ -5,7 +5,9 @@ namespace App\Services;
 use App\Models\Course;
 use App\Models\Payment;
 use App\Models\Subscription;
+use App\Models\SubscriptionLesson;
 use App\Models\User;
+use App\Support\TimeHelper;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -23,7 +25,8 @@ class CourseSubscriptionManager
         string $planType,
         string $startOption,
         ?string $startDateInput = null,
-        ?Course $extraCourse = null
+        ?Course $extraCourse = null,
+        array $selectedLessonIds = []
     ): array
     {
         $planType = in_array($planType, array_keys(Course::PLAN_MONTHS), true) ? $planType : 'monthly';
@@ -40,13 +43,61 @@ class CourseSubscriptionManager
             ]);
         }
 
-        $basePrice = (float) ($course->getPlanPrice($planType) ?? 0);
-        if ($basePrice <= 0) {
-            throw ValidationException::withMessages([
-                'plan_type' => __('Questo piano non è disponibile per il corso selezionato.'),
-            ]);
+        $course->loadMissing(['schedule']);
+        $pricingMode = $course->pricing_mode ?? 'block';
+        $selectedLessonIds = collect($selectedLessonIds ?? [])
+            ->map(fn ($value) => is_numeric($value) ? (int) $value : null)
+            ->filter(fn ($value) => !is_null($value))
+            ->unique()
+            ->values()
+            ->all();
+        $selectedLessonSlots = [];
+        $lessonDayOverrides = null;
+
+        if ($pricingMode === 'per_lesson') {
+            if (empty($selectedLessonIds)) {
+                throw ValidationException::withMessages([
+                    'selected_lessons' => __('Seleziona almeno una lezione settimanale per il corso.'),
+                ]);
+            }
+
+            $scheduleById = $course->schedule->keyBy('id');
+            foreach ($selectedLessonIds as $scheduleId) {
+                $slot = $scheduleById->get($scheduleId);
+                if (!$slot) {
+                    throw ValidationException::withMessages([
+                        'selected_lessons' => __('Una delle lezioni selezionate non è valida per questo corso.'),
+                    ]);
+                }
+                $selectedLessonSlots[] = $slot;
+            }
+
+            $lessonsCount = count($selectedLessonSlots);
+            $lessonPricing = $this->normalizeLessonPricing($course->lesson_pricing[$planType] ?? []);
+            $basePrice = $lessonPricing[$lessonsCount] ?? null;
+
+            if (is_null($basePrice) || $basePrice <= 0) {
+                throw ValidationException::withMessages([
+                    'selected_lessons' => __('Non è stato configurato un prezzo per il numero di lezioni selezionate.'),
+                ]);
+            }
+
+            $lessonDayOverrides = array_map(fn ($slot) => $slot->day_of_week, $selectedLessonSlots);
+        } else {
+            $basePrice = (float) ($course->getPlanPrice($planType) ?? 0);
+            if ($basePrice <= 0) {
+                throw ValidationException::withMessages([
+                    'plan_type' => __('Questo piano non è disponibile per il corso selezionato.'),
+                ]);
+            }
         }
 
+        $this->assertMaxEnrollments($course, $existing);
+        if ($pricingMode === 'per_lesson') {
+            $this->assertLessonCapacity($course, $selectedLessonSlots, $existing);
+        }
+
+        $lessonSnapshot = $this->formatLessonSnapshot($selectedLessonSlots);
         $durationMonths = Course::PLAN_MONTHS[$planType] ?? 1;
         $startDate = null;
         $amount = $basePrice;
@@ -61,7 +112,12 @@ class CourseSubscriptionManager
                 default => __('Mensile'),
             },
             'plan_amount' => $basePrice,
+            'pricing_mode' => $pricingMode,
         ];
+        if (!empty($lessonSnapshot)) {
+            $meta['selected_lessons'] = $lessonSnapshot;
+            $meta['lessons_per_week'] = count($lessonSnapshot);
+        }
         $periodStart = null;
         $periodEnd = null;
 
@@ -90,7 +146,7 @@ class CourseSubscriptionManager
             if ($planType === 'monthly') {
                 $periodStart = $today->copy()->startOfMonth();
                 $periodEnd = $today->copy()->endOfMonth();
-                $lessonProration = $this->calculateLessonProration($course, $periodStart, $periodEnd, $startDate);
+                $lessonProration = $this->calculateLessonProration($course, $periodStart, $periodEnd, $startDate, $lessonDayOverrides);
 
                 if ($lessonProration['total'] > 0 && $lessonProration['remaining'] > 0) {
                     $ratio = $lessonProration['remaining'] / $lessonProration['total'];
@@ -180,7 +236,7 @@ class CourseSubscriptionManager
             );
         }
 
-        return DB::transaction(function () use ($client, $course, $startDate, $endDate, $amount, $meta, $planType, $basePrice, $existing, $extraCourse, $extraData) {
+        return DB::transaction(function () use ($client, $course, $startDate, $endDate, $amount, $meta, $planType, $basePrice, $existing, $extraCourse, $extraData, $selectedLessonSlots) {
             /** @var Subscription $subscription */
             if ($existing) {
                 $existing->fill([
@@ -214,6 +270,15 @@ class CourseSubscriptionManager
                 ]);
             }
 
+            $subscription->lessons()->delete();
+            foreach ($selectedLessonSlots as $slot) {
+                $subscription->lessons()->create([
+                    'course_schedule_id' => $slot->id,
+                    'day_of_week' => $this->mapDayOfWeek($slot->day_of_week) ?? 0,
+                    'time' => $slot->time ? $slot->time->format('H:i:s') : null,
+                ]);
+            }
+
             $payment = Payment::create([
                 'user_id' => $client->id,
                 'payable_type' => Subscription::class,
@@ -230,6 +295,7 @@ class CourseSubscriptionManager
             $subscription->load([
                 'course:id,title,price,monthly_price,quarterly_price,annual_price',
                 'extraCourse:id,title,monthly_price,teacher_id',
+                'lessons.schedule',
             ]);
             $payment->refresh();
 
@@ -238,6 +304,108 @@ class CourseSubscriptionManager
                 'payment' => $payment,
             ];
         });
+    }
+
+    protected function assertMaxEnrollments(Course $course, ?Subscription $existing = null): void
+    {
+        if (!$course->max_enrollments) {
+            return;
+        }
+
+        $query = Subscription::query()
+            ->where('course_id', $course->id)
+            ->where('status', '!=', 'cancelled');
+
+        if ($existing) {
+            $query->where('id', '!=', $existing->id);
+        }
+
+        $count = (int) $query->count();
+        if ($count >= $course->max_enrollments) {
+            throw ValidationException::withMessages([
+                'course_id' => __('Questo corso ha raggiunto il numero massimo di iscritti.'),
+            ]);
+        }
+    }
+
+    protected function assertLessonCapacity(Course $course, array $selectedSlots, ?Subscription $existing = null): void
+    {
+        $slotsWithCapacity = collect($selectedSlots)
+            ->filter(fn ($slot) => !is_null($slot->capacity))
+            ->values();
+
+        if ($slotsWithCapacity->isEmpty()) {
+            return;
+        }
+
+        $ids = $slotsWithCapacity->pluck('id')->all();
+        $usage = SubscriptionLesson::query()
+            ->select('course_schedule_id', DB::raw('count(*) as aggregate'))
+            ->whereIn('course_schedule_id', $ids)
+            ->whereHas('subscription', function ($query) use ($course, $existing) {
+                $query->where('course_id', $course->id)
+                    ->where('status', '!=', 'cancelled');
+                if ($existing) {
+                    $query->where('id', '!=', $existing->id);
+                }
+            })
+            ->groupBy('course_schedule_id')
+            ->pluck('aggregate', 'course_schedule_id');
+
+        foreach ($slotsWithCapacity as $slot) {
+            $used = (int) ($usage[$slot->id] ?? 0);
+            if ($used >= $slot->capacity) {
+                $label = trim($slot->day_of_week . ' ' . ($slot->time ? TimeHelper::format($slot->time) : ''));
+                throw ValidationException::withMessages([
+                    'selected_lessons' => __('La lezione :label non ha più posti disponibili.', [
+                        'label' => $label ?: __('selezionata'),
+                    ]),
+                ]);
+            }
+        }
+    }
+
+    protected function normalizeLessonPricing($pricing): array
+    {
+        $normalized = [];
+        foreach ((array) $pricing as $lessons => $amount) {
+            $count = (int) $lessons;
+            if ($count <= 0) {
+                continue;
+            }
+
+            if ($amount === null || $amount === '') {
+                continue;
+            }
+            $value = (float) $amount;
+            if ($value <= 0) {
+                continue;
+            }
+            $normalized[$count] = round($value, 2);
+        }
+
+        return $normalized;
+    }
+
+    protected function formatLessonSnapshot(array $slots): array
+    {
+        if (empty($slots)) {
+            return [];
+        }
+
+        return collect($slots)
+            ->map(function ($slot) {
+                $time = $slot->time ? TimeHelper::format($slot->time) : null;
+                $label = trim(($slot->day_of_week ?? '') . ' ' . ($time ?? ''));
+                return [
+                    'course_schedule_id' => $slot->id,
+                    'day' => $slot->day_of_week,
+                    'time' => $time,
+                    'label' => $label,
+                ];
+            })
+            ->values()
+            ->all();
     }
 
     protected function prepareExtraDayData(
@@ -318,7 +486,7 @@ class CourseSubscriptionManager
         ];
     }
 
-    protected function calculateLessonProration(Course $course, Carbon $periodStart, Carbon $periodEnd, Carbon $clientStart): array
+    protected function calculateLessonProration(Course $course, Carbon $periodStart, Carbon $periodEnd, Carbon $clientStart, ?array $overrideDays = null): array
     {
         $courseStart = $course->start_date?->copy();
         $courseEnd = $course->end_date?->copy();
@@ -346,7 +514,14 @@ class CourseSubscriptionManager
             return ['total' => 0, 'remaining' => 0, 'details' => []];
         }
 
-        $schedules = $course->schedule()->get(['day_of_week']);
+        if ($overrideDays !== null) {
+            $schedules = collect($overrideDays)->map(function ($day) {
+                return (object) ['day_of_week' => $day];
+            });
+        } else {
+            $schedules = $course->schedule()->get(['day_of_week']);
+        }
+
         if ($schedules->isEmpty()) {
             return ['total' => 0, 'remaining' => 0, 'details' => []];
         }

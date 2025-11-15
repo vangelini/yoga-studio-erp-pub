@@ -8,6 +8,11 @@
     $viewMode = $viewMode ?? 'admin';
     $isTeacherView = $viewMode === 'teacher';
     $currentTeacherName = auth()->user()->name ?? 'Insegnante';
+    $planOptions = [
+        'monthly' => 'Mensile',
+        'quarterly' => 'Trimestrale',
+        'annual' => 'Annuale',
+    ];
 @endphp
 
 <div class="card p-6 space-y-6" x-data="{ showCreateCourse: false }">
@@ -40,9 +45,12 @@
     <div
         class="border border-teal-200/60 rounded-2xl bg-teal-50/60 p-6 shadow-inner"
         x-data="{
-            schedule: [{ day: '', time: '' }],
-            addSlot() { this.schedule.push({ day: '', time: '' }); },
-            removeSlot(index) { if (this.schedule.length > 1) this.schedule.splice(index, 1); }
+            schedule: [{ day: '', time: '', capacity: '' }],
+            pricingMode: '{{ old('pricing_mode', 'block') }}',
+            addSlot() { this.schedule.push({ day: '', time: '', capacity: '' }); },
+            removeSlot(index) { if (this.schedule.length > 1) this.schedule.splice(index, 1); },
+            filledSlots() { return this.schedule.filter(slot => slot.day && slot.time).length || 0; },
+            maxLessonOptions() { return Math.min(4, this.filledSlots()); }
         }"
         x-cloak
         x-show="showCreateCourse"
@@ -79,13 +87,56 @@
                     @enderror
                 </div>
                 <div class="space-y-1.5">
+                    <label class="text-xs uppercase font-semibold text-stone-500">Modalità prezzo <span class="text-rose-600">*</span></label>
+                    <div class="flex flex-wrap items-center gap-4 text-sm text-stone-600">
+                        <label class="inline-flex items-center gap-2">
+                            <input type="radio" name="pricing_mode" value="block" class="h-4 w-4 border-stone-300 text-teal-600" x-model="pricingMode" @checked(old('pricing_mode', 'block') === 'block')>
+                            <span>Prezzo a blocco (mensile/trimestrale/annuale)</span>
+                        </label>
+                        <label class="inline-flex items-center gap-2">
+                            <input type="radio" name="pricing_mode" value="per_lesson" class="h-4 w-4 border-stone-300 text-teal-600" x-model="pricingMode" @checked(old('pricing_mode') === 'per_lesson')>
+                            <span>Prezzo in base alle lezioni scelte</span>
+                        </label>
+                    </div>
+                    <p class="text-[11px] text-stone-500" x-show="pricingMode === 'per_lesson'">Imposta gli importi per ogni combinazione di piano e numero di lezioni selezionate.</p>
+                </div>
+                <div class="space-y-1.5">
                     <label class="text-xs uppercase font-semibold text-stone-500">Prezzi abbonamenti (€)</label>
                     <p class="text-[11px] text-stone-500">Imposta 0 o lascia vuoto per nascondere l'opzione agli allievi.</p>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        <input type="number" step="0.01" name="monthly_price" class="input-field text-sm" placeholder="Mensile">
-                        <input type="number" step="0.01" name="quarterly_price" class="input-field text-sm" placeholder="Trimestrale">
-                        <input type="number" step="0.01" name="annual_price" class="input-field text-sm" placeholder="Annuale">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2" x-show="pricingMode === 'block'" x-cloak>
+                        <input type="number" step="0.01" name="monthly_price" class="input-field text-sm" placeholder="Mensile" value="{{ old('monthly_price') }}">
+                        <input type="number" step="0.01" name="quarterly_price" class="input-field text-sm" placeholder="Trimestrale" value="{{ old('quarterly_price') }}">
+                        <input type="number" step="0.01" name="annual_price" class="input-field text-sm" placeholder="Annuale" value="{{ old('annual_price') }}">
                     </div>
+                    <div class="space-y-2" x-show="pricingMode === 'per_lesson'" x-cloak>
+                        @foreach ($planOptions as $planKey => $planLabel)
+                            <div class="rounded-lg border border-stone-200 bg-white px-3 py-2">
+                                <p class="text-xs font-semibold text-stone-600">{{ $planLabel }}</p>
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2">
+                                    @for ($lessons = 1; $lessons <= 4; $lessons++)
+                                        <label class="text-[11px] text-stone-500 space-y-1" x-show="{{ $lessons }} <= maxLessonOptions()" x-cloak>
+                                            <span>{{ $lessons }} lezioni/settimana</span>
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                min="0"
+                                                name="lesson_pricing[{{ $planKey }}][{{ $lessons }}]"
+                                                value="{{ old('lesson_pricing.'.$planKey.'.'.$lessons) }}"
+                                                class="input-field text-xs"
+                                                placeholder="€"
+                                            >
+                                        </label>
+                                    @endfor
+                                </div>
+                                <p class="text-[11px] text-stone-400" x-text="`Basato su ${maxLessonOptions()} giorno/i configurati in calendario.`"></p>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-xs uppercase font-semibold text-stone-500">Capienza massima corso</label>
+                    <input type="number" min="1" name="max_enrollments" value="{{ old('max_enrollments') }}" class="input-field text-sm" placeholder="Es. 20">
+                    <p class="text-[11px] text-stone-500">Una volta raggiunta la capienza, le nuove iscrizioni verranno bloccate automaticamente.</p>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <div class="space-y-1.5">
@@ -147,6 +198,7 @@
                                     @endforeach
                                 </select>
                                 <input type="time" name="schedule_time[]" class="input-field text-sm w-28" x-model="slot.time">
+                                <input type="number" name="schedule_capacity[]" min="1" class="input-field text-sm w-28" placeholder="Capienza" x-model="slot.capacity">
                                 <button type="button" class="inline-flex items-center gap-1 rounded-lg border border-rose-200 px-2 py-1 text-[11px] font-semibold text-rose-600 hover:bg-rose-50" @click="removeSlot(index)">Rimuovi</button>
                             </div>
                         </template>
@@ -167,9 +219,12 @@
                 class="border border-stone-200 rounded-xl bg-white px-4 py-3 shadow-sm"
                 x-data="{
                     open: false,
-                    schedule: {{ Js::from($course['schedule']) }}.length ? {{ Js::from($course['schedule']) }} : [{ day: '', time: '' }],
-                    addSlot() { this.schedule.push({ day: '', time: '' }); },
-                    removeSlot(index) { if (this.schedule.length > 1) this.schedule.splice(index, 1); }
+                    pricingMode: '{{ $course['pricing_mode'] ?? 'block' }}',
+                    schedule: {{ Js::from($course['schedule']) }}.length ? {{ Js::from($course['schedule']) }} : [{ day: '', time: '', capacity: '' }],
+                    addSlot() { this.schedule.push({ day: '', time: '', capacity: '' }); },
+                    removeSlot(index) { if (this.schedule.length > 1) this.schedule.splice(index, 1); },
+                    filledSlots() { return this.schedule.filter(slot => slot.day && slot.time).length || 0; },
+                    maxLessonOptions() { return Math.min(4, this.filledSlots()); }
                 }"
             >
                 <div class="flex flex-wrap items-center gap-3 text-sm text-stone-600">
@@ -190,8 +245,15 @@
                         </div>
                     @endif
                     <div class="flex flex-wrap items-center gap-1 text-xs text-stone-500">
-                        @php $plans = $course['available_plans'] ?? $course['availablePlans'] ?? []; @endphp
-                        @if(!empty($plans))
+                        @php
+                            $plans = $course['available_plans'] ?? $course['availablePlans'] ?? [];
+                            $pricingMode = $course['pricing_mode'] ?? 'block';
+                        @endphp
+                        @if($pricingMode === 'per_lesson')
+                            <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 font-semibold text-amber-700">
+                                Tariffazione per lezioni scelte
+                            </span>
+                        @elseif(!empty($plans))
                             @foreach ($plans as $plan)
                                 <span class="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2 py-0.5 font-semibold text-teal-700">
                                     {{ $plan['label'] }} · € {{ number_format($plan['amount'], 2, ',', '.') }}
@@ -200,6 +262,11 @@
                         @else
                             <span class="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5 font-semibold text-stone-500">
                                 Tariffe non configurate
+                            </span>
+                        @endif
+                        @if(!empty($course['max_enrollments']))
+                            <span class="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5 font-semibold text-stone-500">
+                                Capienza max: {{ $course['max_enrollments'] }} allievi
                             </span>
                         @endif
                     </div>
@@ -244,12 +311,54 @@
                                 @endif
                             </div>
                             <div class="space-y-1.5">
+                                <label class="text-xs uppercase font-semibold text-stone-500">Modalità prezzo</label>
+                                <div class="flex flex-wrap items-center gap-4 text-sm text-stone-600">
+                                    <label class="inline-flex items-center gap-2">
+                                        <input type="radio" name="pricing_mode" value="block" class="h-4 w-4 border-stone-300 text-teal-600" x-model="pricingMode" @checked(($course['pricing_mode'] ?? 'block') === 'block')>
+                                        <span>Prezzo a blocco</span>
+                                    </label>
+                                    <label class="inline-flex items-center gap-2">
+                                        <input type="radio" name="pricing_mode" value="per_lesson" class="h-4 w-4 border-stone-300 text-teal-600" x-model="pricingMode" @checked(($course['pricing_mode'] ?? 'block') === 'per_lesson')>
+                                        <span>Prezzo per numero di lezioni</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="space-y-1.5">
                                 <label class="text-xs uppercase font-semibold text-stone-500">Prezzi abbonamenti (€)</label>
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2" x-show="pricingMode === 'block'" x-cloak>
                                     <input type="number" step="0.01" name="monthly_price" value="{{ number_format($course['monthly_price'] ?? $course['price'] ?? 0, 2, '.', '') }}" class="input-field text-sm" placeholder="Mensile">
                                     <input type="number" step="0.01" name="quarterly_price" value="{{ number_format($course['quarterly_price'] ?? 0, 2, '.', '') }}" class="input-field text-sm" placeholder="Trimestrale">
                                     <input type="number" step="0.01" name="annual_price" value="{{ number_format($course['annual_price'] ?? 0, 2, '.', '') }}" class="input-field text-sm" placeholder="Annuale">
                                 </div>
+                                <div class="space-y-2" x-show="pricingMode === 'per_lesson'" x-cloak>
+                                    @foreach ($planOptions as $planKey => $planLabel)
+                                        @php $planPricing = $course['lesson_pricing'][$planKey] ?? []; @endphp
+                                        <div class="rounded-lg border border-stone-200 bg-white px-3 py-2">
+                                            <p class="text-xs font-semibold text-stone-600">{{ $planLabel }}</p>
+                                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2">
+                                                @for ($lessons = 1; $lessons <= 4; $lessons++)
+                                                    <label class="text-[11px] text-stone-500 space-y-1" x-show="{{ $lessons }} <= maxLessonOptions()" x-cloak>
+                                                        <span>{{ $lessons }} lezioni/settimana</span>
+                                                        <input
+                                                            type="number"
+                                                            step="0.01"
+                                                            min="0"
+                                                            name="lesson_pricing[{{ $planKey }}][{{ $lessons }}]"
+                                                            value="{{ $planPricing[$lessons] ?? '' }}"
+                                                            class="input-field text-xs"
+                                                            placeholder="€"
+                                                        >
+                                                    </label>
+                                                @endfor
+                                            </div>
+                                            <p class="text-[11px] text-stone-400" x-text="maxLessonOptions() > 0 ? `Basato su ${maxLessonOptions()} giorno/i configurati in calendario.` : 'Configura almeno un giorno nel calendario per definire i prezzi.'"></p>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-xs uppercase font-semibold text-stone-500">Capienza massima corso</label>
+                                <input type="number" min="1" name="max_enrollments" value="{{ $course['max_enrollments'] }}" class="input-field text-sm" placeholder="Es. 20">
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 <div class="space-y-1.5">
@@ -298,16 +407,17 @@
                                 <div class="space-y-2">
                                     <template x-for="(slot, index) in schedule" :key="index">
                                         <div class="flex flex-wrap items-center gap-2 bg-stone-50 border border-stone-200 rounded-lg px-3 py-2">
-                                            <select name="schedule_day[]" class="input-field text-sm w-32" x-model="slot.day">
-                                                <option value="">Giorno</option>
-                                                @foreach ($dayOptions as $dayOption)
-                                                    <option value="{{ $dayOption }}">{{ $dayOption }}</option>
-                                                @endforeach
-                                            </select>
-                                            <input type="time" name="schedule_time[]" class="input-field text-sm w-28" x-model="slot.time">
-                                            <button type="button" class="inline-flex items-center gap-1 rounded-lg border border-rose-200 px-2 py-1 text-[11px] font-semibold text-rose-600 hover:bg-rose-50" @click="removeSlot(index)">Rimuovi</button>
-                                        </div>
-                                    </template>
+                                <select name="schedule_day[]" class="input-field text-sm w-32" x-model="slot.day">
+                                    <option value="">Giorno</option>
+                                    @foreach ($dayOptions as $dayOption)
+                                        <option value="{{ $dayOption }}">{{ $dayOption }}</option>
+                                    @endforeach
+                                </select>
+                                <input type="time" name="schedule_time[]" class="input-field text-sm w-28" x-model="slot.time">
+                                <input type="number" name="schedule_capacity[]" min="1" class="input-field text-sm w-28" placeholder="Capienza" x-model="slot.capacity">
+                                <button type="button" class="inline-flex items-center gap-1 rounded-lg border border-rose-200 px-2 py-1 text-[11px] font-semibold text-rose-600 hover:bg-rose-50" @click="removeSlot(index)">Rimuovi</button>
+                            </div>
+                        </template>
                                 </div>
                             </div>
                     <div class="flex justify-end">
@@ -322,7 +432,6 @@
                 <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <p class="text-sm font-semibold text-stone-700">Allieve/i iscritti</p>
-                        <p class="text-xs text-stone-500">Clicca il nome per aprire la scheda nel pannello allievi.</p>
                     </div>
                     <span class="text-xs font-semibold text-stone-500">{{ count($course['students'] ?? []) }} iscritti</span>
                 </div>

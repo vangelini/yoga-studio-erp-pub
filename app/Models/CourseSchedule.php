@@ -13,10 +13,12 @@ class CourseSchedule extends Model
         'course_id',
         'day_of_week',
         'time',
+        'capacity',
     ];
 
     protected $casts = [
         'time' => 'datetime:H:i',
+        'capacity' => 'integer',
     ];
 
     public function course()

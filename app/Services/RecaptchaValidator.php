@@ -42,6 +42,10 @@ class RecaptchaValidator
 
     public function enabled(): bool
     {
+        if (!config('services.recaptcha.enabled')) {
+            return false;
+        }
+
         return filled(config('services.recaptcha.secret'));
     }
 }

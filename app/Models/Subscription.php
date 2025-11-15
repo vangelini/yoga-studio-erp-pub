@@ -56,6 +56,11 @@ class Subscription extends Model
         return $this->morphMany(Payment::class, 'payable');
     }
 
+    public function lessons()
+    {
+        return $this->hasMany(SubscriptionLesson::class);
+    }
+
     public function planMonths(): int
     {
         return Course::PLAN_MONTHS[$this->plan_type] ?? 1;

@@ -319,7 +319,7 @@
                         @enderror
                     </div>
 
-                    @if (config('services.recaptcha.site_key'))
+                    @if (config('services.recaptcha.enabled') && config('services.recaptcha.site_key'))
                         <div class="space-y-2">
                             <div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') }}"></div>
                             @error('g-recaptcha-response')
@@ -341,5 +341,7 @@
 @endsection
 
 @push('scripts')
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    @if (config('services.recaptcha.enabled') && config('services.recaptcha.site_key'))
+        <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    @endif
 @endpush

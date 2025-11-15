@@ -4,17 +4,9 @@
 <div class="max-w-3xl mx-auto space-y-6">
     <div class="card p-6 space-y-4">
         <h2 class="text-2xl font-semibold text-stone-900">Invio WhatsApp manuale</h2>
-        <p class="text-sm text-stone-500">Sono stati generati {{ count($links) }} link WhatsApp per la notifica <strong>{{ $notification->title }}</strong>. Verranno aperti automaticamente in nuove schede (se il browser lo consente) e puoi anche cliccarli manualmente dall'elenco qui sotto.</p>
+        <p class="text-sm text-stone-500">Sono stati generati {{ count($links) }} link WhatsApp per la notifica <strong>{{ $notification->title }}</strong>. Cliccando in "Apri Chat" aprira una TAB del Whatsapp Web, nella nuova TAB inviare il messaggio preconfigurato.</p>
 
-        @if(count($links))
-            <button
-                type="button"
-                id="open-all-whatsapp"
-                class="inline-flex items-center gap-2 rounded-lg border border-teal-200 bg-white px-3 py-2 text-xs font-semibold text-teal-600 hover:bg-teal-50 transition"
-            >
-                Apri tutte le chat WhatsApp
-            </button>
-        @endif
+
 
         <div id="whatsapp-links" class="space-y-3">
             @forelse ($links as $link)

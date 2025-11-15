@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class AdminCourseController extends Controller
@@ -28,6 +29,9 @@ class AdminCourseController extends Controller
                 'monthly_price' => $data['monthly_price'],
                 'quarterly_price' => $data['quarterly_price'],
                 'annual_price' => $data['annual_price'],
+                'pricing_mode' => $data['pricing_mode'],
+                'max_enrollments' => $data['max_enrollments'],
+                'lesson_pricing' => $data['lesson_pricing'],
                 'allows_extra_day' => $data['allows_extra_day'],
                 'extra_day_discount_percent' => $data['extra_day_discount_percent'],
                 'speciality_description' => $data['speciality_description'],
@@ -62,6 +66,9 @@ class AdminCourseController extends Controller
                 'monthly_price' => $data['monthly_price'],
                 'quarterly_price' => $data['quarterly_price'],
                 'annual_price' => $data['annual_price'],
+                'pricing_mode' => $data['pricing_mode'],
+                'max_enrollments' => $data['max_enrollments'],
+                'lesson_pricing' => $data['lesson_pricing'],
                 'allows_extra_day' => $data['allows_extra_day'],
                 'extra_day_discount_percent' => $data['extra_day_discount_percent'],
                 'speciality_description' => $data['speciality_description'],
@@ -106,6 +113,11 @@ class AdminCourseController extends Controller
             'monthly_price' => ['nullable', 'numeric', 'min:0'],
             'quarterly_price' => ['nullable', 'numeric', 'min:0'],
             'annual_price' => ['nullable', 'numeric', 'min:0'],
+            'pricing_mode' => ['required', Rule::in(['block', 'per_lesson'])],
+            'max_enrollments' => ['nullable', 'integer', 'min:1'],
+            'lesson_pricing' => ['nullable', 'array'],
+            'lesson_pricing.*' => ['nullable', 'array'],
+            'lesson_pricing.*.*' => ['nullable', 'numeric', 'min:0'],
             'speciality_description' => ['nullable', 'string'],
             'start_date' => ['required', 'date'],
             'end_date' => ['required', 'date', 'after_or_equal:start_date'],
@@ -113,6 +125,8 @@ class AdminCourseController extends Controller
             'schedule_day.*' => ['nullable', 'string'],
             'schedule_time' => ['nullable', 'array'],
             'schedule_time.*' => ['nullable', 'string'],
+            'schedule_capacity' => ['nullable', 'array'],
+            'schedule_capacity.*' => ['nullable', 'integer', 'min:1'],
             'allows_extra_day' => ['nullable', 'boolean'],
             'extra_day_discount_percent' => ['nullable', 'numeric', 'min:0', 'max:100'],
         ]);
@@ -129,6 +143,8 @@ class AdminCourseController extends Controller
         $days = $request->input('schedule_day', []);
         $times = $request->input('schedule_time', []);
 
+        $capacities = $request->input('schedule_capacity', []);
+
         $schedule = [];
         foreach ($days as $index => $day) {
             $day = trim((string) $day);
@@ -137,8 +153,34 @@ class AdminCourseController extends Controller
                 $schedule[] = [
                     'day' => $day,
                     'time' => $time,
+                    'capacity' => isset($capacities[$index]) && $capacities[$index] !== ''
+                        ? (int) $capacities[$index]
+                        : null,
                 ];
             }
+        }
+
+        $lessonPricingInput = $request->input('lesson_pricing', []);
+        $lessonPricing = [];
+        $maxLessons = max(count($schedule), 1);
+
+        foreach ($lessonPricingInput as $plan => $entries) {
+            foreach (($entries ?? []) as $lessons => $amount) {
+                if ($amount === null || $amount === '') {
+                    continue;
+                }
+                if ((int) $lessons > $maxLessons) {
+                    continue;
+                }
+                $amount = (float) $amount;
+                if ($amount > 0) {
+                    $lessonPricing[$plan][$lessons] = $amount;
+                }
+            }
+        }
+
+        if ($data['pricing_mode'] !== 'per_lesson') {
+            $lessonPricing = [];
         }
 
         $monthlyPrice = $data['monthly_price'] ?? $data['price'] ?? null;
@@ -157,6 +199,9 @@ class AdminCourseController extends Controller
             'monthly_price' => $monthlyPrice,
             'quarterly_price' => $quarterlyPrice,
             'annual_price' => $annualPrice,
+            'pricing_mode' => $data['pricing_mode'],
+            'max_enrollments' => !empty($data['max_enrollments']) ? (int) $data['max_enrollments'] : null,
+            'lesson_pricing' => $lessonPricing ?: null,
             'allows_extra_day' => (bool) ($request->boolean('allows_extra_day')),
             'extra_day_discount_percent' => isset($data['extra_day_discount_percent'])
                 ? (float) $data['extra_day_discount_percent']
@@ -175,6 +220,7 @@ class AdminCourseController extends Controller
                 'course_id' => $course->id,
                 'day_of_week' => $slot['day'],
                 'time' => $slot['time'],
+                'capacity' => $slot['capacity'] ?? null,
             ]);
         }
     }
