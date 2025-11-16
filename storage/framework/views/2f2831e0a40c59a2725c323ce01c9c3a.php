@@ -31,7 +31,7 @@
             <?php echo method_field('PUT'); ?>
 
             <div>
-                <label class="text-xs uppercase font-semibold text-stone-500">Quota annuale (Euro)</label>
+                <label class="text-xs uppercase font-semibold text-stone-500">Quota associativa annuale (Euro)</label>
                 <input type="number" step="0.01" name="membership_fee" value="<?php echo e(old('membership_fee', $membership_fee)); ?>" required class="input-field mt-1">
                 <?php $__errorArgs = ['membership_fee'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -57,12 +57,6 @@ unset($__errorArgs, $__bag); ?>
                         </svg>
                         Genera quote ora
                     </button>
-                    <form method="POST" action="<?php echo e(route('notifications.pending.resend')); ?>" onsubmit="return confirm('Reinviare le notifiche delle pendenze generate per i corsi?');">
-                        <?php echo csrf_field(); ?>
-                        <button type="submit" class="inline-flex items-center gap-2 rounded-lg border border-stone-300 px-3 py-1.5 text-xs font-semibold text-teal-700 hover:bg-stone-100 transition">
-                            Reinvia notifica pendenze
-                        </button>
-                    </form>
                 </div>
             </div>
 
@@ -158,30 +152,6 @@ unset($__errorArgs, $__bag); ?>
                         <input type="number" min="1" max="60" name="notification_overdue_days" value="<?php echo e(old('notification_overdue_days', $notification_overdue_days)); ?>" class="input-field mt-1 w-32">
                         <p class="text-xs text-stone-500 mt-1">Numero di giorni trascorsi dalla scadenza prima di inviare l'avviso di morosità.</p>
                         <?php $__errorArgs = ['notification_overdue_days'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?><p class="text-xs text-rose-600 mt-1"><?php echo e($message); ?></p><?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>
-                    </div>
-                    <div>
-                        <label class="text-xs uppercase font-semibold text-stone-500">Messaggio morosità</label>
-                        <textarea name="notification_overdue_message" rows="3" class="input-field mt-1"><?php echo e(old('notification_overdue_message', $notification_overdue_message)); ?></textarea>
-                        <?php $__errorArgs = ['notification_overdue_message'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?><p class="text-xs text-rose-600 mt-1"><?php echo e($message); ?></p><?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>
-                    </div>
-                    <div>
-                        <label class="text-xs uppercase font-semibold text-stone-500">Messaggio pendenze generate</label>
-                        <textarea name="notification_pending_message" rows="3" class="input-field mt-1"><?php echo e(old('notification_pending_message', $notification_pending_message)); ?></textarea>
-                        <?php $__errorArgs = ['notification_pending_message'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
