@@ -1,5 +1,5 @@
 
-    @php
+    <?php
         $clientPermissions = $clientPagePermissions ?? [
             'mode' => 'admin',
             'can_create' => true,
@@ -9,7 +9,7 @@
             'can_manage_documents' => true,
             'can_manage_payments' => true,
         ];
-    @endphp
+    ?>
 
     <div class="card p-6 space-y-6">
         <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -18,30 +18,30 @@
                 <p class="text-sm text-stone-500">Gestisci dati anagrafici, stato account e pagamenti.</p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
-                <form method="GET" action="{{ route('admin.clients.index') }}" class="flex items-center gap-2">
+                <form method="GET" action="<?php echo e(route('admin.clients.index')); ?>" class="flex items-center gap-2">
                     <input
                         type="search"
                         name="q"
-                        value="{{ $search ?? '' }}"
+                        value="<?php echo e($search ?? ''); ?>"
                         placeholder="Cerca nome, cognome o email"
                         class="input-field text-sm w-56"
                     >
-                    <input type="hidden" name="sort" value="{{ $sort ?? 'name' }}">
-                    <input type="hidden" name="dir" value="{{ $dir ?? 'asc' }}">
+                    <input type="hidden" name="sort" value="<?php echo e($sort ?? 'name'); ?>">
+                    <input type="hidden" name="dir" value="<?php echo e($dir ?? 'asc'); ?>">
                     <button type="submit" class="inline-flex items-center gap-1 rounded-lg border border-stone-300 px-3 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-100">
                         Cerca
                     </button>
                     <a
-                        href="{{ route('admin.clients.index') }}"
+                        href="<?php echo e(route('admin.clients.index')); ?>"
                         class="inline-flex items-center gap-1 rounded-lg border border-stone-300 px-3 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-100"
                         title="Cancella ricerca"
                     >
                         Cancella
                     </a>
                 </form>
-                @if($clientPermissions['can_export'] ?? false)
+                <?php if($clientPermissions['can_export'] ?? false): ?>
                     <a
-                        href="{{ route('admin.users.export') }}"
+                        href="<?php echo e(route('admin.users.export')); ?>"
                         class="inline-flex items-center gap-2 rounded-lg border border-teal-200 bg-white px-4 py-2 text-xs font-semibold text-teal-600 transition-colors hover:border-teal-300 hover:bg-teal-50"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -49,25 +49,25 @@
                         </svg>
                         Scarica elenco (.csv)
                     </a>
-                @endif
-                @if($clientPermissions['can_create'] ?? false)
+                <?php endif; ?>
+                <?php if($clientPermissions['can_create'] ?? false): ?>
                     <button type="button" class="btn-primary text-xs self-start md:self-auto" @click="showCreateClient = !showCreateClient">
                         <span class="text-sm font-semibold" x-text="showCreateClient ? 'Nascondi form' : 'Nuova allieva/o'"></span>
                     </button>
-                @endif
+                <?php endif; ?>
             </div>
         </div>
 
 
-        @if($clientPermissions['can_create'] ?? false)
+        <?php if($clientPermissions['can_create'] ?? false): ?>
         <form
             x-show="showCreateClient"
             x-transition
             method="POST"
-            action="{{ route('admin.users.store') }}"
+            action="<?php echo e(route('admin.users.store')); ?>"
             class="grid grid-cols-1 md:grid-cols-2 gap-4 border border-stone-200 rounded-2xl bg-stone-50 px-5 py-6"
         >
-            @csrf
+            <?php echo csrf_field(); ?>
             <input type="hidden" name="role" value="Client">
             <div>
                 <label class="text-xs uppercase text-stone-500 font-semibold">Nome</label>
@@ -88,9 +88,9 @@
             <div>
                 <label class="text-xs uppercase text-stone-500 font-semibold">Prefisso</label>
                 <select name="telephone_country" class="input-field text-sm">
-                    @foreach ($phonePrefixes as $option)
-                        <option value="{{ $option['code'] }}" @selected($option['code'] === '+39')>{{ $option['name'] }} ({{ $option['code'] }})</option>
-                    @endforeach
+                    <?php $__currentLoopData = $phonePrefixes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $option): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <option value="<?php echo e($option['code']); ?>" <?php if($option['code'] === '+39'): echo 'selected'; endif; ?>><?php echo e($option['name']); ?> (<?php echo e($option['code']); ?>)</option>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </select>
             </div>
             <div>
@@ -133,10 +133,10 @@
                 <button type="submit" class="btn-primary text-sm">Registra allieva/o</button>
             </div>
         </form>
-        @endif
+        <?php endif; ?>
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-stone-200 text-sm">
-                @php
+                <?php
                     $currentSort = $sort ?? 'name';
                     $currentDir = $dir ?? 'asc';
                     $toggleDir = $currentDir === 'asc' ? 'desc' : 'asc';
@@ -151,34 +151,34 @@
                         }
                         return $currentDir === 'asc' ? '▲' : '▼';
                     };
-                @endphp
+                ?>
                 <thead class="bg-stone-100 text-stone-600 uppercase text-xs tracking-wide">
                     <tr>
                         <th class="px-4 py-3 text-left font-semibold">
-                            <a href="{{ $sortUrl('name') }}" class="inline-flex items-center gap-1 hover:text-stone-800">
+                            <a href="<?php echo e($sortUrl('name')); ?>" class="inline-flex items-center gap-1 hover:text-stone-800">
                                 Nome
-                                <span class="text-[10px]">{{ $sortIndicator('name') }}</span>
+                                <span class="text-[10px]"><?php echo e($sortIndicator('name')); ?></span>
                             </a>
                         </th>
                         <th class="px-4 py-3 text-left font-semibold">
-                            <a href="{{ $sortUrl('email') }}" class="inline-flex items-center gap-1 hover:text-stone-800">
+                            <a href="<?php echo e($sortUrl('email')); ?>" class="inline-flex items-center gap-1 hover:text-stone-800">
                                 Email
-                                <span class="text-[10px]">{{ $sortIndicator('email') }}</span>
+                                <span class="text-[10px]"><?php echo e($sortIndicator('email')); ?></span>
                             </a>
                         </th>
                         <th class="px-4 py-3 text-left font-semibold">Telefono</th>
                         <th class="px-4 py-3 text-left font-semibold">
-                            <a href="{{ $sortUrl('status') }}" class="inline-flex items-center gap-1 hover:text-stone-800">
+                            <a href="<?php echo e($sortUrl('status')); ?>" class="inline-flex items-center gap-1 hover:text-stone-800">
                                 Stato Account
-                                <span class="text-[10px]">{{ $sortIndicator('status') }}</span>
+                                <span class="text-[10px]"><?php echo e($sortIndicator('status')); ?></span>
                             </a>
                         </th>
                         <th class="px-4 py-3 text-left font-semibold">Azioni</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-stone-100">
-                    @forelse ($clients as $client)
-                        @php
+                    <?php $__empty_1 = true; $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                        <?php
                             $phoneParts = explode(' ', $client->telephone ?? '', 2);
                             $clientPrefix = $phoneParts[0] ?? '+39';
                             $clientNumber = $phoneParts[1] ?? '';
@@ -190,40 +190,43 @@
                                 ->reject(fn ($type) => $documentsByType->has($type))
                                 ->values();
                             $pendingPaymentsCount = (int) ($client->getAttribute('admin_pending_payments_count') ?? 0);
-                        @endphp
-                        <tr id="client-{{ $client->id }}" class="hover:bg-stone-50">
-                            <td class="px-4 py-3 font-medium text-stone-800">{{ $client->name }}</td>
+                        ?>
+                        <tr id="client-<?php echo e($client->id); ?>" class="hover:bg-stone-50">
+                            <td class="px-4 py-3 font-medium text-stone-800"><?php echo e($client->name); ?></td>
                             <td class="px-4 py-3 text-stone-600">
-                                @if ($client->email)
-                                    <a href="mailto:{{ $client->email }}" class="text-teal-600 hover:text-teal-800 font-semibold underline decoration-dotted">{{ $client->email }}</a>
-                                @else
+                                <?php if($client->email): ?>
+                                    <a href="mailto:<?php echo e($client->email); ?>" class="text-teal-600 hover:text-teal-800 font-semibold underline decoration-dotted"><?php echo e($client->email); ?></a>
+                                <?php else: ?>
                                     —
-                                @endif
+                                <?php endif; ?>
                             </td>
                             <td class="px-4 py-3 text-stone-600">
-                                @if ($client->telephone && $clientWhatsapp)
-                                    <a href="https://wa.me/{{ $clientWhatsapp }}" target="_blank" rel="noopener" class="text-teal-600 hover:text-teal-800 font-semibold underline decoration-dotted">
-                                        {{ $client->telephone }}
+                                <?php if($client->telephone && $clientWhatsapp): ?>
+                                    <a href="https://wa.me/<?php echo e($clientWhatsapp); ?>" target="_blank" rel="noopener" class="text-teal-600 hover:text-teal-800 font-semibold underline decoration-dotted">
+                                        <?php echo e($client->telephone); ?>
+
                                     </a>
-                                @else
-                                    {{ $client->telephone ?? '—' }}
-                                @endif
+                                <?php else: ?>
+                                    <?php echo e($client->telephone ?? '—'); ?>
+
+                                <?php endif; ?>
                             </td>
                             <td class="px-4 py-3">
                                 <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold
-                                    @if($client->status === 'active') bg-emerald-100 text-emerald-700
-                                    @elseif($client->status === 'pending') bg-amber-100 text-amber-700
-                                    @else bg-rose-100 text-rose-700 @endif">
-                                    {{ ucfirst($client->status) }}
+                                    <?php if($client->status === 'active'): ?> bg-emerald-100 text-emerald-700
+                                    <?php elseif($client->status === 'pending'): ?> bg-amber-100 text-amber-700
+                                    <?php else: ?> bg-rose-100 text-rose-700 <?php endif; ?>">
+                                    <?php echo e(ucfirst($client->status)); ?>
+
                                 </span>
                             </td>
                             <td class="px-4 py-3">
-                                <button type="button" class="text-xs font-semibold inline-flex items-center gap-1 bg-stone-200 text-stone-700 px-3 py-1.5 rounded-lg hover:bg-stone-300 transition-colors" @click="toggleClient({{ $client->id }})">
-                                    <span x-text="expandedClient === {{ $client->id }} ? 'Nascondi' : 'Gestisci'"></span>
+                                <button type="button" class="text-xs font-semibold inline-flex items-center gap-1 bg-stone-200 text-stone-700 px-3 py-1.5 rounded-lg hover:bg-stone-300 transition-colors" @click="toggleClient(<?php echo e($client->id); ?>)">
+                                    <span x-text="expandedClient === <?php echo e($client->id); ?> ? 'Nascondi' : 'Gestisci'"></span>
                                 </button>
                             </td>
                         </tr>
-                        <tr x-show="expandedClient === {{ $client->id }}" x-cloak x-transition>
+                        <tr x-show="expandedClient === <?php echo e($client->id); ?>" x-cloak x-transition>
                             <td colspan="5" class="px-4 pb-5">
                                 <div x-data="{ showProfile: false }" class="bg-stone-50 border border-stone-200 rounded-lg p-5 space-y-5">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -231,37 +234,37 @@
             <h4 class="text-sm font-semibold uppercase tracking-wide text-stone-600">Dettagli allieva/o</h4>
             
             <div class="mt-2 flex flex-wrap items-center gap-3 text-xs">
-                @if($missingDocuments->isEmpty())
+                <?php if($missingDocuments->isEmpty()): ?>
                     <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-emerald-600">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-7.25 7.25a1 1 0 01-1.414 0l-3.25-3.25a1 1 0 011.414-1.414l2.543 2.543 6.543-6.543a1 1 0 011.414 0z" clip-rule="evenodd" />
                         </svg>
                         <span>Documenti completi</span>
                     </span>
-                @else
+                <?php else: ?>
                     <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-1 text-amber-600">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                             <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.721-1.36 3.486 0l5.451 9.698c.75 1.335-.213 3.003-1.742 3.003H4.548c-1.53 0-2.492-1.668-1.743-3.003l5.452-9.698zM11 13a1 1 0 10-2 0 1 1 0 002 0zm-1-2a1 1 0 01-1-1V7a1 1 0 112 0v3a1 1 0 01-1 1z" clip-rule="evenodd" />
                         </svg>
-                        <span>{{ $missingDocuments->count() }} documenti mancanti</span>
+                        <span><?php echo e($missingDocuments->count()); ?> documenti mancanti</span>
                     </span>
-                @endif
+                <?php endif; ?>
 
-                @if($pendingPaymentsCount > 0)
+                <?php if($pendingPaymentsCount > 0): ?>
                     <span class="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-1 text-rose-600">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11.75a.75.75 0 00-1.5 0v4.5a.75.75 0 001.5 0v-4.5zM10 13a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd" />
                         </svg>
-                        <span>{{ $pendingPaymentsCount }} pagamenti da gestire</span>
+                        <span><?php echo e($pendingPaymentsCount); ?> pagamenti da gestire</span>
                     </span>
-                @else
+                <?php else: ?>
                     <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-emerald-600">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-7.25 7.25a1 1 0 01-1.414 0l-3.25-3.25a1 1 0 011.414-1.414l2.543 2.543 6.543-6.543a1 1 0 011.414 0z" clip-rule="evenodd" />
                         </svg>
                         <span>Pagamenti regolari</span>
                     </span>
-                @endif
+                <?php endif; ?>
             </div>
         </div>
         <button
@@ -272,123 +275,123 @@
         ></button>
     </div>
 
-    <form method="POST" action="{{ route('admin.users.profile', $client) }}" class="space-y-4">
-        @csrf
-        @method('PUT')
+    <form method="POST" action="<?php echo e(route('admin.users.profile', $client)); ?>" class="space-y-4">
+        <?php echo csrf_field(); ?>
+        <?php echo method_field('PUT'); ?>
         <div x-show="showProfile" x-cloak class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
                 <label class="text-xs uppercase text-stone-500 font-semibold">Nome</label>
-                <input type="text" name="first_name" value="{{ $client->first_name }}" required class="input-field text-sm">
+                <input type="text" name="first_name" value="<?php echo e($client->first_name); ?>" required class="input-field text-sm">
             </div>
             <div>
                 <label class="text-xs uppercase text-stone-500 font-semibold">Cognome</label>
-                <input type="text" name="last_name" value="{{ $client->last_name }}" required class="input-field text-sm">
+                <input type="text" name="last_name" value="<?php echo e($client->last_name); ?>" required class="input-field text-sm">
             </div>
             <div class="md:col-span-2">
                 <label class="text-xs uppercase text-stone-500 font-semibold">Email</label>
-                <input type="email" name="email" value="{{ $client->email }}" required class="input-field text-sm">
+                <input type="email" name="email" value="<?php echo e($client->email); ?>" required class="input-field text-sm">
             </div>
             <div>
                 <label class="text-xs uppercase text-stone-500 font-semibold">Prefisso</label>
                 <select name="telephone_country" class="input-field text-sm">
-                    @foreach ($phonePrefixes as $option)
-                        <option value="{{ $option['code'] }}" @selected($clientPrefix === $option['code'])>{{ $option['name'] }} ({{ $option['code'] }})</option>
-                    @endforeach
+                    <?php $__currentLoopData = $phonePrefixes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $option): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <option value="<?php echo e($option['code']); ?>" <?php if($clientPrefix === $option['code']): echo 'selected'; endif; ?>><?php echo e($option['name']); ?> (<?php echo e($option['code']); ?>)</option>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </select>
             </div>
             <div>
                 <label class="text-xs uppercase text-stone-500 font-semibold">Numero</label>
-                <input type="text" name="telephone" value="{{ $clientNumber }}" required class="input-field text-sm">
+                <input type="text" name="telephone" value="<?php echo e($clientNumber); ?>" required class="input-field text-sm">
             </div>
             <div>
                 <label class="text-xs uppercase text-stone-500 font-semibold">Città</label>
-                <input type="text" name="residenza_citta" value="{{ $client->residenza_citta }}" required class="input-field text-sm">
+                <input type="text" name="residenza_citta" value="<?php echo e($client->residenza_citta); ?>" required class="input-field text-sm">
             </div>
             <div>
                 <label class="text-xs uppercase text-stone-500 font-semibold">Provincia</label>
-                <input type="text" name="residenza_provincia" value="{{ $client->residenza_provincia }}" required class="input-field text-sm">
+                <input type="text" name="residenza_provincia" value="<?php echo e($client->residenza_provincia); ?>" required class="input-field text-sm">
             </div>
             <div>
                 <label class="text-xs uppercase text-stone-500 font-semibold">Stato</label>
-                <input type="text" name="residenza_stato" value="{{ $client->residenza_stato }}" required class="input-field text-sm">
+                <input type="text" name="residenza_stato" value="<?php echo e($client->residenza_stato); ?>" required class="input-field text-sm">
             </div>
             <div>
                 <label class="text-xs uppercase text-stone-500 font-semibold">Via</label>
-                <input type="text" name="residenza_via" value="{{ $client->residenza_via }}" required class="input-field text-sm">
+                <input type="text" name="residenza_via" value="<?php echo e($client->residenza_via); ?>" required class="input-field text-sm">
             </div>
             <div>
                 <label class="text-xs uppercase text-stone-500 font-semibold">Numero civico</label>
-                <input type="text" name="residenza_numero_civico" value="{{ $client->residenza_numero_civico }}" required class="input-field text-sm">
+                <input type="text" name="residenza_numero_civico" value="<?php echo e($client->residenza_numero_civico); ?>" required class="input-field text-sm">
             </div>
             <div>
                 <label class="text-xs uppercase text-stone-500 font-semibold">Codice fiscale</label>
-                <input type="text" name="codice_fiscale" value="{{ $client->codice_fiscale }}" required class="input-field text-sm uppercase">
+                <input type="text" name="codice_fiscale" value="<?php echo e($client->codice_fiscale); ?>" required class="input-field text-sm uppercase">
             </div>
             <div>
                 <label class="text-xs uppercase text-stone-500 font-semibold">Luogo di nascita</label>
-                <input type="text" name="luogo_nascita" value="{{ $client->luogo_nascita }}" required class="input-field text-sm">
+                <input type="text" name="luogo_nascita" value="<?php echo e($client->luogo_nascita); ?>" required class="input-field text-sm">
             </div>
             <div>
                 <label class="text-xs uppercase text-stone-500 font-semibold">Data di nascita</label>
-                <input type="date" name="data_nascita" value="{{ optional($client->data_nascita)->format('Y-m-d') }}" required class="input-field text-sm">
+                <input type="date" name="data_nascita" value="<?php echo e(optional($client->data_nascita)->format('Y-m-d')); ?>" required class="input-field text-sm">
             </div>
 
-            @if($clientPermissions['can_manage_account'] ?? true)
+            <?php if($clientPermissions['can_manage_account'] ?? true): ?>
                 <div class="flex flex-wrap items-center gap-3">
-                    <label for="status-{{ $client->id }}" class="text-xs uppercase text-stone-500 font-semibold">Stato account</label>
-                    <select id="status-{{ $client->id }}" name="status" class="rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-500">
-                        @foreach (['active', 'pending', 'disabled'] as $statusOption)
-                            <option value="{{ $statusOption }}" @selected($client->status === $statusOption)>{{ ucfirst($statusOption) }}</option>
-                        @endforeach
+                    <label for="status-<?php echo e($client->id); ?>" class="text-xs uppercase text-stone-500 font-semibold">Stato account</label>
+                    <select id="status-<?php echo e($client->id); ?>" name="status" class="rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-500">
+                        <?php $__currentLoopData = ['active', 'pending', 'disabled']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $statusOption): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <option value="<?php echo e($statusOption); ?>" <?php if($client->status === $statusOption): echo 'selected'; endif; ?>><?php echo e(ucfirst($statusOption)); ?></option>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </select>
                 </div>
-            @else
+            <?php else: ?>
                 <div class="flex items-center gap-3 text-sm text-stone-600">
                     <span class="text-xs uppercase text-stone-500 font-semibold">Stato account</span>
-                    <span class="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-semibold text-stone-700">{{ ucfirst($client->status) }}</span>
+                    <span class="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-semibold text-stone-700"><?php echo e(ucfirst($client->status)); ?></span>
                 </div>
-            @endif
+            <?php endif; ?>
             <div class="flex flex-wrap items-center gap-2 md:justify-end">
                 <span class="text-xs font-semibold uppercase tracking-wide text-stone-500">Verifica Email:</span>
-                @if($client->email_verified_at)
+                <?php if($client->email_verified_at): ?>
                     <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-emerald-600 text-xs font-semibold">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-7.25 7.25a1 1 0 01-1.414 0l-3.25-3.25a1 1 0 011.414-1.414l2.543 2.543 6.543-6.543a1 1 0 011.414 0z" clip-rule="evenodd" />
                         </svg>
-                        <span>{{ optional($client->email_verified_at)->format('d/m/Y H:i') }}</span>
+                        <span><?php echo e(optional($client->email_verified_at)->format('d/m/Y H:i')); ?></span>
                     </span>
-                @else
+                <?php else: ?>
                     <span class="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-1 text-rose-600 text-xs font-semibold">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                             <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
                         </svg>
                         <span>Non verificata</span>
                     </span>
-                    @if($clientPermissions['can_manage_account'] ?? true)
-                        <form method="POST" action="{{ route('admin.users.resendVerification', $client) }}" class="inline-flex"
-                            onsubmit="return confirm('Inviare una nuova email di verifica a {{ $client->email }}?');">
-                            @csrf
+                    <?php if($clientPermissions['can_manage_account'] ?? true): ?>
+                        <form method="POST" action="<?php echo e(route('admin.users.resendVerification', $client)); ?>" class="inline-flex"
+                            onsubmit="return confirm('Inviare una nuova email di verifica a <?php echo e($client->email); ?>?');">
+                            <?php echo csrf_field(); ?>
                             <button type="submit" class="inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-amber-600 transition-colors">
                                 Reinvia verifica
                             </button>
                         </form>
-                    @endif
-                @endif
-                @if($clientPermissions['can_manage_account'] ?? true)
-                    <form method="POST" action="{{ route('admin.users.passwordEmail', $client) }}" class="inline-flex"
-                        onsubmit="return confirm('Vuoi inviare un\'email di reset password a {{ $client->email }}? L\'utente riceverà un link per impostare una nuova password.');">
-                        @csrf
+                    <?php endif; ?>
+                <?php endif; ?>
+                <?php if($clientPermissions['can_manage_account'] ?? true): ?>
+                    <form method="POST" action="<?php echo e(route('admin.users.passwordEmail', $client)); ?>" class="inline-flex"
+                        onsubmit="return confirm('Vuoi inviare un\'email di reset password a <?php echo e($client->email); ?>? L\'utente riceverà un link per impostare una nuova password.');">
+                        <?php echo csrf_field(); ?>
                         <button type="submit" class="inline-flex items-center gap-1.5 rounded-md bg-rose-500 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-rose-600 transition-colors">
                             Invia reset password
                         </button>
                     </form>
-                @endif
-                @if($clientPermissions['can_manage_profile'] ?? true)
+                <?php endif; ?>
+                <?php if($clientPermissions['can_manage_profile'] ?? true): ?>
                     <button type="submit" class="inline-flex items-center gap-1.5 rounded-md bg-teal-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-teal-700 transition"
-                        onclick="return confirm('Salvare le modifiche per {{ $client->name }}? Verranno aggiornati i dati del profilo.');">
+                        onclick="return confirm('Salvare le modifiche per <?php echo e($client->name); ?>? Verranno aggiornati i dati del profilo.');">
                         Salva dati
                     </button>
-                @endif
+                <?php endif; ?>
             </div>
 
         </div>
@@ -400,10 +403,10 @@
                 x-show="showProfile"
                 x-cloak
                 x-data="{
-                    definitions: {{ \Illuminate\Support\Js::from($documentDefinitions) }},
-                    docs: {{ \Illuminate\Support\Js::from($documentCollection->values()) }},
-                    uploadUrl: '{{ route('admin.users.documents.store', $client, false) }}',
-                    csrf: '{{ csrf_token() }}',
+                    definitions: <?php echo e(\Illuminate\Support\Js::from($documentDefinitions)); ?>,
+                    docs: <?php echo e(\Illuminate\Support\Js::from($documentCollection->values())); ?>,
+                    uploadUrl: '<?php echo e(route('admin.users.documents.store', $client, false)); ?>',
+                    csrf: '<?php echo e(csrf_token()); ?>',
                     message: null,
                     messageType: 'success',
                     _timeout: null,
@@ -531,40 +534,40 @@
             </div>
     </form>
 </div>
-@if($client->current_membership)
+<?php if($client->current_membership): ?>
         <div class="border border-stone-200 rounded-lg px-4 py-3 bg-white space-y-2 text-xs text-stone-600">
-            <p class="font-semibold text-stone-700 uppercase tracking-wide">Quota {{ $client->current_membership->season_start_year }}/{{ $client->current_membership->season_start_year + 1 }}</p>
+            <p class="font-semibold text-stone-700 uppercase tracking-wide">Quota <?php echo e($client->current_membership->season_start_year); ?>/<?php echo e($client->current_membership->season_start_year + 1); ?></p>
             <div class="flex flex-wrap items-center gap-3">
-                <span>Scadenza: <strong>{{ optional($client->current_membership->due_date)->format('d/m/Y') ?? '—' }}</strong></span>
-                <span>Importo: <strong>€ {{ number_format($client->current_membership->amount ?? 0, 2, ',', '.') }}</strong></span>
-                <span>Stato: <strong>{{ ucfirst($client->current_membership->status) }}</strong></span>
-                <span>Pagato il: <strong>{{ optional($client->current_membership->paid_at)->format('d/m/Y H:i') ?? '—' }}</strong></span>
+                <span>Scadenza: <strong><?php echo e(optional($client->current_membership->due_date)->format('d/m/Y') ?? '—'); ?></strong></span>
+                <span>Importo: <strong>€ <?php echo e(number_format($client->current_membership->amount ?? 0, 2, ',', '.')); ?></strong></span>
+                <span>Stato: <strong><?php echo e(ucfirst($client->current_membership->status)); ?></strong></span>
+                <span>Pagato il: <strong><?php echo e(optional($client->current_membership->paid_at)->format('d/m/Y H:i') ?? '—'); ?></strong></span>
             </div>
-            @if(optional($client->membership_payment)?->receipt_url)
+            <?php if(optional($client->membership_payment)?->receipt_url): ?>
                 <div class="mt-2">
-                    <a href="{{ route('admin.payments.receipt', optional($client->membership_payment)->id) }}" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-3 py-2 text-xs font-semibold text-white hover:bg-teal-700">
+                    <a href="<?php echo e(route('admin.payments.receipt', optional($client->membership_payment)->id)); ?>" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-3 py-2 text-xs font-semibold text-white hover:bg-teal-700">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"/>
                         </svg>
                         Scarica ricevuta
                     </a>
                 </div>
-            @endif
+            <?php endif; ?>
         </div>
-    @endif
+    <?php endif; ?>
 
-@php
+<?php
                                                 $adminPaymentsAll = $client->getAttribute('admin_payments_all');
                                                 $adminPaymentsAllArray = $adminPaymentsAll instanceof \Illuminate\Support\Collection ? $adminPaymentsAll->values()->toArray() : [];
                                                 $currentCalendarYear = now()->year;
-                                            @endphp
+                                            ?>
                                             <div
                                                 x-data="{
                                                     showAll: false,
                                                     sortField: 'created_at',
                                                     sortDirection: 'desc',
-                                                    currentYear: {{ $currentCalendarYear }},
-                                                    paymentsAll: @js($adminPaymentsAllArray),
+                                                    currentYear: <?php echo e($currentCalendarYear); ?>,
+                                                    paymentsAll: <?php echo \Illuminate\Support\Js::from($adminPaymentsAllArray)->toHtml() ?>,
                                                     get historyAvailable() {
                                                         return this.paymentsAll.some(payment => (payment.year ?? null) !== this.currentYear);
                                                     },
@@ -717,7 +720,7 @@
                                                                                         class="inline-flex"
                                                                                         onsubmit="return confirm('Confermi di ristampare la ricevuta? Il documento esistente verrà archiviato.');"
                                                                                     >
-                                                                                        @csrf
+                                                                                        <?php echo csrf_field(); ?>
                                                                                         <button type="submit" class="inline-flex items-center gap-1 rounded-lg border border-stone-300 px-2 py-1 text-[10px] font-semibold text-stone-600 hover:bg-stone-100 transition-colors">
                                                                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7v6a2 2 0 01-2 2H9l-4 4V9a2 2 0 012-2h2"/>
@@ -733,7 +736,7 @@
                                                                                         class="inline-flex"
                                                                                         onsubmit="return confirm('Confermi di registrare questo pagamento?');"
                                                                                     >
-                                                                                        @csrf
+                                                                                        <?php echo csrf_field(); ?>
                                                                                         <label class="sr-only" :for="`payment-method-${payment.id}`">Metodo</label>
                                                                                         <select
                                                                                             :id="`payment-method-${payment.id}`"
@@ -776,7 +779,7 @@
                                                                                         x-cloak
                                                                                         onsubmit="return confirm('Confermi di annullare il mese per questa allieva/o?');"
                                                                                     >
-                                                                                        @csrf
+                                                                                        <?php echo csrf_field(); ?>
                                                                                         <input type="hidden" name="action" value="waive">
                                                                                         <textarea name="reason" rows="2" class="input-field text-xs" placeholder="Motivo (es. malattia)" required></textarea>
                                                                                         <div class="flex items-center gap-2">
@@ -821,12 +824,13 @@
                                 </div>
                             </td>
                         </tr>
-                    @empty
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                         <tr>
                             <td colspan="5" class="px-4 py-6 text-center text-stone-500">Nessun allieva/o registrato al momento.</td>
                         </tr>
-                    @endforelse
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>
     </div>
+<?php /**PATH C:\yoga-studio-erp\resources\views/admin/clients/partials/management.blade.php ENDPATH**/ ?>

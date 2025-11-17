@@ -493,18 +493,29 @@
                                                                 method="POST"
                                                                 action="<?php echo e(route('admin.payments.update', $entry['payment_id'])); ?>"
                                                                 class="flex flex-wrap gap-1"
-                                                                onsubmit="return confirm('Confermi di registrare in contanti il pagamento per <?php echo e($entry['client_name'] ?? 'questa allieva-o'); ?>?');"
+                                                                onsubmit="return confirm('Confermi di registrare il pagamento per <?php echo e($entry['client_name'] ?? 'questa allieva-o'); ?>?');"
                                                             >
                                                                 <?php echo csrf_field(); ?>
-                                                                <input type="hidden" name="action" value="cash">
+                                                                <label class="sr-only" for="course-payment-method-<?php echo e($entry['payment_id']); ?>">Metodo</label>
+                                                                <select
+                                                                    id="course-payment-method-<?php echo e($entry['payment_id']); ?>"
+                                                                    name="action"
+                                                                    class="input-field text-[11px] py-1 h-8 w-28"
+                                                                    x-data
+                                                                    @change="const ref = $el.closest('form').querySelector('[data-transfer-reference]'); ref && (ref.classList.toggle('hidden', $el.value !== 'bank_transfer')); if($el.value !== 'bank_transfer' && ref){ ref.value=''; }"
+                                                                >
+                                                                    <option value="cash">Contanti</option>
+                                                                    <option value="bank_transfer">Bonifico</option>
+                                                                </select>
                                                                 <input type="hidden" name="reason" value="">
                                                                 <input type="number" step="0.01" name="amount" placeholder="Importo" class="input-field text-[11px] py-1 h-8 w-24" value="<?php echo e($entry['amount'] ?? ''); ?>">
+                                                                <input type="text" name="transfer_reference" placeholder="CRO / Riferimento" class="input-field text-[11px] py-1 h-8 w-32 hidden" data-transfer-reference>
                                                                 <input type="text" name="note" placeholder="Nota (opz.)" class="input-field text-[11px] py-1 h-8 w-32">
                                                                 <button type="submit" class="inline-flex items-center justify-center gap-1.5 rounded-md bg-teal-600 px-2.5 py-1.5 text-[11px] font-semibold text-white transition-colors hover:bg-teal-700">
                                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-10c1.486 0 2.737.81 2.959 1.893M12 6c-1.486 0-2.737.81-2.959 1.893M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                                                     </svg>
-                                                                    Paga in contanti
+                                                                    Registra pagamento
                                                                 </button>
                                                             </form>
                                                             <div>
