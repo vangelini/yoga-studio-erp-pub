@@ -100,4 +100,4 @@
 <?php $component = $__componentOriginal3287929725b3f878740bf3f25881b9ff; ?>
 <?php unset($__componentOriginal3287929725b3f878740bf3f25881b9ff); ?>
 <?php endif; ?>
-<?php /**PATH /Users/vincenzo/Documents/yoga-studio-erp/vendor/laravel/framework/src/Illuminate/Mail/resources/views/text/message.blade.php ENDPATH**/ ?>
+<?php /**PATH C:\yoga-studio-erp\vendor\laravel\framework\src\Illuminate\Mail/resources/views/text/message.blade.php ENDPATH**/ ?>

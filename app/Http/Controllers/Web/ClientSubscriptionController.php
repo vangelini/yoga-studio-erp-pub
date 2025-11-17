@@ -118,6 +118,19 @@ class ClientSubscriptionController extends Controller
             );
         } catch (ValidationException $exception) {
             throw $exception;
+        } catch (\Throwable $exception) {
+            report($exception);
+            $message = __('Impossibile completare l\'iscrizione al corso. Riprova tra qualche istante.');
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $message,
+                ], 422);
+            }
+
+            return redirect()
+                ->route('dashboard')
+                ->withErrors(['subscription' => $message]);
         }
 
         /** @var Subscription $subscription */
@@ -133,7 +146,7 @@ class ClientSubscriptionController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => 'Subscription activated.',
+                'message' => 'Iscrizione al corso avvenuta con successo, puoi ora scegliere di pagare in contanti al Centro Yoga o fare un bonifico direttamente al conto bancario.',
                 'subscription' => $this->formatSubscription($subscription),
                 'payment' => $paymentRecord ? $this->formatPayment($paymentRecord) : null,
             ], 201);
@@ -141,7 +154,7 @@ class ClientSubscriptionController extends Controller
 
         return redirect()
             ->route('dashboard')
-            ->with('status', "You are now subscribed to {$course->title}.");
+            ->with('status', "Sei iscritta-o al corso {$course->title}.");
     }
 
     public function destroy(Request $request, Subscription $subscription): RedirectResponse|JsonResponse

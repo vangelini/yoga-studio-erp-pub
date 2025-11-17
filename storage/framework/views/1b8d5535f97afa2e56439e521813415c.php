@@ -31,4 +31,4 @@
         <?php echo $__env->yieldPushContent('scripts'); ?>
     </body>
 </html>
-<?php /**PATH /Users/vincenzo/Documents/yoga-studio-erp/resources/views/layouts/base.blade.php ENDPATH**/ ?>
+<?php /**PATH C:\yoga-studio-erp\resources\views/layouts/base.blade.php ENDPATH**/ ?>

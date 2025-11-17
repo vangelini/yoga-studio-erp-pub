@@ -137,6 +137,22 @@ unset($__errorArgs, $__bag); ?>
             </div>
 
             <div class="space-y-2">
+                <label class="text-xs uppercase font-semibold text-stone-500">Testo info pagamento bonifico (visibile agli allievi)</label>
+                <textarea name="bank_transfer_info_message" rows="6" class="input-field mt-1" required><?php echo e(old('bank_transfer_info_message', $bank_transfer_info_message)); ?></textarea>
+                <p class="text-xs text-stone-500">Personalizza le istruzioni che gli allievi vedranno nella pagina “Pagamento tramite bonifico”.</p>
+                <?php $__errorArgs = ['bank_transfer_info_message'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                    <p class="text-xs text-rose-600 mt-1"><?php echo e($message); ?></p>
+                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+            </div>
+
+            <div class="space-y-2">
                 <div class="flex flex-wrap items-center gap-2">
                     <input type="checkbox" name="extra_day_enabled" value="1" id="extra-day" <?php echo e(old('extra_day_enabled', $extra_day_enabled) ? 'checked' : ''); ?> class="rounded border-stone-300 text-teal-600 focus:ring-teal-500">
                     <label for="extra-day" class="text-sm text-stone-600">Abilita la modalità “Un giorno in più” (lezione extra da corso candidato).</label>
@@ -230,4 +246,4 @@ unset($__errorArgs, $__bag); ?>
 </div>
 <?php $__env->stopSection(); ?>
 
-<?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH /Users/vincenzo/Documents/yoga-studio-erp/resources/views/dashboard/settings.blade.php ENDPATH**/ ?>
+<?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\yoga-studio-erp\resources\views/dashboard/settings.blade.php ENDPATH**/ ?>

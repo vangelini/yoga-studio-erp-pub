@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -32,6 +34,7 @@ class AdminSettingController extends Controller
                 'notification_overdue_days',
                 'notification_overdue_message',
                 'notification_pending_message',
+                'bank_transfer_info_message',
             ])
             ->pluck('value', 'key');
 
@@ -58,12 +61,19 @@ class AdminSettingController extends Controller
             'notification_overdue_days' => isset($settings['notification_overdue_days']) ? (int) $settings['notification_overdue_days'] : 7,
             'notification_overdue_message' => $settings['notification_overdue_message'] ?? 'Hai un pagamento in sospeso. Ti preghiamo di regolarizzarlo.',
             'notification_pending_message' => $settings['notification_pending_message'] ?? 'Sono state generate nuove pendenze per il tuo corso.',
+            'bank_transfer_info_message' => $settings['bank_transfer_info_message'] ?? "Puoi effettuare il pagamento tramite bonifico bancario.\nIBAN: IT00A0000000000000000000000\nIntestato a: Centro Yoga\nCausale: Nome Cognome - Corso",
         ]);
     }
 
     public function update(Request $request): RedirectResponse
     {
         $this->authorizeAdmin();
+
+        Log::info('admin_settings_update_called', [
+            'user_id' => optional($request->user())->id,
+            'has_bank_field' => $request->has('bank_transfer_info_message'),
+            'bank_len' => strlen((string) $request->input('bank_transfer_info_message')),
+        ]);
 
         $data = $request->validate([
             'membership_fee' => ['required', 'numeric', 'min:0'],
@@ -79,6 +89,7 @@ class AdminSettingController extends Controller
             'notification_overdue_days' => ['required', 'integer', 'min:1', 'max:60'],
             'notification_overdue_message' => ['required', 'string', 'max:2000'],
             'notification_pending_message' => ['required', 'string', 'max:2000'],
+            'bank_transfer_info_message' => ['required', 'string', 'max:3000'],
         ], [
             'receipt_user_password_custom.required_if' => 'Inserisci la password personalizzata quando scegli la modalità "Password personalizzata".',
         ]);
@@ -99,11 +110,19 @@ class AdminSettingController extends Controller
             'notification_overdue_days' => (string) $data['notification_overdue_days'],
             'notification_overdue_message' => $data['notification_overdue_message'],
             'notification_pending_message' => $data['notification_pending_message'],
+            'bank_transfer_info_message' => (string) $request->input('bank_transfer_info_message', ''),
         ];
 
         foreach ($settingsToPersist as $key => $value) {
             Setting::updateOrCreate(['key' => $key], ['value' => $value]);
         }
+
+        Log::info('bank_transfer_info_message_saved', [
+            'length' => strlen((string) $request->input('bank_transfer_info_message', '')),
+            'exists' => DB::table('settings')->where('key', 'bank_transfer_info_message')->exists(),
+            'db_value' => DB::table('settings')->where('key', 'bank_transfer_info_message')->value('value'),
+            'db' => DB::connection()->getDatabaseName(),
+        ]);
 
         return back()->with('status', 'Impostazioni aggiornate con successo.');
     }

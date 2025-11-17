@@ -39,7 +39,18 @@
 @endphp
 <section
     x-data="{
-        membershipPanelOpen: @json(request()->has('membership_page')),
+        membershipPanelOpen: @json((bool) request()->boolean('membership_open')),
+        toggleMembershipPanel() {
+            this.membershipPanelOpen = !this.membershipPanelOpen;
+            const url = new URL(window.location);
+            if (this.membershipPanelOpen) {
+                url.searchParams.set('membership_open', '1');
+            } else {
+                url.searchParams.delete('membership_open');
+                url.searchParams.delete('membership_page');
+            }
+            window.history.replaceState({}, '', url);
+        },
     }"
     class="space-y-12"
 >
@@ -58,6 +69,19 @@
                 @endforeach
             </ul>
         </div>
+        @if($errors->has('subscription'))
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    // Prova a chiudere la modale iscrizione se aperta
+                    if (window.subscriptionModal) {
+                        subscriptionModal.open = false;
+                    } else {
+                        // fallback: invia un evento che l'istanza Alpine può intercettare
+                        window.dispatchEvent(new CustomEvent('close-subscription-modal'));
+                    }
+                });
+            </script>
+        @endif
     @endif
 
     <div class="relative overflow-hidden rounded-2xl border border-teal-200/40 bg-gradient-to-r from-teal-600 via-teal-500 to-emerald-500 text-white shadow-lg">
@@ -139,7 +163,7 @@
             <button
                 type="button"
                 class="flex w-full items-center justify-between rounded-xl border border-stone-200 bg-stone-50 px-4 py-2.5 text-left transition hover:border-stone-300 hover:bg-stone-100"
-                @click="membershipPanelOpen = !membershipPanelOpen"
+                @click="toggleMembershipPanel()"
             >
                 <div>
                     <h3 class="text-lg font-semibold text-stone-900">Morosità quota associativa</h3>
@@ -157,12 +181,25 @@
                 class="space-y-2"
             >
                 @if($membershipSummary['total'] === 0)
-                    <p class="text-sm text-stone-500">Tutti i clienti sono in regola con la quota associativa per l’attuale stagione.</p>
+                    <p class="text-sm text-stone-500">Tutti i clienti sono in regola con la quota associativa per l'attuale stagione.</p>
                 @else
                     <div class="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
                         <div class="flex items-center justify-between border-b border-stone-200 bg-stone-50 px-3 py-2 text-xs text-stone-500">
-                    
-                            <span>Mostra {{ $membershipSummary['per_page'] }} voci per pagina (configurabile dalle impostazioni)</span>
+                            <span>Mostra {{ $membershipSummary['per_page'] }} voci per pagina</span>
+                            <form method="GET" action="{{ route('dashboard') }}" class="inline">
+                                @foreach(request()->except('membership_page', 'per_page') as $key => $value)
+                                    <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                                @endforeach
+                                <input type="hidden" name="membership_page" value="1">
+                                @if(request()->boolean('membership_open'))
+                                    <input type="hidden" name="membership_open" value="1">
+                                @endif
+                                <select name="per_page" class="input-field text-[11px] py-1 h-8 inline-block w-auto align-middle" onchange="this.form.submit()">
+                                    @foreach ([2, 25, 50, 100] as $option)
+                                        <option value="{{ $option }}" @selected($membershipSummary['per_page'] == $option)>{{ $option }}</option>
+                                    @endforeach
+                                </select>
+                            </form>
                         </div>
                         <table class="min-w-full divide-y divide-stone-200 text-xs leading-tight">
                             <thead class="bg-stone-100 text-[11px] uppercase tracking-wider text-stone-500">
@@ -217,17 +254,29 @@
                                                     onsubmit="return confirm('Confermi di registrare la quota associativa per {{ $entry['name'] }}?');"
                                                 >
                                                     @csrf
-                                                    <input type="hidden" name="action" value="cash">
+                                                    <label class="sr-only" for="payment-method-{{ $entry['payment_id'] ?? 'membership' }}">Metodo</label>
+                                                    <select
+                                                        id="payment-method-{{ $entry['payment_id'] ?? 'membership' }}"
+                                                        name="action"
+                                                        class="input-field text-[11px] py-1 h-8"
+                                                        x-data
+                                                        @change="const ref = $el.closest('form').querySelector('[data-transfer-reference]'); ref && (ref.classList.toggle('hidden', $el.value !== 'bank_transfer')); if($el.value !== 'bank_transfer' && ref){ ref.value=''; }"
+                                                    >
+                                                        <option value="cash">Contanti</option>
+                                                        <option value="bank_transfer">Bonifico</option>
+                                                    </select>
                                                     <input type="hidden" name="reason" value="">
                                                     <input type="number" step="0.01" name="amount" placeholder="Importo"
                                                         class="input-field text-[11px] py-1 h-8" value="{{ $entry['amount'] ?? '' }}">
+                                                    <input type="text" name="transfer_reference" placeholder="CRO / Riferimento bonifico"
+                                                        class="input-field text-[11px] py-1 h-8 hidden" data-transfer-reference>
                                                     <input type="text" name="note" placeholder="Nota (opzionale)"
                                                         class="input-field text-[11px] py-1 h-8">
                                                     <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-lg bg-teal-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-teal-700 transition">
                                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-10c1.486 0-2.737.81-2.959 1.893M12 6c-1.486 0-2.737.81-2.959 1.893M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                         </svg>
-                                                        Paga in contanti
+                                                        Registra pagamento
                                                     </button>
                                                 </form>
                                             @else
@@ -249,8 +298,8 @@
                                     $nextPage = min($membershipLastPage, $membershipCurrentPage + 1);
                                     $pageNumbers = range(1, $membershipLastPage);
                                 @endphp
-                                <a
-                                    href="{{ $membershipCurrentPage > 1 ? request()->fullUrlWithQuery(['membership_page' => $prevPage]) : '#' }}"
+                               <a
+                                    href="{{ $membershipCurrentPage > 1 ? request()->fullUrlWithQuery(['membership_page' => $prevPage] + (request()->boolean('membership_open') ? ['membership_open' => 1] : [])) : '#' }}"
                                     class="inline-flex items-center gap-1 rounded-lg border border-stone-300 px-3 py-1.5 font-semibold transition {{ $membershipCurrentPage > 1 ? 'text-stone-600 hover:bg-stone-100' : 'cursor-not-allowed text-stone-300' }}"
                                     @if($membershipCurrentPage <= 1) aria-disabled="true" @endif
                                 >
@@ -258,17 +307,17 @@
                                 </a>
                                 <nav class="flex items-center gap-1">
                                     @foreach($pageNumbers as $page)
-                                        <a
-                                            href="{{ $page === $membershipCurrentPage ? '#' : request()->fullUrlWithQuery(['membership_page' => $page]) }}"
+                                       <a
+                                            href="{{ $page === $membershipCurrentPage ? '#' : request()->fullUrlWithQuery(['membership_page' => $page] + (request()->boolean('membership_open') ? ['membership_open' => 1] : [])) }}"
                                             class="inline-flex h-7 w-7 items-center justify-center rounded-lg border px-2 text-[11px] font-semibold transition {{ $page === $membershipCurrentPage ? 'border-teal-500 bg-teal-50 text-teal-700 cursor-default' : 'border-stone-300 text-stone-600 hover:bg-stone-100' }}"
                                             @if($page === $membershipCurrentPage) aria-current="page" @endif
                                         >
                                             {{ $page }}
                                         </a>
-                                    @endforeach
-                                </nav>
-                                <a
-                                    href="{{ $membershipCurrentPage < $membershipLastPage ? request()->fullUrlWithQuery(['membership_page' => $nextPage]) : '#' }}"
+                                   @endforeach
+                               </nav>
+                               <a
+                                    href="{{ $membershipCurrentPage < $membershipLastPage ? request()->fullUrlWithQuery(['membership_page' => $nextPage] + (request()->boolean('membership_open') ? ['membership_open' => 1] : [])) : '#' }}"
                                     class="inline-flex items-center gap-1 rounded-lg border border-stone-300 px-3 py-1.5 font-semibold transition {{ $membershipCurrentPage < $membershipLastPage ? 'text-stone-600 hover:bg-stone-100' : 'cursor-not-allowed text-stone-300' }}"
                                     @if($membershipCurrentPage >= $membershipLastPage) aria-disabled="true" @endif
                                 >

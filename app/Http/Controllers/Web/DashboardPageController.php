@@ -359,11 +359,10 @@ class DashboardPageController extends Controller
 
     private function buildMembershipSummary($clients, Request $request): array
     {
-        $perPageSetting = Setting::query()->find('membership_morosita_page_size');
-        $defaultPerPage = config('app.membership_summary_page_size', 5);
-        $perPage = (int) ($perPageSetting?->value ?? $defaultPerPage);
-        if ($perPage < 1) {
-            $perPage = max(1, (int) $defaultPerPage);
+        // Paginazione allineata alla contabilità, con default 2 e opzioni consentite.
+        $perPage = (int) $request->get('per_page', 2);
+        if (!in_array($perPage, [2, 25, 50, 100], true)) {
+            $perPage = 2;
         }
 
         $entries = collect($clients)

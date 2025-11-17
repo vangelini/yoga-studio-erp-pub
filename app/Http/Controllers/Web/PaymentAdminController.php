@@ -26,17 +26,18 @@ class PaymentAdminController extends Controller
         $this->authorizePaymentManagement($request, $payment);
 
         $data = $request->validate([
-            'action' => ['required', Rule::in(['cash', 'waive'])],
+            'action' => ['required', Rule::in(['cash', 'bank_transfer', 'waive'])],
             'reason' => ['nullable', 'string', 'max:255'],
             'amount' => ['nullable', 'numeric', 'min:0.01'],
             'note' => ['nullable', 'string', 'max:500'],
+            'transfer_reference' => ['nullable', 'string', 'max:255', 'required_if:action,bank_transfer'],
         ]);
 
         if ($data['action'] === 'waive') {
             $request->validate(['reason' => ['required', 'string', 'max:255']]);
         }
 
-        if ($data['action'] === 'cash') {
+        if (in_array($data['action'], ['cash', 'bank_transfer'], true)) {
             if (!empty($data['amount'])) {
                 $payment->amount = (float) $data['amount'];
             }
@@ -48,11 +49,14 @@ class PaymentAdminController extends Controller
             if (!empty($data['amount'])) {
                 $meta['manual_amount'] = (float) $data['amount'];
             }
+            if (!empty($data['transfer_reference'])) {
+                $meta['transfer_reference'] = $data['transfer_reference'];
+            }
             if (!empty($meta)) {
                 $payment->meta = $meta;
             }
 
-            $payment->markAsPaid('cash', $request->user()->id);
+            $payment->markAsPaid($data['action'], $request->user()->id);
 
             if ($payment->type === 'membership' && $payment->payable instanceof MembershipSubscription) {
                 $payment->payable->update([
@@ -61,8 +65,15 @@ class PaymentAdminController extends Controller
                 ]);
             }
 
-            $receiptPath = $this->receiptService->generate($payment, $data['note'] ?? ($data['reason'] ?? null));
-            $message = 'Pagamento registrato in contanti.';
+            $receiptNote = $data['note'] ?? ($data['reason'] ?? null);
+            if (!empty($data['transfer_reference'])) {
+                $receiptNote = trim(($receiptNote ? $receiptNote . ' | ' : '') . 'CRO/Bonifico: ' . $data['transfer_reference']);
+            }
+
+            $receiptPath = $this->receiptService->generate($payment, $receiptNote);
+            $message = $data['action'] === 'bank_transfer'
+                ? 'Pagamento registrato come bonifico.'
+                : 'Pagamento registrato in contanti.';
         } else {
             $payment->markAsWaived($data['reason'], $request->user()->id);
             $message = 'Mese annullato con successo.';

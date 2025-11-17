@@ -556,4 +556,4 @@ unset($__errorArgs, $__bag); ?>
         <?php endif; ?>
     </div>
 </div>
-<?php /**PATH /Users/vincenzo/Documents/yoga-studio-erp/resources/views/dashboard/partials/admin-courses.blade.php ENDPATH**/ ?>
+<?php /**PATH C:\yoga-studio-erp\resources\views/dashboard/partials/admin-courses.blade.php ENDPATH**/ ?>

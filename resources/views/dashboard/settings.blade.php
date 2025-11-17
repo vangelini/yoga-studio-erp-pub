@@ -114,6 +114,15 @@
             </div>
 
             <div class="space-y-2">
+                <label class="text-xs uppercase font-semibold text-stone-500">Testo info pagamento bonifico (visibile agli allievi)</label>
+                <textarea name="bank_transfer_info_message" rows="6" class="input-field mt-1" required>{{ old('bank_transfer_info_message', $bank_transfer_info_message) }}</textarea>
+                <p class="text-xs text-stone-500">Personalizza le istruzioni che gli allievi vedranno nella pagina “Pagamento tramite bonifico”.</p>
+                @error('bank_transfer_info_message')
+                    <p class="text-xs text-rose-600 mt-1">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div class="space-y-2">
                 <div class="flex flex-wrap items-center gap-2">
                     <input type="checkbox" name="extra_day_enabled" value="1" id="extra-day" {{ old('extra_day_enabled', $extra_day_enabled) ? 'checked' : '' }} class="rounded border-stone-300 text-teal-600 focus:ring-teal-500">
                     <label for="extra-day" class="text-sm text-stone-600">Abilita la modalità “Un giorno in più” (lezione extra da corso candidato).</label>

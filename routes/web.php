@@ -107,6 +107,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/client/subscriptions', [ClientSubscriptionController::class, 'store'])->name('client.subscriptions.store');
         Route::delete('/client/subscriptions/{subscription}', [ClientSubscriptionController::class, 'destroy'])->name('client.subscriptions.destroy');
         Route::post('/client/documents', [ClientDocumentController::class, 'store'])->name('client.documents.store');
+        Route::get('/client/pagamenti/bonifico', \App\Http\Controllers\Web\ClientBankTransferController::class)->name('client.bank_transfer.info');
         
     });
 

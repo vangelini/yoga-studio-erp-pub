@@ -17,6 +17,7 @@ class Payment extends Model
         'payable_type',
         'payable_id',
         'course_id',
+        'course_id_key',
         'processed_by_user_id',
         'type',
         'amount',
@@ -40,6 +41,14 @@ class Payment extends Model
     protected $appends = [
         'receipt_url',
     ];
+
+    protected static function booted(): void
+    {
+        static::saving(function (Payment $payment) {
+            // Keep the denormalized key in sync for unique index constraints.
+            $payment->course_id_key = (int) ($payment->course_id ?? 0);
+        });
+    }
 
     public function user(): BelongsTo
     {

@@ -42,24 +42,58 @@
             'subscribe' => route('client.subscriptions.store'),
             'cancelSubscription' => url('/client/subscriptions'),
             'paymentMarkBase' => url('/client/payments'),
+            'bankTransferInfo' => route('client.bank_transfer.info'),
         ],
         'flash' => [
             'status' => session('status'),
+            'errors' => $errors->any() ? $errors->all() : [],
         ],
     ];
+    $flashOpenInitial = session()->has('status') || $errors->any();
 ?>
 
 <section
     x-data="clientDashboard(<?php echo e(Js::from($clientDashboardPayload)); ?>)"
-    x-init="init()"
+    x-init="init(); if (<?php echo e($flashOpenInitial ? 'true' : 'false'); ?> || statusMessage || (flashErrors && flashErrors.length) || errorMessage) { flashOpen = true; }"
     class="space-y-10"
 >
-    <template x-if="statusMessage">
-        <div class="rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-700 px-4 py-3" x-text="statusMessage"></div>
-    </template>
-    <template x-if="errorMessage">
-        <div class="rounded-lg border border-rose-300 bg-rose-50 text-rose-700 px-4 py-3" x-text="errorMessage"></div>
-    </template>
+    <div x-show="flashOpen" x-cloak class="fixed inset-0 z-60 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+        <div class="w-full max-w-md rounded-2xl bg-white shadow-2xl border border-stone-200 p-6 space-y-4">
+            <h3 class="text-lg font-semibold text-stone-900">Notifica</h3>
+            <div class="space-y-2 text-sm text-stone-700 max-h-64 overflow-y-auto">
+                <template x-if="statusMessage">
+                    <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-emerald-700" x-text="statusMessage"></div>
+                </template>
+                <template x-if="statusActionUrl">
+                    <div>
+                        <a :href="statusActionUrl" class="inline-flex items-center gap-2 rounded-lg border border-teal-200 bg-white px-3 py-2 text-xs font-semibold text-teal-700 hover:bg-teal-50">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4" />
+                            </svg>
+                            <span x-text="statusActionLabel || 'Istruzioni bonifico'"></span>
+                        </a>
+                    </div>
+                </template>
+                <template x-if="flashErrors.length">
+                    <div class="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-rose-700">
+                        <ul class="list-disc list-inside space-y-1">
+                            <template x-for="(err, idx) in flashErrors" :key="idx">
+                                <li x-text="err"></li>
+                            </template>
+                        </ul>
+                    </div>
+                </template>
+                <template x-if="errorMessage">
+                    <div class="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-rose-700" x-text="errorMessage"></div>
+                </template>
+            </div>
+            <div class="flex justify-end">
+                <button type="button" class="inline-flex items-center justify-center rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700" @click="closeFlash()">
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
 
     <div class="relative overflow-hidden rounded-2xl border border-teal-200/40 bg-gradient-to-r from-teal-600 via-teal-500 to-emerald-500 text-white shadow-lg">
         <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/honeycomb.png')] opacity-20 pointer-events-none"></div>
@@ -67,17 +101,20 @@
             <div class="space-y-2 max-w-2xl">
                 <p class="text-xs uppercase tracking-[0.35em] text-white/70">Benvenuta/o nel tua area personale</p>
                 <h2 class="text-3xl md:text-4xl font-semibold">Troverai le tue iscrizioni e i tuoi dati di gestione dei corsi</h2>
+                         <a
+                    :href="routes.bankTransferInfo"
+                    class="inline-flex items-center gap-2 rounded-lg bg-white/20 px-4 py-2 text-xs font-semibold text-white border border-white/40 backdrop-blur-sm hover:bg-white/30 transition"
+                >
+                    Come eseguire un pagamento con Bonifico (IBAN)
+                </a>
             </div>
-            <div class="flex items-center gap-4 bg-white/15 backdrop-blur-sm rounded-2xl px-5 py-4 border border-white/30 shadow-inner">
+            <div class="flex flex-col sm:flex-row sm:items-center gap-4 bg-white/15 backdrop-blur-sm rounded-2xl px-5 py-4 border border-white/30 shadow-inner">
                 <div class="flex flex-col text-center">
-                    <span class="text-xs uppercase tracking-widest text-white/70">Corsi Attivi</span>
+                    <span class="text-xs uppercase tracking-widest text-white/70">Corsi Yoga Disponibili</span>
                     <span class="text-2xl font-semibold" x-text="courses.length"></span>
                 </div>
-                <span class="w-px h-10 bg-white/30"></span>
-                    <div class="flex flex-col text-center">
-                        <span class="text-xs uppercase tracking-widest text-white/70">Upcoming Lessons</span>
-                        <span class="text-2xl font-semibold" x-text="upcomingBookings.length"></span>
-                    </div>
+                <span class="hidden sm:block w-px h-10 bg-white/30"></span>
+               
             </div>
         </div>
     </div>
@@ -174,6 +211,7 @@
     </div>
 
     <div class="flex justify-end mt-4">
+
         <button
             type="button"
             class="inline-flex items-center gap-2 rounded-lg border border-stone-300 px-4 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-100 transition"
@@ -182,6 +220,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
+            
             <span x-text="showPayments ? 'Nascondi storico pagamenti' : 'Mostra storico pagamenti'"></span>
         </button>
     </div>
@@ -867,7 +906,7 @@
     </div>
 </section>
 
-<?php if (! $__env->hasRenderedOnce('a148aa95-f5a6-4ced-9870-8bb417076395')): $__env->markAsRenderedOnce('a148aa95-f5a6-4ced-9870-8bb417076395'); ?>
+<?php if (! $__env->hasRenderedOnce('671f4635-fb77-4f54-8c13-e6faeadef6e0')): $__env->markAsRenderedOnce('671f4635-fb77-4f54-8c13-e6faeadef6e0'); ?>
     <?php $__env->startPush('scripts'); ?>
         <script>
             document.addEventListener('alpine:init', () => {
@@ -933,6 +972,10 @@
                         showPayments: false,
                         routes: payload.routes,
                         statusMessage: payload.flash?.status ?? '',
+                        statusActionUrl: null,
+                        statusActionLabel: null,
+                        flashErrors: normalize(payload.flash?.errors ?? []),
+                        flashOpen: Boolean((payload.flash?.status ?? '') || (normalize(payload.flash?.errors ?? []).length)),
                         errorMessage: '',
                         loading: false,
                         csrfToken: document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '',
@@ -965,8 +1008,34 @@
                         },
 
                         init() {
+                            this.flashOpen = Boolean(this.statusMessage || (this.flashErrors && this.flashErrors.length) || this.errorMessage);
                             this.refreshDerivedCollections();
                             this.payments = this.payments.sort((a, b) => new Date(b.paid_at || b.due_date || 0) - new Date(a.paid_at || a.due_date || 0));
+
+                            this.$watch('statusMessage', (val) => {
+                                if (val) {
+                                    this.flashOpen = true;
+                                }
+                            });
+                            this.$watch('errorMessage', (val) => {
+                                if (val) {
+                                    this.flashOpen = true;
+                                }
+                            });
+                            this.$watch('flashErrors', (val) => {
+                                if (val && val.length) {
+                                    this.flashOpen = true;
+                                }
+                            });
+                        },
+
+                        closeFlash() {
+                            this.flashOpen = false;
+                            this.statusMessage = '';
+                            this.statusActionUrl = null;
+                            this.statusActionLabel = null;
+                            this.flashErrors = [];
+                            this.errorMessage = '';
                         },
 
                         refreshDerivedCollections() {
@@ -1599,24 +1668,30 @@
                                 .then(response => {
                                     if (response.subscription) {
                                         const existing = this.subscriptions.find(sub => sub.id === response.subscription.id);
-                                        if (existing) {
-                                            Object.assign(existing, response.subscription);
-                                        } else {
-                                            this.subscriptions.push(response.subscription);
-                                        }
-                                        this.refreshDerivedCollections();
-                                        this.updateCourseMetricsAfterSubscription(
-                                            this.subscriptionModal.course.id,
-                                            response.subscription?.lessons || []
-                                        );
-                                    }
-                                    this.statusMessage = response.message || 'Subscription activated.';
-                                    if (response.payment) {
-                                        this.upsertPayment(response.payment);
-                                    }
+                                if (existing) {
+                                    Object.assign(existing, response.subscription);
+                                } else {
+                                    this.subscriptions.push(response.subscription);
+                                }
+                                this.refreshDerivedCollections();
+                                this.updateCourseMetricsAfterSubscription(
+                                    this.subscriptionModal.course.id,
+                                    response.subscription?.lessons || []
+                                );
+                            }
+                            this.statusMessage = response.message || 'Subscription activated.';
+                            this.statusActionUrl = this.routes.bankTransferInfo;
+                            this.statusActionLabel = 'Istruzioni bonifico';
+                            if (response.payment) {
+                                this.upsertPayment(response.payment);
+                            }
+                            this.closeSubscriptionModal();
+                        })
+                                .catch((error) => {
+                                    // Chiudi la modale per mostrare il messaggio di errore lato server
                                     this.closeSubscriptionModal();
-                                })
-                                .catch(() => {});
+                                    throw error;
+                                });
                         },
 
                         formatProrationLabel(info) {
@@ -2106,4 +2181,4 @@
         </script>
     <?php $__env->stopPush(); ?>
 <?php endif; ?>
-<?php /**PATH /Users/vincenzo/Documents/yoga-studio-erp/resources/views/dashboard/partials/client.blade.php ENDPATH**/ ?>
+<?php /**PATH C:\yoga-studio-erp\resources\views/dashboard/partials/client.blade.php ENDPATH**/ ?>

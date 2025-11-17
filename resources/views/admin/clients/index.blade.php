@@ -11,11 +11,16 @@
         'can_manage_documents' => true,
         'can_manage_payments' => true,
     ];
+    $flashStatus = session('status');
+    $flashErrors = $errors->any() ? $errors->all() : [];
 @endphp
 <section
     x-data="{
         showCreateClient: false,
         expandedClient: @js($initialExpandedClient),
+        flashOpen: @js((bool) $flashStatus || !empty($flashErrors)),
+        flashStatus: @js($flashStatus),
+        flashErrors: @js($flashErrors),
         toggleClient(id) {
             this.expandedClient = this.expandedClient === id ? null : id;
         },
@@ -47,22 +52,32 @@
     x-init="setInitialClient()"
     class="space-y-10"
 >
-   
-    @if (session('status'))
-        <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-            {{ session('status') }}
+    <template x-if="flashOpen">
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+            <div class="w-full max-w-md rounded-2xl bg-white shadow-2xl border border-stone-200 p-6 space-y-4">
+                <h3 class="text-lg font-semibold text-stone-900">Notifica</h3>
+                <div class="space-y-2 text-sm text-stone-700 max-h-64 overflow-y-auto">
+                    <template x-if="flashStatus">
+                        <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-emerald-700" x-text="flashStatus"></div>
+                    </template>
+                    <template x-if="flashErrors.length">
+                        <div class="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-rose-700">
+                            <ul class="list-disc list-inside space-y-1">
+                                <template x-for="(err, idx) in flashErrors" :key="idx">
+                                    <li x-text="err"></li>
+                                </template>
+                            </ul>
+                        </div>
+                    </template>
+                </div>
+                <div class="flex justify-end">
+                    <button type="button" class="inline-flex items-center justify-center rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700" @click="flashOpen = false">
+                        OK
+                    </button>
+                </div>
+            </div>
         </div>
-    @endif
-
-    @if ($errors->any())
-        <div class="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-            <ul class="list-disc list-inside space-y-1">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
+    </template>
   
     @include('admin.clients.partials.management')
 

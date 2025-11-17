@@ -75,6 +75,14 @@
                     <option value="desc" @selected(request('dir', 'desc') === 'desc')>Discendente</option>
                 </select>
             </div>
+            <div class="min-w-[140px]">
+                <label class="text-xs uppercase font-semibold text-stone-500">Elementi per pagina</label>
+                <select name="per_page" class="input-field text-sm">
+                    @foreach ([25, 50, 100] as $option)
+                        <option value="{{ $option }}" @selected(request('per_page', $perPage ?? 25) == $option)>{{ $option }}</option>
+                    @endforeach
+                </select>
+            </div>
             <div class="flex items-center gap-2 md:ml-auto">
                 <button type="submit" class="btn-primary text-xs">Filtra</button>
                 <a href="{{ route('admin.accounting.index') }}" class="inline-flex items-center gap-2 rounded-lg border border-stone-300 px-3 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-100">Pulisci</a>
@@ -91,6 +99,9 @@
                     <th class="px-3 py-2 text-left">Allievo</th>
                     <th class="px-3 py-2 text-left">Importo</th>
                     <th class="px-3 py-2 text-left">Tipo</th>
+                    <th class="px-3 py-2 text-left">Metodo</th>
+                    <th class="px-3 py-2 text-left">CRO / Riferimento</th>
+                    <th class="px-3 py-2 text-left">Nota pagamento</th>
                     <th class="px-3 py-2 text-left">Stato</th>
                     <th class="px-3 py-2 text-left">Data pagamento</th>
                     <th class="px-3 py-2 text-left">Scadenza</th>
@@ -111,6 +122,11 @@
                         </td>
                         <td class="px-3 py-2 font-semibold text-stone-800">€ {{ number_format($payment->amount ?? 0, 2, ',', '.') }}</td>
                         <td class="px-3 py-2 text-stone-600">{{ $payment->type }}</td>
+                        <td class="px-3 py-2 text-stone-600">{{ $payment->method ?? '—' }}</td>
+                        <td class="px-3 py-2 text-stone-600">{{ $payment->meta['transfer_reference'] ?? '—' }}</td>
+                        <td class="px-3 py-2 text-stone-600">
+                            {{ $payment->meta['manual_note'] ?? $payment->status_reason ?? '—' }}
+                        </td>
                         <td class="px-3 py-2">
                             <span class="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold
                                 @if($payment->status === 'paid') bg-emerald-100 text-emerald-700
@@ -142,14 +158,31 @@
         </table>
     </div>
 
-    <div>
-        {{ $payments->links() }}
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="text-xs text-stone-500">
+            <form method="GET" action="{{ route('admin.accounting.index') }}" class="inline">
+                Mostra
+                @foreach(request()->except('page', 'per_page') as $key => $value)
+                    <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                @endforeach
+                    <select name="per_page" class="input-field text-xs inline-block w-auto align-middle" onchange="this.form.submit()">
+                    @foreach ([25, 50, 100] as $option)
+                        <option value="{{ $option }}" @selected($payments->perPage() == $option)>{{ $option }}</option>
+                    @endforeach
+                </select> righe per pagina.
+                </form>
+            </div>
+        <div>
+            {{ $payments->links() }}
+        </div>
+    </div>
+    <div class="mt-2">
+        <a href="{{ route('dashboard') }}" class="inline-flex items-center gap-2 rounded-lg border border-stone-300 px-3 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-100">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.75 19.5L8.25 12l7.5-7.5" />
+            </svg>
+            Torna al dashboard
+        </a>
     </div>
 </section>
-<a href="{{ route('dashboard') }}" class="inline-flex items-center gap-2 rounded-lg border border-stone-300 px-3 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-100">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.75 19.5L8.25 12l7.5-7.5" />
-                </svg>
-                Torna al dashboard
-            </a>
 @endsection

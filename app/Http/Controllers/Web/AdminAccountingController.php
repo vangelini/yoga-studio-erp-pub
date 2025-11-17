@@ -22,6 +22,10 @@ class AdminAccountingController extends Controller
         $from = $request->get('from');
         $to = $request->get('to');
         $sort = $request->get('sort', 'paid_at');
+        $perPage = (int) $request->get('per_page', 25);
+        if (!in_array($perPage, [25, 50, 100], true)) {
+            $perPage = 25;
+        }
         $dir = strtolower($request->get('dir', 'desc')) === 'asc' ? 'asc' : 'desc';
 
         $query = Payment::with(['user:id,name,email', 'processedBy:id,name'])
@@ -40,7 +44,7 @@ class AdminAccountingController extends Controller
 
         $payments = $query
             ->orderBy($sortColumn, $dir)
-            ->paginate(25)
+            ->paginate($perPage)
             ->appends($request->query());
 
         return view('admin.accounting.index', [
@@ -50,6 +54,7 @@ class AdminAccountingController extends Controller
             'to' => $to,
             'sort' => $sortColumn,
             'dir' => $dir,
+            'perPage' => $perPage,
         ]);
     }
 
@@ -127,6 +132,9 @@ class AdminAccountingController extends Controller
                 'Email',
                 'Importo',
                 'Tipo',
+                'Metodo',
+                'CRO / Riferimento',
+                'Nota pagamento',
                 'Stato',
                 'Data pagamento',
                 'Scadenza',
@@ -136,12 +144,16 @@ class AdminAccountingController extends Controller
 
             $query->chunk(200, function ($chunk) use ($handle) {
                 foreach ($chunk as $payment) {
+                    $meta = $payment->meta ?? [];
                     fputcsv($handle, [
                         $payment->id,
                         $payment->user?->name,
                         $payment->user?->email,
                         number_format((float) $payment->amount, 2, ',', '.'),
                         $payment->type,
+                        $payment->method,
+                        $meta['transfer_reference'] ?? null,
+                        $meta['manual_note'] ?? $payment->status_reason,
                         $payment->status,
                         optional($payment->paid_at)->format('d/m/Y'),
                         optional($payment->due_date)->format('d/m/Y'),
