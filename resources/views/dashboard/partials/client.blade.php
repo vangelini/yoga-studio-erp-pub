@@ -55,9 +55,8 @@
 <section
     x-data="clientDashboard({{ Js::from($clientDashboardPayload) }})"
     x-init="init(); if ({{ $flashOpenInitial ? 'true' : 'false' }} || statusMessage || (flashErrors && flashErrors.length) || errorMessage) { flashOpen = true; }"
-    class="space-y-10"
->
-    <div x-show="flashOpen" x-cloak class="fixed inset-0 z-60 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+    class="space-y-2"
+><div x-show="flashOpen" x-cloak class="fixed inset-0 z-60 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
         <div class="w-full max-w-md rounded-2xl bg-white shadow-2xl border border-stone-200 p-6 space-y-4">
             <h3 class="text-lg font-semibold text-stone-900">Notifica</h3>
             <div class="space-y-2 text-sm text-stone-700 max-h-64 overflow-y-auto">
@@ -96,88 +95,39 @@
     </div>
 
     <div class="relative overflow-hidden rounded-2xl border border-teal-200/40 bg-gradient-to-r from-teal-600 via-teal-500 to-emerald-500 text-white shadow-lg">
-        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/honeycomb.png')] opacity-20 pointer-events-none"></div>
-        <div class="relative px-6 py-8 md:px-10 md:py-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-            <div class="space-y-2 max-w-2xl">
-                <p class="text-xs uppercase tracking-[0.35em] text-white/70">Benvenuta/o nel tua area personale</p>
-                <h2 class="text-3xl md:text-4xl font-semibold">Troverai le tue iscrizioni e i tuoi dati di gestione dei corsi</h2>
-                         <a
-                    :href="routes.bankTransferInfo"
-                    class="inline-flex items-center gap-2 rounded-lg bg-white/20 px-4 py-2 text-xs font-semibold text-white border border-white/40 backdrop-blur-sm hover:bg-white/30 transition"
-                >
-                    Come eseguire un pagamento con Bonifico (IBAN)
-                </a>
+        <div class="relative px-6 py-8 md:px-10 md:py-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6"
+            style="
+    padding-top: 12px;
+    padding-bottom: 12px;
+    padding-right: 12px;
+    padding-left: 12px;">
+            <div class="space-y-2 max-w-xl">
+                <h2 class="font-semibold">Benvenuta/o nella tua area privata, qui potrai iscriverti ai corsi, gestire i tuoi documenti personali e visualizzare pagamenti </h2>
+                         
             </div>
-            <div class="flex flex-col sm:flex-row sm:items-center gap-4 bg-white/15 backdrop-blur-sm rounded-2xl px-5 py-4 border border-white/30 shadow-inner">
-                <div class="flex flex-col text-center">
-                    <span class="text-xs uppercase tracking-widest text-white/70">Corsi Yoga Disponibili</span>
-                    <span class="text-2xl font-semibold" x-text="courses.length"></span>
-                </div>
-                <span class="hidden sm:block w-px h-10 bg-white/30"></span>
-               
-            </div>
+
         </div>
     </div>
 
-    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <button
+        type="button"
+        class="bg-teal-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-teal-700 transition-colors"
+        @click="toggleDocuments"
+        x-text="showDocuments ? 'Nascondi documenti' : 'Gestisci documenti'"
+    ></button>
+    </div>
+    <div x-show="showDocuments" x-cloak x-transition class="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
         <div class="card p-6 space-y-4">
-            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-                <div>
-                    <p class="text-xs uppercase tracking-widest text-stone-400 font-semibold">Quota associativa</p>
-                    <h3 class="text-2xl font-semibold text-stone-900">Stagione <span x-text="membershipSeasonLabel()"></span></h3>
-                    <p class="text-sm text-stone-500" x-text="membershipDueLabel()"></p>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-xs font-semibold px-3 py-1.5 rounded-full" :class="membershipStatusClass()" x-text="membershipStatusLabel()"></span>
-                    <span class="text-lg font-semibold text-stone-700" x-text="formatMoney(membership?.amount ?? 0)"></span>
-                </div>
-            </div>
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                <div class="text-xs text-stone-500">
-                    <p class="font-semibold text-stone-600 uppercase tracking-wide">Validità</p>
-                    <p>
-                        <span x-text="membership?.starts_at ?? '—'"></span>
-                        &nbsp;→&nbsp;
-                        <span x-text="membership?.ends_at ?? '—'"></span>
-                    </p>
-                </div>
-                <template x-if="membershipPayment && membershipPayment.status !== 'paid'">
-                    <span class="text-sm text-rose-600 font-semibold">Pagamento in attesa</span>
-                </template>
-                <template x-if="membershipPayment && membershipPayment.status === 'paid'">
-                    <span class="text-sm text-emerald-600 font-semibold">
-                        Pagata il <span x-text="formatDateString(membershipPayment.paid_at)"></span>
-                    </span>
-                </template>
-                <template x-if="membershipPayment && membershipPayment.receipt_route">
-                    <a
-                        :href="membershipPayment.receipt_route"
-                        target="_blank"
-                        rel="noopener"
-                        class="inline-flex items-center gap-1 rounded-lg border border-teal-200 px-3 py-1 text-xs font-semibold text-teal-700 hover:bg-teal-50 transition"
-                    >
-                        Scarica ricevuta
-                    </a>
-                </template>
-            </div>
-        </div>
 
-        <div class="card p-6 space-y-4">
-            <div class="flex items-center justify-between">
-                <h3 class="text-xl font-semibold text-stone-900">Documenti personali</h3>
-                <span class="text-xs text-stone-400 uppercase tracking-wide">Obbligatori</span>
-            </div>
-            <div class="text-xs text-stone-500">Carica PDF o immagini (max 5 MB). La sostituzione è immediata.</div>
+            <div  class="space-y-4">
+                <div class="text-xs text-stone-500">Carica PDF o immagini (max 5 MB).</div>
 
-            <div class="flex flex-wrap items-center gap-2">
+                <div class="flex flex-wrap items-center gap-2">
                 @foreach ($documentDefinitions as $type => $definition)
                     <div class="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-stone-50 px-3 py-1.5">
                         <span class="text-xs font-semibold text-stone-700">{{ $definition['label'] }}</span>
-                        <template x-if="documentByType('{{ $type }}')">
-                            <span class="inline-flex items-center gap-1 text-[11px] rounded-full bg-emerald-100 text-emerald-700 px-2 py-0.5">
-                                Pronto
-                            </span>
-                        </template>
+
                         <template x-if="!documentByType('{{ $type }}')">
                             <span class="inline-flex items-center gap-1 text-[11px] rounded-full bg-rose-100 text-rose-700 px-2 py-0.5">
                                 Mancante
@@ -192,7 +142,7 @@
                                 class="inline-flex items-center gap-1 text-[11px] font-semibold text-teal-600 hover:text-teal-700 underline decoration-dotted"
                                 title="Scarica documento"
                             >
-                                Scarica
+                                Vedi
                             </a>
                         </template>
 
@@ -207,90 +157,34 @@
                     </div>
                 @endforeach
             </div>
+                
+            </div>
         </div>
     </div>
 
-    <div class="flex justify-end mt-4">
-
-        <button
-            type="button"
-            class="inline-flex items-center gap-2 rounded-lg border border-stone-300 px-4 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-100 transition"
-            @click="togglePayments"
-        >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-            
-            <span x-text="showPayments ? 'Nascondi storico pagamenti' : 'Mostra storico pagamenti'"></span>
-        </button>
-    </div>
-
-    <div class="card p-6 space-y-4 mt-4" x-show="showPayments" x-cloak>
-        <div class="flex items-center justify-between">
-            <h3 class="text-xl font-semibold text-stone-900">Storico pagamenti</h3>
-            <span class="text-xs text-stone-400 uppercase tracking-wide">Ultimi movimenti</span>
-        </div>
-        <div class="space-y-3 max-h-64 overflow-y-auto pr-1">
-            <template x-for="payment in payments" :key="payment.id">
-                <div class="border border-stone-200 rounded-xl px-4 py-3 bg-stone-50 flex flex-col gap-1">
-                    <div class="flex items-center justify-between">
-                        <span class="text-sm font-semibold text-stone-800" x-text="payment.type === 'membership' ? 'Quota associativa' : (payment.type === 'course_subscription' ? 'Iscrizione corso' : 'Lezione privata')"></span>
-                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full" :class="paymentStatusClass(payment.status)" x-text="payment.status === 'paid' ? 'Pagato' : 'In attesa'"></span>
-                    </div>
-                    <template x-if="payment.is_course_payment">
-                        <div class="text-[11px] text-stone-500 space-y-1">
-                            <p>
-                                <span class="font-semibold text-stone-600">Corso:</span>
-                                <span x-text="payment.course_title ?? '—'"></span>
-                            </p>
-                            <p x-show="payment.plan_label">
-                                <span class="font-semibold text-stone-600">Tipo abbonamento:</span>
-                                <span x-text="payment.plan_label"></span>
-                            </p>
-                            <p x-show="payment.subscriptionStartDateDisplay">
-                                <span class="font-semibold text-stone-600">Data inizio:</span>
-                                <span x-text="payment.subscriptionStartDateDisplay"></span>
-                            </p>
-                            <p x-show="payment.has_extra_day">
-                                <span class="font-semibold text-stone-600">Modalità “Un giorno in più”:</span>
-                                <span x-text="payment.extra_day?.course_title ?? 'Aggiunta'"></span>
-                            </p>
-                        </div>
-                    </template>
-                    <div class="text-xs text-stone-500 flex items-center justify-between gap-4">
-                        <div class="flex items-center gap-3">
-                            <span x-text="payment.due_date ? `Scadenza ${formatDateString(payment.due_date)}` : ''"></span>
-                            <template x-if="payment.receipt_route">
-                                <a
-                                    :href="payment.receipt_route"
-                                    target="_blank"
-                                    rel="noopener"
-                                    class="inline-flex items-center gap-1 text-[11px] font-semibold text-teal-600 hover:text-teal-700 underline decoration-dotted"
-                                >
-                                    Scarica ricevuta
-                                </a>
-                            </template>
-                        </div>
-                        <span class="font-semibold text-stone-700 text-right" x-text="formatMoney(payment.amount)"></span>
-                    </div>
-                </div>
-            </template>
-            <template x-if="payments.length === 0">
-                <p class="text-sm text-stone-500">Non hai ancora registrato alcun pagamento.</p>
-            </template>
-        </div>
-    </div>
-
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <a
+                    :href="routes.bankTransferInfo"
+                    class="text-xs text-stone-500 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 font-semibold text-emerald-600"
+                >
+                    Come eseguire un pagamento con Bonifico (IBAN)
+                </a>
+                <a href="{{ route('account.password.edit') }}" 
+                class="text-xs text-stone-500 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 font-semibold text-emerald-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0-1.104-.896-2-2-2m8 10V9a4 4 0 00-4-4H9a4 4 0 00-4 4v10" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 15h10" />
+                        </svg>
+                        Cambia password
+                </a>
+</div>
     <div class="bg-white rounded-2xl shadow-sm border border-stone-200/80 p-6 md:p-8 space-y-6">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div class="space-y-1">
-                <h3 class="text-2xl font-semibold text-stone-900">Corsi Yoga</h3>
+                <h3 class="text-2xl font-semibold text-stone-900">Iscriviti ai Corsi Yoga</h3>
                 <p class="text-sm text-stone-500">Sfoglia i corsi disponibili e conferma le tue iscrizioni mensili.</p>
             </div>
-            <div class="inline-flex items-center gap-2 bg-stone-100 border border-stone-200 rounded-full px-4 py-2 text-xs text-stone-500">
-                <span class="w-2 h-2 rounded-full bg-teal-500"></span>
-                Aggiornato settimanalmente
-            </div>
+
         </div>
 
         <div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
@@ -298,13 +192,24 @@
                 <div class="p-5 rounded-xl border border-stone-200/70 bg-gradient-to-br from-stone-50 via-white to-white shadow-sm hover:shadow-md transition-shadow">
                     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div>
+                            
                             <p class="text-lg font-semibold text-teal-700" x-text="course.title"></p>
-                            <p class="text-sm text-stone-500">
+                            <p class="font-bold text-stone-600 tracking-wide">
                                 Insegnante: <span x-text="course.teacher_name ?? 'Da assegnare'"></span>
                             </p>
  
                         </div>
-                        <div class="text-right">
+                        <template x-if="!isSubscribed(course.id)">
+                            <button
+                                type="button"
+                                class="bg-teal-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-teal-700 transition-colors disabled:bg-teal-400 disabled:cursor-not-allowed"
+                                @click="openSubscriptionModal(course)"
+                                :disabled="loading || !(course.availablePlans?.length)"
+                            >
+                                Iscriviti
+                            </button>
+                        </template>
+                        <div class="text-center">
                             <template x-if="course.availablePlans?.length">
                                 <div>
                                     <p class="text-sm text-stone-500">Piano base</p>
@@ -314,6 +219,7 @@
                                     <p class="text-[11px] uppercase text-stone-400" x-text="course.availablePlans[0]?.label"></p>
                                 </div>
                             </template>
+
                             <template x-if="!(course.availablePlans?.length)">
                                 <div>
                                     <p class="text-sm text-stone-500">Piani disponibili</p>
@@ -322,15 +228,15 @@
                             </template>
                         </div>
                     </div>
-                    <p class="text-sm text-stone-600 mt-3" x-text="truncate(course.description, 220)"></p>
+                    
                     <template x-if="course.start_date_human || course.startDateHuman || course.start_date || course.startDate">
-                        <p class="text-xs text-stone-500 mt-2">
-                            <span class="font-semibold text-stone-600">Periodo:</span>
+                        <p class=" mt-2">
+                            <span class="font-bold text-stone-600 tracking-wide">Periodo:</span>
                             <span x-text="(course.start_date_human || course.startDateHuman || course.start_date || course.startDate || '—') + ' → ' + (course.end_date_human || course.endDateHuman || course.end_date || course.endDate || '—')"></span>
                         </p>
                     </template>
-                    <div class="mt-3 text-xs text-stone-500">
-                        <p class="font-semibold text-stone-600 uppercase tracking-wide">Orari settimanali</p>
+                    <div class="mt-3 ">
+                        <p class="font-bold text-stone-600 tracking-wide">Orari settimanali</p>
                         <div class="mt-1 flex flex-wrap gap-2">
                             <template x-for="slot in course.schedule" :key="slot.day + (slot.time ?? 'TBD')">
                                 <span class="px-3 py-1 rounded-full bg-teal-100 text-teal-700 font-semibold">
@@ -364,17 +270,21 @@
                             </p>
                         </template>
                     </div>
+                    <template x-if="course.availablePlans?.length && !isSubscribed(course.id)">
+                        <div class="mt-3">
+                            <p class="font-bold text-stone-600 tracking-wide">Tipi di abbonamento disponibile</p>
+                            <div class="mt-2 flex flex-wrap gap-2">
+                                <template x-for="plan in course.availablePlans" :key="plan.type">
+                                    <span class="inline-flex items-center gap-2 rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-700">
+                                        <span x-text="plan.label"></span>
+                                        
+                                    </span>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
                     <div class="mt-4 flex flex-col sm:flex-row sm:items-center gap-3">
-                        <template x-if="!isSubscribed(course.id)">
-                            <button
-                                type="button"
-                                class="bg-teal-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-teal-700 transition-colors disabled:bg-teal-400 disabled:cursor-not-allowed"
-                                @click="openSubscriptionModal(course)"
-                                :disabled="loading || !(course.availablePlans?.length)"
-                            >
-                                Iscriviti
-                            </button>
-                        </template>
+                       
                         <template x-if="isSubscribed(course.id)">
                             <div class="flex flex-col sm:flex-row sm:items-center gap-2 text-xs text-stone-500">
                                 <span class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 font-semibold text-emerald-600">
@@ -399,19 +309,7 @@
                             </div>
                         </template>
                     </div>
-                    <template x-if="course.availablePlans?.length && !isSubscribed(course.id)">
-                        <div class="mt-3">
-                            <p class="text-[11px] uppercase font-semibold text-stone-500 tracking-wide">Tipi di abbonamento</p>
-                            <div class="mt-2 flex flex-wrap gap-2">
-                                <template x-for="plan in course.availablePlans" :key="plan.type">
-                                    <span class="inline-flex items-center gap-2 rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-700">
-                                        <span x-text="plan.label"></span>
-                                        <span>€ <span x-text="Number(plan.amount ?? 0).toFixed(2)"></span></span>
-                                    </span>
-                                </template>
-                            </div>
-                        </div>
-                    </template>
+                    
                 </div>
             </template>
             <template x-if="courses.length === 0">
@@ -587,6 +485,7 @@
             </div>
         </div>
 
+    
        
 
     <!-- Booking Modal -->
@@ -658,246 +557,378 @@
     </div>
     @endif
 
+
+    
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <button
+            type="button"
+            class="bg-teal-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-teal-700 transition-colors disabled:bg-teal-400 disabled:cursor-not-allowed"
+            @click="togglePayments">
+            
+            
+            <span x-text="showPayments ? 'Nascondi Pagamenti' : 'Mostra Pagamenti'"></span>
+        </button>
+    </div>
+
+    <div class="card p-6 space-y-4 mt-4" x-show="showPayments" x-cloak>
+
+        
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+                <div>
+                    <p class="text-xs tracking-widest text-stone-400 font-semibold">Quota associativa</p>
+                    <h3 class="text-2xl font-semibold text-stone-900">Stagione <span x-text="membershipSeasonLabel()"></span></h3>
+                    <p class="text-sm text-stone-500" x-text="membershipDueLabel()"></p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-semibold px-3 py-1.5 rounded-full" :class="membershipStatusClass()" x-text="membershipStatusLabel()"></span>
+                    <span class="text-lg font-semibold text-stone-700" x-text="formatMoney(membership?.amount ?? 0)"></span>
+                </div>
+            </div>
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <div class="text-xs text-stone-500">
+                    <p class="font-semibold text-stone-600 uppercase tracking-wide">Validità</p>
+                    <p>
+                        <span x-text="membership?.starts_at ?? '—'"></span>
+                        &nbsp;→&nbsp;
+                        <span x-text="membership?.ends_at ?? '—'"></span>
+                    </p>
+                </div>
+                <template x-if="membershipPayment && membershipPayment.status !== 'paid'">
+                    <span class="text-sm text-rose-600 font-semibold">Pagamento in attesa</span>
+                </template>
+                <template x-if="membershipPayment && membershipPayment.status === 'paid'">
+                    <span class="text-sm text-emerald-600 font-semibold">
+                        Pagata il <span x-text="formatDateString(membershipPayment.paid_at)"></span>
+                    </span>
+                </template>
+                <template x-if="membershipPayment && membershipPayment.receipt_route">
+                    <a
+                        :href="membershipPayment.receipt_route"
+                        target="_blank"
+                        rel="noopener"
+                        class="inline-flex items-center gap-1 rounded-lg border border-teal-200 px-3 py-1 text-xs font-semibold text-teal-700 hover:bg-teal-50 transition"
+                    >
+                        Scarica ricevuta
+                    </a>
+                </template>
+            </div>
+       
+
+        <div class="flex items-center justify-between">
+            <h3 class="text-xl font-semibold text-stone-900">Storico pagamenti</h3>
+            <span class="text-xs text-stone-400 uppercase tracking-wide">Ultimi movimenti</span>
+        </div>
+        <div class="space-y-3 max-h-64 overflow-y-auto pr-1">
+            <template x-for="payment in payments" :key="payment.id">
+                <div class="border border-stone-200 rounded-xl px-4 py-3 bg-stone-50 flex flex-col gap-1">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-semibold text-stone-800" x-text="payment.type === 'membership' ? 'Quota associativa' : (payment.type === 'course_subscription' ? 'Iscrizione corso' : 'Lezione privata')"></span>
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full" :class="paymentStatusClass(payment.status)" x-text="payment.status === 'paid' ? 'Pagato' : 'In attesa'"></span>
+                    </div>
+                    <template x-if="payment.is_course_payment">
+                        <div class="text-[11px] text-stone-500 space-y-1">
+                            <p>
+                                <span class="font-semibold text-stone-600">Corso:</span>
+                                <span x-text="payment.course_title ?? '—'"></span>
+                            </p>
+                            <p x-show="payment.plan_label">
+                                <span class="font-semibold text-stone-600">Tipo abbonamento:</span>
+                                <span x-text="payment.plan_label"></span>
+                            </p>
+                            <p x-show="payment.subscriptionStartDateDisplay">
+                                <span class="font-semibold text-stone-600">Data inizio:</span>
+                                <span x-text="payment.subscriptionStartDateDisplay"></span>
+                            </p>
+                            <p x-show="payment.has_extra_day">
+                                <span class="font-semibold text-stone-600">Modalità “Un giorno in più”:</span>
+                                <span x-text="payment.extra_day?.course_title ?? 'Aggiunta'"></span>
+                            </p>
+                        </div>
+                    </template>
+                    <div class="text-xs text-stone-500 flex items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <span x-text="payment.due_date ? `Scadenza ${formatDateString(payment.due_date)}` : ''"></span>
+                            <template x-if="payment.receipt_route">
+                                <a
+                                    :href="payment.receipt_route"
+                                    target="_blank"
+                                    rel="noopener"
+                                    class="inline-flex items-center gap-1 text-[11px] font-semibold text-teal-600 hover:text-teal-700 underline decoration-dotted"
+                                >
+                                    Scarica ricevuta
+                                </a>
+                            </template>
+                        </div>
+                        <span class="font-semibold text-stone-700 text-right" x-text="formatMoney(payment.amount)"></span>
+                    </div>
+                </div>
+            </template>
+            <template x-if="payments.length === 0">
+                <p class="text-sm text-stone-500">Non hai ancora registrato alcun pagamento.</p>
+            </template>
+        </div>
+    </div>
+
     <!-- Subscription Modal -->
     <div
         x-cloak
         x-show="subscriptionModal.open"
-        class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 px-4 py-8"
+        class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 px-4 py-6 sm:py-8"
         x-transition
         @keydown.escape.window="closeSubscriptionModal"
     >
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] border border-stone-200/60 flex flex-col">
-            <div class="px-6 py-5 border-b border-stone-200 bg-stone-50">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl h-full max-h-[95vh] sm:h-auto sm:max-h-[90vh] border border-stone-200/60 flex flex-col">
+            <div class="px-4 py-4 sm:px-6 sm:py-5 border-b border-stone-200 bg-stone-50">
                 <h4 class="text-2xl font-semibold text-stone-900">Iscrizione al Corso: <span class="font-semibold text-teal-700" x-text="subscriptionModal.course?.title"></span></h4>
                     
 
             </div>
-            <div class="px-6 py-5 space-y-5 text-sm text-stone-600 overflow-y-auto">
+            <div class="px-4 py-4 sm:px-6 sm:py-5 space-y-5 text-sm text-stone-600 overflow-y-auto flex-1">
                 <template x-if="subscriptionModal.course">
-                    <div class="space-y-4">
-                        <p x-text="subscriptionModal.course.description"></p>
-                        <p
-                            class="text-xs font-semibold text-rose-600"
-                            x-show="courseEnrollmentFull(subscriptionModal.course)"
-                        >
-                            Questo corso ha raggiunto il numero massimo di iscritti. Potrai iscriverti quando si libererà un posto.
-                        </p>
+                    <div class="space-y-6">
+                        <div class="space-y-2">
+                            <p class="text-sm text-stone-600" x-text="subscriptionModal.course.description"></p>
+                            <p class="text-xs font-semibold text-rose-600" x-show="courseEnrollmentFull(subscriptionModal.course)">
+                                Questo corso ha raggiunto il numero massimo di iscritti. Potrai iscriverti quando si liberer� un posto.
+                            </p>
+                        </div>
 
-                        <div class="space-y-3 rounded-xl border border-stone-200 bg-stone-50 p-4">
-                            <h5 class="text-sm font-semibold text-stone-700">Scegli il piano di abbonamento</h5>
-                            <template x-if="coursePlans(subscriptionModal.course).length > 0">
-                                <div class="grid gap-3 md:grid-cols-2">
-                                    <template x-for="plan in coursePlans(subscriptionModal.course)" :key="plan.type">
-                                        <label class="flex items-start gap-2 rounded-lg border border-transparent px-3 py-2 text-sm hover:border-teal-200 hover:bg-white transition">
-                                            <input
-                                                type="radio"
-                                                name="subscription-plan"
-                                                class="mt-1 h-4 w-4 text-teal-600 border-stone-300 focus:ring-teal-500"
-                                                :value="plan.type"
-                                                :checked="subscriptionModal.planType === plan.type"
-                                                @change="selectSubscriptionPlan(plan.type)"
-                                            >
-                                            <span>
-                                                <span class="font-semibold text-stone-700" x-text="plan.label"></span>
-                                                <span class="block text-xs text-stone-500">
-                                                    <template x-if="plan.lesson_based">
-                                                        <span>da € <span x-text="Number(plan.amount ?? 0).toFixed(2)"></span> · prezzo in base alle lezioni scelte</span>
-                                                    </template>
-                                                    <template x-if="!plan.lesson_based">
-                                                        <span>
-                                                            € <span x-text="Number(plan.amount ?? 0).toFixed(2)"></span>
-                                                            · <span x-text="plan.months === 1 ? '1 mese' : `${plan.months} mesi`"></span>
-                                                        </span>
-                                                    </template>
-                                                </span>
-                                            </span>
-                                        </label>
-                                    </template>
-                                </div>
-                            </template>
-                            <template x-if="coursePlans(subscriptionModal.course).length === 0">
-                                <p class="text-xs text-rose-500">Nessun piano disponibile.</p>
-                            </template>
-
-                            <template x-if="isLessonBasedCourse(subscriptionModal.course)">
-                                <div class="space-y-3 rounded-xl border border-amber-100 bg-amber-50/70 px-4 py-3">
-                                    <div class="space-y-1">
-                                        <h6 class="text-sm font-semibold text-stone-700">Seleziona le lezioni settimanali</h6>
-                                        <p class="text-xs text-stone-500">Indica i giorni/orari in cui parteciperai. Il costo si aggiornerà automaticamente in base al numero di lezioni scelte.</p>
-                                    </div>
-                                    <template x-if="courseSchedule(subscriptionModal.course).length > 0">
-                                        <div class="space-y-2">
-                                            <template x-for="slot in courseSchedule(subscriptionModal.course)" :key="slot.id">
-                                                <label
-                                                    class="flex flex-col gap-1 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-700"
-                                                    :class="(slot.full && !subscriptionModal.selectedLessons.includes(slot.id)) ? 'opacity-50' : ''"
-                                                >
-                                                    <div class="flex flex-wrap items-center justify-between gap-3">
-                                                        <div class="flex items-center gap-3">
-                                                            <input
-                                                                type="checkbox"
-                                                                class="h-4 w-4 text-teal-600 border-stone-300 focus:ring-teal-500"
-                                                                :value="slot.id"
-                                                                x-model="subscriptionModal.selectedLessons"
-                                                                :disabled="slot.full && !subscriptionModal.selectedLessons.includes(slot.id)"
-                                                                @change="handleLessonSelectionChange()"
-                                                            >
-                                                            <div>
-                                                                <span class="font-semibold" x-text="slot.day"></span>
-                                                                <span class="block text-xs text-stone-500" x-text="slot.time ? `Ore ${slot.time}` : 'Orario da definire'"></span>
-                                                            </div>
-                                                        </div>
-                                                        <span class="text-[11px] font-semibold text-stone-500" x-text="lessonCapacityLabel(slot)"></span>
-                                                    </div>
-                                                </label>
-                                            </template>
+                        <div class="space-y-5 rounded-2xl border border-stone-200 bg-stone-50/80 p-4 sm:p-5">
+                            <div class="flex flex-wrap items-center gap-3">
+                                <template x-for="(step, index) in subscriptionModal.steps" :key="step">
+                                    <div class="flex items-center gap-2">
+                                        <div class="flex h-8 w-8 items-center justify-center rounded-full border text-xs font-semibold"
+                                            :class="subscriptionModal.stepIndex === index ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-stone-500 border-stone-200'">
+                                            <span x-text="index + 1"></span>
                                         </div>
-                                    </template>
-                                    <template x-if="courseSchedule(subscriptionModal.course).length === 0">
-                                        <p class="text-xs text-rose-600">Non sono stati ancora configurati orari per questo corso.</p>
-                                    </template>
-                                    <div class="flex flex-col gap-1 text-xs text-stone-600 sm:flex-row sm:items-center sm:justify-between">
-                                        <span class="font-semibold text-teal-700" x-text="lessonSelectionPriceLabel()"></span>
+                                        <span class="text-xs font-semibold uppercase tracking-wide"
+                                            :class="subscriptionModal.stepIndex === index ? 'text-teal-700' : 'text-stone-400'"
+                                            x-text="subscriptionStepLabel(step)"></span>
                                     </div>
-                                    <p class="text-xs text-rose-600" x-show="subscriptionModal.lessonError" x-text="subscriptionModal.lessonError"></p>
-                                </div>
-                            </template>
-
-                            <div class="h-px w-full bg-stone-200"></div>
-
-                            <h5 class="text-sm font-semibold text-stone-700">Scegli la data di inizio</h5>
-                            <p class="text-xs text-stone-500" x-text="subscriptionModal.supportsProration ? 'Iniziando nel mese corrente il costo viene calcolato sui giorni rimanenti.' : 'Il costo è fisso per l\'intero periodo selezionato.'"></p>
-
-                            <div class="space-y-3">
-                                <div class="grid gap-3 md:grid-cols-2">
-                                    <label class="flex items-start gap-3 rounded-xl border border-stone-200 bg-white px-3 py-3 text-sm text-stone-600">
-                                        <input
-                                            type="radio"
-                                            name="subscription-start-option"
-                                            value="current_month"
-                                            class="mt-1 h-4 w-4 text-teal-600 border-stone-300 focus:ring-teal-500"
-                                            :checked="subscriptionModal.option === 'current_month'"
-                                            @change="handleSubscriptionOptionChange('current_month')"
-                                        >
-                                        <span class="space-y-2">
-                                            <span>
-                                                <span class="font-semibold text-stone-700">Inizia questo mese</span>
-                                                <span class="block text-xs text-stone-500" x-text="subscriptionModal.supportsProration ? 'Costo proporzionato ai giorni rimanenti.' : 'Il costo verrà applicato per l\'intera durata del piano.'"></span>
-                                            </span>
-                                            <div class="space-y-2" x-show="subscriptionModal.option === 'current_month'">
-                                                <div class="flex flex-col gap-2">
-                                                    <input
-                                                        type="date"
-                                                        class="w-full rounded-lg border border-stone-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-                                                        :min="subscriptionModal.limits.today"
-                                                        :max="subscriptionModal.limits.endOfMonth"
-                                                        x-model="subscriptionModal.startDate"
-                                                        @input="handleSubscriptionDateChange($event.target.value)"
-                                                        @change="handleSubscriptionDateChange($event.target.value)"
-                                                    >
-                                                    <span class="text-xs text-stone-500">Disponibile fino al <span x-text="formatDateLabel(subscriptionModal.limits.endOfMonth)"></span></span>
-                                                </div>
-                                                <p class="text-xs text-rose-500" x-show="subscriptionModal.option === 'current_month' && !isValidSubscriptionDate()">Seleziona una data valida nel mese corrente.</p>
-                                            </div>
-                                        </span>
-                                    </label>
-
-                                    <label class="flex items-start gap-3 rounded-xl border border-stone-200 bg-white px-3 py-3 text-sm text-stone-600">
-                                        <input
-                                            type="radio"
-                                            name="subscription-start-option"
-                                            value="next_month"
-                                            class="mt-1 h-4 w-4 text-teal-600 border-stone-300 focus:ring-teal-500"
-                                            :checked="subscriptionModal.option === 'next_month'"
-                                            @change="handleSubscriptionOptionChange('next_month')"
-                                        >
-                                        <span>
-                                            <span class="font-semibold text-stone-700">Inizia dal prossimo mese</span>
-                                            <span class="block text-xs text-stone-500">Prima lezione il <span x-text="subscriptionModal.nextMonthLabel"></span>. Prezzo intero.</span>
-                                        </span>
-                                    </label>
-                                </div>
+                                </template>
                             </div>
 
-                            <template x-if="subscriptionModal.prorationInfo">
-                                <div class="rounded-xl border border-teal-100 bg-teal-50 px-4 py-3 text-xs text-teal-800 space-y-1">
-                                    <p class="font-semibold">Calcolo parziale applicato</p>
-                                    <p x-text="formatProrationLabel(subscriptionModal.prorationInfo)"></p>
-                                </div>
-                            </template>
-
-                            <template x-if="extraDayEnabled()">
-                                <div class="rounded-lg border border-stone-200 bg-white px-4 py-3 space-y-3">
-                                    <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                                        <div>
-                                            <p class="text-sm font-semibold text-stone-700">Modalità “Un giorno in più”</p>
-                                            <p class="text-xs text-stone-500">Aggiungi una lezione settimanale da un altro corso candidato.</p>
+                            <div class="space-y-5">
+                                <template x-if="currentSubscriptionStep() === 'plan'">
+                                    <div class="space-y-4">
+                                        <div class="space-y-1">
+                                            <h5 class="text-base font-semibold text-stone-800">Scegli il piano di abbonamento</h5>
+                                            <p class="text-xs text-stone-500">Seleziona il piano piú adatto alle tue esigenze. Potrai tornare indietro in qualsiasi momento.</p>
                                         </div>
-                                        <template x-if="Number(subscriptionModal.previewExtra) > 0">
-                                            <span class="text-sm font-semibold text-emerald-600">+ € <span x-text="subscriptionModal.previewExtra"></span></span>
-                                        </template>
-                                    </div>
-                                    <template x-if="extraDayCandidates().length > 0">
-                                        <div class="space-y-2">
-                                            <select
-                                                class="w-full rounded-lg border border-stone-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-                                                x-model="subscriptionModal.selectedExtraCourseId"
-                                                @change="handleExtraCourseChange($event.target.value)"
-                                            >
-                                                <option value="">Nessuna lezione extra</option>
-                                                <template x-for="candidate in extraDayCandidates()" :key="candidate.id">
-                                                    <option
-                                                        :value="candidate.id"
-                                                        :disabled="isSubscribed(candidate.id)"
-                                                        x-text="candidate.title"
-                                                    ></option>
+                                        <template x-if="coursePlans(subscriptionModal.course).length > 0">
+                                            <div class="grid gap-3 md:grid-cols-2">
+                                                <template x-for="plan in coursePlans(subscriptionModal.course)" :key="plan.type">
+                                                    <label class="flex items-start gap-3 rounded-2xl border px-4 py-3 text-sm transition"
+                                                        :class="subscriptionModal.planType === plan.type ? 'border-teal-500 bg-white shadow-sm' : 'border-transparent bg-white/80 hover:border-teal-200'">
+                                                        <input type="radio" name="subscription-plan" class="mt-1 h-4 w-4 text-teal-600 border-stone-300 focus:ring-teal-500"
+                                                            :value="plan.type" :checked="subscriptionModal.planType === plan.type" @change="selectSubscriptionPlan(plan.type)">
+                                                        <span class="space-y-1">
+                                                            <span class="font-semibold text-stone-800" x-text="plan.label"></span>
+                                                            <span class="block text-xs text-stone-500">
+                                                                <template x-if="plan.lesson_based">
+                                                                    <span>da <span x-text="Number(plan.amount ?? 0).toFixed(2)"></span> € prezzo in base alle lezioni scelte</span>
+                                                                </template>
+                                                                <template x-if="!plan.lesson_based">
+                                                                    <span>
+                                                                        € <span x-text="Number(plan.amount ?? 0).toFixed(2)"></span>
+                                                                        € <span x-text="plan.months === 1 ? '1 mese' : `${plan.months} mesi`"></span>
+                                                                    </span>
+                                                                </template>
+                                                            </span>
+                                                        </span>
+                                                    </label>
                                                 </template>
-                                            </select>
-                                            <p class="text-xs text-stone-500">Il costo aggiuntivo viene calcolato in base alle lezioni rimanenti del corso selezionato.</p>
-                                        </div>
-                                    </template>
-                                    <template x-if="extraDayCandidates().length === 0">
-                                        <p class="text-xs text-stone-500">Al momento non ci sono corsi disponibili come lezione extra.</p>
-                                    </template>
-                                </div>
-                            </template>
-
-                            <div class="flex flex-col gap-4 rounded-lg border border-stone-200 bg-white px-4 py-4 text-sm">
-                                <div>
-                                    <span class="text-stone-600 block">Importo dovuto ora</span>
-                                    <span class="text-[11px] text-stone-500">
-                                        Base € <span x-text="subscriptionModal.previewBase"></span>
-                                        <template x-if="Number(subscriptionModal.previewExtra) > 0">
-                                            <span> · Extra € <span x-text="subscriptionModal.previewExtra"></span></span>
+                                            </div>
                                         </template>
-                                    </span>
-                                </div>
-                                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                    <span class="text-lg font-semibold text-teal-700">€ <span x-text="subscriptionModal.preview"></span></span>
-                                    <div class="flex flex-col gap-2 sm:flex-row">
-                                        <button
-                                            type="button"
-                                            class="inline-flex items-center justify-center gap-2 rounded-lg border border-stone-300 px-4 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-100 transition"
-                                            @click="closeSubscriptionModal"
-                                        >
-                                            Annulla
-                                        </button>
-                                        <button
-                                            type="button"
-                                            class="inline-flex items-center justify-center gap-2 rounded-lg bg-teal-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-teal-700 disabled:bg-stone-300 disabled:text-stone-500 disabled:cursor-not-allowed"
-                                            @click="confirmSubscription"
-                                            :disabled="!canSubmitSubscription() || loading"
-                                        >
-                                            Conferma iscrizione
-                                        </button>
+                                        <template x-if="coursePlans(subscriptionModal.course).length === 0">
+                                            <p class="rounded-xl bg-rose-50 px-3 py-2 text-xs text-rose-600">Nessun piano disponibile.</p>
+                                        </template>
                                     </div>
-                                </div>
+                                </template>
+
+                                <template x-if="currentSubscriptionStep() === 'lessons'">
+                                    <div class="space-y-4">
+                                        <div class="space-y-1">
+                                            <h5 class="text-base font-semibold text-stone-800">Scegli le lezioni settimanali</h5>
+                                            <p class="text-xs text-stone-500">Indica i giorni e gli orari a cui parteciperai. Il prezzo si aggiorna automaticamente.</p>
+                                        </div>
+                                        <template x-if="courseSchedule(subscriptionModal.course).length > 0">
+                                            <div class="space-y-2">
+                                                <template x-for="slot in courseSchedule(subscriptionModal.course)" :key="slot.id">
+                                                    <label class="flex flex-col gap-1 rounded-2xl border bg-white px-4 py-3 text-sm text-stone-700 transition"
+                                                        :class="(slot.full && !subscriptionModal.selectedLessons.includes(slot.id)) ? 'opacity-60 cursor-not-allowed' : 'hover:border-teal-200'">
+                                                        <div class="flex flex-wrap items-center justify-between gap-3">
+                                                            <div class="flex items-center gap-3">
+                                                                <input type="checkbox" class="h-4 w-4 text-teal-600 border-stone-300 focus:ring-teal-500"
+                                                                    :value="slot.id"
+                                                                    x-model="subscriptionModal.selectedLessons"
+                                                                    :disabled="slot.full && !subscriptionModal.selectedLessons.includes(slot.id)"
+                                                                    @change="handleLessonSelectionChange()">
+                                                                <div>
+                                                                    <span class="font-semibold" x-text="slot.day"></span>
+                                                                    <span class="block text-xs text-stone-500" x-text="slot.time ? `Ore ${slot.time}` : 'Orario da definire'"></span>
+                                                                </div>
+                                                            </div>
+                                                            <span class="text-[11px] font-semibold text-stone-500" x-show="lessonCapacityLabel(slot)" x-text="lessonCapacityLabel(slot)"></span>
+                                                        </div>
+                                                    </label>
+                                                </template>
+                                            </div>
+                                        </template>
+                                        <template x-if="courseSchedule(subscriptionModal.course).length === 0">
+                                            <p class="rounded-xl bg-rose-50 px-3 py-2 text-xs text-rose-600">Non sono stati ancora configurati orari per questo corso.</p>
+                                        </template>
+                                        <div class="flex flex-col gap-1 text-xs text-stone-600 sm:flex-row sm:items-center sm:justify-between">
+                                            <span class="font-semibold text-teal-700" x-text="lessonSelectionPriceLabel()"></span>
+                                            <p class="text-rose-600" x-show="subscriptionModal.lessonError" x-text="subscriptionModal.lessonError"></p>
+                                        </div>
+                                    </div>
+                                </template>
+
+                                <template x-if="currentSubscriptionStep() === 'start'">
+                                    <div class="space-y-4">
+                                        <div class="space-y-1">
+                                            <h5 class="text-base font-semibold text-stone-800">Quando vuoi iniziare?</h5>
+                                            <p class="text-xs text-stone-500" x-text="subscriptionModal.supportsProration ? 'Iniziando questo mese il costo viene calcolato sui giorni rimanenti.' : 'Il costo � fisso per l\'intero piano selezionato.'"></p>
+                                        </div>
+                                        <div class="grid gap-3 md:grid-cols-2">
+                                            <label class="flex items-start gap-3 rounded-2xl border bg-white px-4 py-3 text-sm text-stone-600"
+                                                :class="subscriptionModal.option === 'current_month' ? 'border-teal-500 shadow-sm' : 'border-stone-200'">
+                                                <input type="radio" name="subscription-start-option" value="current_month" class="mt-1 h-4 w-4 text-teal-600 border-stone-300 focus:ring-teal-500"
+                                                    :checked="subscriptionModal.option === 'current_month'"
+                                                    @change="handleSubscriptionOptionChange('current_month')">
+                                                <span class="space-y-2">
+                                                    <span>
+                                                        <span class="font-semibold text-stone-800">Inizia questo mese</span>
+                                                        <span class="block text-xs text-stone-500">Costo proporzionato ai giorni rimanenti.</span>
+                                                    </span>
+                                                    <div class="space-y-2" x-show="subscriptionModal.option === 'current_month'">
+                                                        <div class="flex flex-col gap-2">
+                                                            <input type="date" class="w-full rounded-lg border border-stone-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                                                :min="subscriptionModal.limits.today"
+                                                                :max="subscriptionModal.limits.endOfMonth"
+                                                                x-model="subscriptionModal.startDate"
+                                                                @input="handleSubscriptionDateChange(.target.value)"
+                                                                @change="handleSubscriptionDateChange(.target.value)">
+                                                            <span class="text-xs text-stone-500">Disponibile fino al <span x-text="formatDateLabel(subscriptionModal.limits.endOfMonth)"></span></span>
+                                                        </div>
+                                                        <p class="text-xs text-rose-500" x-show="subscriptionModal.option === 'current_month' && !isValidSubscriptionDate()">Seleziona una data valida nel mese corrente.</p>
+                                                    </div>
+                                                </span>
+                                            </label>
+
+                                            <label class="flex items-start gap-3 rounded-2xl border bg-white px-4 py-3 text-sm text-stone-600"
+                                                :class="subscriptionModal.option === 'next_month' ? 'border-teal-500 shadow-sm' : 'border-stone-200'">
+                                                <input type="radio" name="subscription-start-option" value="next_month" class="mt-1 h-4 w-4 text-teal-600 border-stone-300 focus:ring-teal-500"
+                                                    :checked="subscriptionModal.option === 'next_month'"
+                                                    @change="handleSubscriptionOptionChange('next_month')">
+                                                <span>
+                                                    <span class="font-semibold text-stone-800">Inizia dal prossimo mese</span>
+                                                    <span class="block text-xs text-stone-500">Prima lezione il <span x-text="subscriptionModal.nextMonthLabel"></span>. Prezzo intero.</span>
+                                                </span>
+                                            </label>
+                                        </div>
+
+                                        <template x-if="subscriptionModal.prorationInfo">
+                                            <div class="rounded-2xl border border-teal-100 bg-teal-50 px-4 py-3 text-xs text-teal-800 space-y-1">
+                                                <p class="font-semibold">Calcolo parziale applicato</p>
+                                                <p x-text="formatProrationLabel(subscriptionModal.prorationInfo)"></p>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </template>
+
+                                <template x-if="currentSubscriptionStep() === 'extra'">
+                                    <div class="space-y-4">
+                                        <div class="space-y-1">
+                                            <h5 class="text-base font-semibold text-stone-800">Opzione �Un giorno in pi��</h5>
+                                            <p class="text-xs text-stone-500">Aggiungi una lezione settimanale da un altro corso per ampliare il tuo percorso.</p>
+                                        </div>
+                                        <template x-if="extraDayCandidates().length > 0">
+                                            <div class="space-y-2 rounded-2xl border border-stone-200 bg-white px-4 py-4">
+                                                <select class="w-full rounded-lg border border-stone-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                                    x-model="subscriptionModal.selectedExtraCourseId"
+                                                    @change="handleExtraCourseChange(.target.value)">
+                                                    <option value="">Nessuna lezione extra</option>
+                                                    <template x-for="candidate in extraDayCandidates()" :key="candidate.id">
+                                                        <option :value="candidate.id" :disabled="isSubscribed(candidate.id)" x-text="candidate.title"></option>
+                                                    </template>
+                                                </select>
+                                                <p class="text-xs text-stone-500">Il costo aggiuntivo viene calcolato in base alle lezioni rimanenti del corso selezionato.</p>
+                                                <template x-if="Number(subscriptionModal.previewExtra) > 0">
+                                                    <p class="text-sm font-semibold text-emerald-600">+ � <span x-text="subscriptionModal.previewExtra"></span></p>
+                                                </template>
+                                            </div>
+                                        </template>
+                                        <template x-if="extraDayCandidates().length === 0">
+                                            <p class="rounded-xl bg-stone-100 px-3 py-2 text-xs text-stone-500">Al momento non ci sono corsi disponibili come lezione extra.</p>
+                                        </template>
+                                    </div>
+                                </template>
+
+                                <template x-if="currentSubscriptionStep() === 'review'">
+                                    <div class="space-y-4">
+                                        <div class="space-y-1">
+                                            <h5 class="text-base font-semibold text-stone-800">Controlla i dettagli</h5>
+                                            <p class="text-xs text-stone-500">Verifica il riepilogo prima di confermare l'iscrizione.</p>
+                                        </div>
+                                        <div class="space-y-3 rounded-2xl border border-stone-200 bg-white px-4 py-4 text-sm">
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-stone-500">Piano selezionato</span>
+                                                <span class="font-semibold text-stone-800" x-text="(coursePlans(subscriptionModal.course).find(plan => plan.type === subscriptionModal.planType) || {}).label || '�'"></span>
+                                            </div>
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-stone-500">Data di inizio</span>
+                                                <span class="font-semibold text-stone-800" x-text="subscriptionModal.option === 'current_month' ? formatDateLabel(subscriptionModal.startDate) : subscriptionModal.nextMonthLabel"></span>
+                                            </div>
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-stone-500">Lezioni settimanali</span>
+                                                <span class="font-semibold text-stone-800" x-text="subscriptionModal.selectedLessons.length ? `${subscriptionModal.selectedLessons.length} selezionate` : 'Non necessario'"></span>
+                                            </div>
+                                            <div class="h-px w-full bg-stone-100"></div>
+                                            <div class="space-y-1">
+                                                <span class="text-stone-500 text-xs uppercase tracking-wide">Importo Totale</span>
+                                                <div class="flex items-center justify-between">
+                                                    <span class="text-lg font-semibold text-teal-700">€ <span x-text="subscriptionModal.preview"></span></span>
+                                                </div>
+                                                <template x-if="Number(subscriptionModal.previewExtra) > 0">
+                                                    <span class="text-[13px] text-emerald-600">Extra € <span x-text="subscriptionModal.previewExtra"></span></span>
+                                                </template>
+                                            </div>
+                                        </div>
+                                        <p class="text-xs text-stone-500">Potrai sempre consultare le istruzioni di pagamento tramite bonifico dopo l'iscrizione.</p>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            <button type="button" class="inline-flex items-center justify-center gap-2 rounded-xl border border-stone-300 px-4 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-100 transition"
+                                @click="closeSubscriptionModal">
+                                Annulla
+                            </button>
+                            <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:justify-end">
+                                <button type="button" class="inline-flex items-center justify-center gap-2 rounded-xl border border-stone-200 px-4 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-100 transition"
+                                    x-show="subscriptionModal.stepIndex > 0"
+                                    @click="goToPrevSubscriptionStep">
+                                    Indietro
+                                </button>
+                                <button type="button" class="inline-flex items-center justify-center gap-2 rounded-xl bg-teal-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-teal-700 disabled:bg-stone-300 disabled:text-stone-500 disabled:cursor-not-allowed"
+                                    x-show="!isFinalSubscriptionStep()"
+                                    @click="goToNextSubscriptionStep"
+                                    :disabled="!canProceedCurrentStep()">
+                                    Continua
+                                </button>
+                                <button type="button" class="inline-flex items-center justify-center gap-2 rounded-xl bg-teal-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-teal-700 disabled:bg-stone-300 disabled:text-stone-500 disabled:cursor-not-allowed"
+                                    x-show="isFinalSubscriptionStep()"
+                                    @click="confirmSubscription"
+                                    :disabled="!canSubmitSubscription() || loading">
+                                    Conferma iscrizione
+                                </button>
                             </div>
                         </div>
                     </div>
-                </template>
-
-                <template x-if="!subscriptionModal.course">
+                </template><template x-if="!subscriptionModal.course">
                     <p class="text-sm text-stone-500">Nessun corso selezionato.</p>
                 </template>
             </div>
@@ -970,6 +1001,7 @@
                             candidateCourseIds: normalize(payload.extraDay?.candidateCourseIds ?? []),
                         },
                         showPayments: false,
+                        showDocuments: false,
                         routes: payload.routes,
                         statusMessage: payload.flash?.status ?? '',
                         statusActionUrl: null,
@@ -1005,6 +1037,8 @@
                                 endOfMonth: null,
                                 nextMonthStart: null,
                             },
+                            steps: [],
+                            stepIndex: 0,
                         },
 
                         init() {
@@ -1072,6 +1106,10 @@
 
                         togglePayments() {
                             this.showPayments = !this.showPayments;
+                        },
+
+                        toggleDocuments() {
+                            this.showDocuments = !this.showDocuments;
                         },
 
                         documentByType(type) {
@@ -1195,7 +1233,7 @@
                             this.updateSubscriptionPreview();
                         },
 
-                        validateLessonSelection(plan) {
+                        validateLessonSelection(plan = this.selectedPlan()) {
                             if (!this.isLessonBasedCourse(this.subscriptionModal.course)) {
                                 this.subscriptionModal.lessonError = '';
                                 return true;
@@ -1565,6 +1603,7 @@
                                 nextMonthStart,
                             };
                             this.subscriptionModal.nextMonthLabel = this.formatDateLabel(nextMonthStart);
+                            this.setupSubscriptionSteps();
                             this.updateSubscriptionPreview();
                             this.subscriptionModal.open = true;
                         },
@@ -1582,6 +1621,8 @@
                             this.subscriptionModal.selectedLessons = [];
                             this.subscriptionModal.lessonError = '';
                             this.subscriptionModal.prorationInfo = null;
+                            this.subscriptionModal.steps = [];
+                            this.subscriptionModal.stepIndex = 0;
                         },
 
                         handleSubscriptionOptionChange(option) {
@@ -1592,6 +1633,78 @@
                                 this.subscriptionModal.startDate = this.subscriptionModal.limits.nextMonthStart ?? this.isoNextMonthStart();
                             }
                             this.updateSubscriptionPreview();
+                        },
+
+                        setupSubscriptionSteps() {
+                            const steps = ['plan'];
+                            if (this.isLessonBasedCourse(this.subscriptionModal.course)) {
+                                steps.push('lessons');
+                            }
+                            steps.push('start');
+                            if (this.shouldShowExtraDayStep()) {
+                                steps.push('extra');
+                            }
+                            steps.push('review');
+                            this.subscriptionModal.steps = steps;
+                            this.subscriptionModal.stepIndex = 0;
+                        },
+
+                        shouldShowExtraDayStep() {
+                            return this.extraDayEnabled() && this.extraDayCandidates().length > 0;
+                        },
+
+                        currentSubscriptionStep() {
+                            return this.subscriptionModal.steps[this.subscriptionModal.stepIndex] ?? null;
+                        },
+
+                        subscriptionStepLabel(step) {
+                            const labels = {
+                                plan: 'Piano',
+                                lessons: 'Lezioni',
+                                start: 'Inizio',
+                                extra: 'Un giorno in più',
+                                review: 'Riepilogo',
+                            };
+                            return labels[step] || step;
+                        },
+
+                        isFinalSubscriptionStep() {
+                            return this.subscriptionModal.stepIndex >= this.subscriptionModal.steps.length - 1;
+                        },
+
+                        canProceedCurrentStep() {
+                            const step = this.currentSubscriptionStep();
+                            if (step === 'plan') {
+                                return Boolean(this.subscriptionModal.planType);
+                            }
+                            if (step === 'lessons') {
+                                return this.validateLessonSelection();
+                            }
+                            if (step === 'start') {
+                                return this.isValidSubscriptionDate();
+                            }
+                            if (step === 'extra') {
+                                return true;
+                            }
+                            if (step === 'review') {
+                                return this.canSubmitSubscription();
+                            }
+                            return true;
+                        },
+
+                        goToNextSubscriptionStep() {
+                            if (!this.canProceedCurrentStep()) {
+                                return;
+                            }
+                            if (this.subscriptionModal.stepIndex < this.subscriptionModal.steps.length - 1) {
+                                this.subscriptionModal.stepIndex += 1;
+                            }
+                        },
+
+                        goToPrevSubscriptionStep() {
+                            if (this.subscriptionModal.stepIndex > 0) {
+                                this.subscriptionModal.stepIndex -= 1;
+                            }
                         },
 
                         handleSubscriptionDateChange(value) {
@@ -2181,3 +2294,29 @@
         </script>
     @endpush
 @endonce
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

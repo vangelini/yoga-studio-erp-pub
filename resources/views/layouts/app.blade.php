@@ -8,10 +8,17 @@
                     <img src="{{ asset('images/yoga-logo.jpg') }}" alt="Shanti Sadhana Logo" class="w-10 h-10 rounded-full ring-2 ring-transparent group-hover:ring-teal-200 transition">
                     <div>
                         <h1 class="text-2xl font-bold text-teal-800 group-hover:text-teal-700 transition">Shanti Sadhana</h1>
-                        <p class="text-sm text-stone-500 -mt-1">Find your inner peace.</p>
+                        <p class="text-sm text-stone-500 -mt-1">Centro Yoga - Area Allieve/i.</p>
                     </div>
                 </a>
                 <div class="flex items-center gap-4">
+                    
+                    <div class="text-right">
+                        <p class="text-sm text-stone-500">Benvenuta/o</p>
+                        <p class="font-semibold text-teal-700">{{ auth()->user()->name }}</p>
+                        
+                    </div>
+                    <!-- Centro notifiche -->
                     <div
                         x-data="{
                             open: false,
@@ -108,28 +115,23 @@
                                 </template>
                             </div>
                         </div>
+                        <div style="height:4px;"></div>
+                        <div class="text-center flex flex-col sm:flex-row sm:items-center gap-2 text-xs text-stone-500">
+                            
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 font-semibold text-emerald-600">
+                                    esci
+                                </button>
+                            </form>
+                        </div>
                     </div>
-                    <div class="text-right">
-                        <p class="text-sm text-stone-500">Benvenuta/o</p>
-                        <p class="font-semibold text-teal-700">{{ auth()->user()->name }}</p>
-                    </div>
-                    <a
-                        href="{{ route('account.password.edit') }}"
-                        class="inline-flex items-center gap-2 rounded-lg border border-stone-200 px-3 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-100 transition"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0-1.104-.896-2-2-2m8 10V9a4 4 0 00-4-4H9a4 4 0 00-4 4v10" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 15h10" />
-                        </svg>
-                        Cambia password
-                    </a>
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit" class="bg-stone-200 text-stone-700 font-semibold py-2 px-4 rounded-lg hover:bg-stone-300 transition-colors">
-                            Logout
-                        </button>
-                    </form>
+                    <!-- Fine centro notifiche -->
+                    <!-- Bottone esci -->
+                    
+                    <!-- Fine Bottone esci -->
                 </div>
+               
             </div>
         </header>
 
