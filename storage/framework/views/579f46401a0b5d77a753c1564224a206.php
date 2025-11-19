@@ -58,7 +58,7 @@
     class="space-y-2"
 ><div x-show="flashOpen" x-cloak class="fixed inset-0 z-60 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
         <div class="w-full max-w-md rounded-2xl bg-white shadow-2xl border border-stone-200 p-6 space-y-4">
-            <h3 class="text-lg font-semibold text-stone-900">Notifica</h3>
+            
             <div class="space-y-2 text-sm text-stone-700 max-h-64 overflow-y-auto">
                 <template x-if="statusMessage">
                     <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-emerald-700" x-text="statusMessage"></div>
@@ -95,16 +95,16 @@
     </div>
 
     <div class="relative overflow-hidden rounded-2xl border border-teal-200/40 bg-gradient-to-r from-teal-600 via-teal-500 to-emerald-500 text-white shadow-lg">
-        <div class="relative px-6 py-8 md:px-10 md:py-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6"
+        <div class="relative px-6 py-8 md:px-10 md:py-10 flex flex-col md:flex-row md:items-right md:justify-between gap-6"
             style="
     padding-top: 12px;
     padding-bottom: 12px;
     padding-right: 12px;
     padding-left: 12px;">
-            <div class="space-y-2 max-w-xl">
-                <h2 class="font-semibold">Benvenuta/o nella tua area privata, qui potrai iscriverti ai corsi, gestire i tuoi documenti personali e visualizzare pagamenti </h2>
-                         
-            </div>
+            
+                <h2 class="italic" >Benvenuta/o nella tua area privata, qui potrai iscriverti ai corsi, gestire i tuoi documenti personali e visualizzare pagamenti </h2>
+            
+            
 
         </div>
     </div>
@@ -114,7 +114,7 @@
         type="button"
         class="bg-teal-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-teal-700 transition-colors"
         @click="toggleDocuments"
-        x-text="showDocuments ? 'Nascondi documenti' : 'Gestisci documenti'"
+        x-text="showDocuments ? ' - Nascondi documenti' : ' + Gestisci documenti'"
     ></button>
     </div>
     <div x-show="showDocuments" x-cloak x-transition class="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
@@ -162,15 +162,128 @@
         </div>
     </div>
 
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+
+    <!-- Gestione Pagamenti -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <button
+            type="button"
+            class="bg-teal-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-teal-700 transition-colors disabled:bg-teal-400 disabled:cursor-not-allowed"
+            @click="togglePayments">
+            
+            
+            <span x-text="showPayments ? ' - Nascondi Pagamenti' : ' + Mostra Pagamenti'"></span>
+        </button>
+    </div>
+
+    <div class="card p-6 space-y-4 mt-4" x-show="showPayments" x-cloak>
+
+        
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+                <div>
+                    <p class="text-xs tracking-widest text-stone-400 font-semibold">Quota associativa</p>
+                    <h3 class="text-2xl font-semibold text-stone-900">Stagione <span x-text="membershipSeasonLabel()"></span></h3>
+                    <p class="text-sm text-stone-500" x-text="membershipDueLabel()"></p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-semibold px-3 py-1.5 rounded-full" :class="membershipStatusClass()" x-text="membershipStatusLabel()"></span>
+                    <span class="text-lg font-semibold text-stone-700" x-text="formatMoney(membership?.amount ?? 0)"></span>
+                </div>
+            </div>
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <div class="text-xs text-stone-500">
+                    <p class="font-semibold text-stone-600 uppercase tracking-wide">Validità</p>
+                    <p>
+                        <span x-text="membership?.starts_at ?? '—'"></span>
+                        &nbsp;→&nbsp;
+                        <span x-text="membership?.ends_at ?? '—'"></span>
+                    </p>
+                </div>
+                <template x-if="membershipPayment && membershipPayment.status !== 'paid'">
+                    <span class="text-sm text-rose-600 font-semibold">Pagamento in attesa</span>
+                </template>
+                <template x-if="membershipPayment && membershipPayment.status === 'paid'">
+                    <span class="text-sm text-emerald-600 font-semibold">
+                        Pagata il <span x-text="formatDateString(membershipPayment.paid_at)"></span>
+                    </span>
+                </template>
+                <template x-if="membershipPayment && membershipPayment.receipt_route">
+                    <a
+                        :href="membershipPayment.receipt_route"
+                        target="_blank"
+                        rel="noopener"
+                        class="inline-flex items-center gap-1 rounded-lg border border-teal-200 px-3 py-1 text-xs font-semibold text-teal-700 hover:bg-teal-50 transition"
+                    >
+                        Scarica ricevuta
+                    </a>
+                </template>
+            </div>
+       
+
+        <div class="flex items-center justify-between">
+            <h3 class="text-xl font-semibold text-stone-900">Storico pagamenti</h3>
+            <span class="text-xs text-stone-400 uppercase tracking-wide">Ultimi movimenti</span>
+        </div>
+        <div class="space-y-3 max-h-64 overflow-y-auto pr-1">
+            <template x-for="payment in payments" :key="payment.id">
+                <div class="border border-stone-200 rounded-xl px-4 py-3 bg-stone-50 flex flex-col gap-1">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-semibold text-stone-800" x-text="payment.type === 'membership' ? 'Quota associativa' : (payment.type === 'course_subscription' ? 'Iscrizione corso' : 'Lezione privata')"></span>
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full" :class="paymentStatusClass(payment.status)" x-text="payment.status === 'paid' ? 'Pagato' : 'In attesa'"></span>
+                    </div>
+                    <template x-if="payment.is_course_payment">
+                        <div class="text-[11px] text-stone-500 space-y-1">
+                            <p>
+                                <span class="font-semibold text-stone-600">Corso:</span>
+                                <span x-text="payment.course_title ?? '—'"></span>
+                            </p>
+                            <p x-show="payment.plan_label">
+                                <span class="font-semibold text-stone-600">Tipo abbonamento:</span>
+                                <span x-text="payment.plan_label"></span>
+                            </p>
+                            <p x-show="payment.subscriptionStartDateDisplay">
+                                <span class="font-semibold text-stone-600">Data inizio:</span>
+                                <span x-text="payment.subscriptionStartDateDisplay"></span>
+                            </p>
+                            <p x-show="payment.has_extra_day">
+                                <span class="font-semibold text-stone-600">Modalità “Un giorno in più”:</span>
+                                <span x-text="payment.extra_day?.course_title ?? 'Aggiunta'"></span>
+                            </p>
+                        </div>
+                    </template>
+                    <div class="text-xs text-stone-500 flex items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <span x-text="payment.due_date ? `Scadenza ${formatDateString(payment.due_date)}` : ''"></span>
+                            <template x-if="payment.receipt_route">
+                                <a
+                                    :href="payment.receipt_route"
+                                    target="_blank"
+                                    rel="noopener"
+                                    class="inline-flex items-center gap-1 text-[11px] font-semibold text-teal-600 hover:text-teal-700 underline decoration-dotted"
+                                >
+                                    Scarica ricevuta
+                                </a>
+                            </template>
+                        </div>
+                        <span class="font-semibold text-stone-700 text-right" x-text="formatMoney(payment.amount)"></span>
+                    </div>
+                </div>
+            </template>
+            <template x-if="payments.length === 0">
+                <p class="text-sm text-stone-500">Non hai ancora registrato alcun pagamento.</p>
+            </template>
+        </div>
+    </div>
+    <!-- Fine Gestione Pagamenti -->
+
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-right ">
     <a
                     :href="routes.bankTransferInfo"
-                    class="text-xs text-stone-500 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 font-semibold text-emerald-600"
+                    class="text-xs text-stone-500 inline-flex items-right gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 font-semibold text-emerald-600"
                 >
-                    Come eseguire un pagamento con Bonifico (IBAN)
+                    Dati per pagamento con Bonifico ( IBAN..)
                 </a>
                 <a href="<?php echo e(route('account.password.edit')); ?>" 
-                class="text-xs text-stone-500 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 font-semibold text-emerald-600">
+                class="text-xs text-stone-500 inline-flex items-right gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 font-semibold text-emerald-600">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0-1.104-.896-2-2-2m8 10V9a4 4 0 00-4-4H9a4 4 0 00-4 4v10" />
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 15h10" />
@@ -558,116 +671,6 @@
     <?php endif; ?>
 
 
-    
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <button
-            type="button"
-            class="bg-teal-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-teal-700 transition-colors disabled:bg-teal-400 disabled:cursor-not-allowed"
-            @click="togglePayments">
-            
-            
-            <span x-text="showPayments ? 'Nascondi Pagamenti' : 'Mostra Pagamenti'"></span>
-        </button>
-    </div>
-
-    <div class="card p-6 space-y-4 mt-4" x-show="showPayments" x-cloak>
-
-        
-            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-                <div>
-                    <p class="text-xs tracking-widest text-stone-400 font-semibold">Quota associativa</p>
-                    <h3 class="text-2xl font-semibold text-stone-900">Stagione <span x-text="membershipSeasonLabel()"></span></h3>
-                    <p class="text-sm text-stone-500" x-text="membershipDueLabel()"></p>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-xs font-semibold px-3 py-1.5 rounded-full" :class="membershipStatusClass()" x-text="membershipStatusLabel()"></span>
-                    <span class="text-lg font-semibold text-stone-700" x-text="formatMoney(membership?.amount ?? 0)"></span>
-                </div>
-            </div>
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                <div class="text-xs text-stone-500">
-                    <p class="font-semibold text-stone-600 uppercase tracking-wide">Validità</p>
-                    <p>
-                        <span x-text="membership?.starts_at ?? '—'"></span>
-                        &nbsp;→&nbsp;
-                        <span x-text="membership?.ends_at ?? '—'"></span>
-                    </p>
-                </div>
-                <template x-if="membershipPayment && membershipPayment.status !== 'paid'">
-                    <span class="text-sm text-rose-600 font-semibold">Pagamento in attesa</span>
-                </template>
-                <template x-if="membershipPayment && membershipPayment.status === 'paid'">
-                    <span class="text-sm text-emerald-600 font-semibold">
-                        Pagata il <span x-text="formatDateString(membershipPayment.paid_at)"></span>
-                    </span>
-                </template>
-                <template x-if="membershipPayment && membershipPayment.receipt_route">
-                    <a
-                        :href="membershipPayment.receipt_route"
-                        target="_blank"
-                        rel="noopener"
-                        class="inline-flex items-center gap-1 rounded-lg border border-teal-200 px-3 py-1 text-xs font-semibold text-teal-700 hover:bg-teal-50 transition"
-                    >
-                        Scarica ricevuta
-                    </a>
-                </template>
-            </div>
-       
-
-        <div class="flex items-center justify-between">
-            <h3 class="text-xl font-semibold text-stone-900">Storico pagamenti</h3>
-            <span class="text-xs text-stone-400 uppercase tracking-wide">Ultimi movimenti</span>
-        </div>
-        <div class="space-y-3 max-h-64 overflow-y-auto pr-1">
-            <template x-for="payment in payments" :key="payment.id">
-                <div class="border border-stone-200 rounded-xl px-4 py-3 bg-stone-50 flex flex-col gap-1">
-                    <div class="flex items-center justify-between">
-                        <span class="text-sm font-semibold text-stone-800" x-text="payment.type === 'membership' ? 'Quota associativa' : (payment.type === 'course_subscription' ? 'Iscrizione corso' : 'Lezione privata')"></span>
-                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full" :class="paymentStatusClass(payment.status)" x-text="payment.status === 'paid' ? 'Pagato' : 'In attesa'"></span>
-                    </div>
-                    <template x-if="payment.is_course_payment">
-                        <div class="text-[11px] text-stone-500 space-y-1">
-                            <p>
-                                <span class="font-semibold text-stone-600">Corso:</span>
-                                <span x-text="payment.course_title ?? '—'"></span>
-                            </p>
-                            <p x-show="payment.plan_label">
-                                <span class="font-semibold text-stone-600">Tipo abbonamento:</span>
-                                <span x-text="payment.plan_label"></span>
-                            </p>
-                            <p x-show="payment.subscriptionStartDateDisplay">
-                                <span class="font-semibold text-stone-600">Data inizio:</span>
-                                <span x-text="payment.subscriptionStartDateDisplay"></span>
-                            </p>
-                            <p x-show="payment.has_extra_day">
-                                <span class="font-semibold text-stone-600">Modalità “Un giorno in più”:</span>
-                                <span x-text="payment.extra_day?.course_title ?? 'Aggiunta'"></span>
-                            </p>
-                        </div>
-                    </template>
-                    <div class="text-xs text-stone-500 flex items-center justify-between gap-4">
-                        <div class="flex items-center gap-3">
-                            <span x-text="payment.due_date ? `Scadenza ${formatDateString(payment.due_date)}` : ''"></span>
-                            <template x-if="payment.receipt_route">
-                                <a
-                                    :href="payment.receipt_route"
-                                    target="_blank"
-                                    rel="noopener"
-                                    class="inline-flex items-center gap-1 text-[11px] font-semibold text-teal-600 hover:text-teal-700 underline decoration-dotted"
-                                >
-                                    Scarica ricevuta
-                                </a>
-                            </template>
-                        </div>
-                        <span class="font-semibold text-stone-700 text-right" x-text="formatMoney(payment.amount)"></span>
-                    </div>
-                </div>
-            </template>
-            <template x-if="payments.length === 0">
-                <p class="text-sm text-stone-500">Non hai ancora registrato alcun pagamento.</p>
-            </template>
-        </div>
-    </div>
 
     <!-- Subscription Modal -->
     <div
@@ -937,7 +940,7 @@
     </div>
 </section>
 
-<?php if (! $__env->hasRenderedOnce('fa2a99e4-6ae9-4014-ab3f-d8bdc1cc65a3')): $__env->markAsRenderedOnce('fa2a99e4-6ae9-4014-ab3f-d8bdc1cc65a3'); ?>
+<?php if (! $__env->hasRenderedOnce('a1f449c5-debb-40ae-aa6f-ce051b7dd7ff')): $__env->markAsRenderedOnce('a1f449c5-debb-40ae-aa6f-ce051b7dd7ff'); ?>
     <?php $__env->startPush('scripts'); ?>
         <script>
             document.addEventListener('alpine:init', () => {
