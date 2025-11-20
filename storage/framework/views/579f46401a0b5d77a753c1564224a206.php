@@ -792,7 +792,6 @@
                                     <div class="space-y-4">
                                         <div class="space-y-1">
                                             <h5 class="text-base font-semibold text-stone-800">Quando vuoi iniziare?</h5>
-                                            <p class="text-xs text-stone-500" x-text="subscriptionModal.supportsProration ? 'Iniziando questo mese il costo viene calcolato sui giorni rimanenti.' : 'Il costo è fisso per l\'intero piano selezionato.'"></p>
                                         </div>
                                         <div class="grid gap-3 md:grid-cols-2">
                                             <label class="flex items-start gap-3 rounded-2xl border bg-white px-4 py-3 text-sm text-stone-600"
@@ -813,7 +812,7 @@
                                                                 x-model="subscriptionModal.startDate"
                                                                 @input="handleSubscriptionDateChange(.target.value)"
                                                                 @change="handleSubscriptionDateChange(.target.value)">
-                                                            <span class="text-xs text-stone-500">Disponibile fino al <span x-text="formatDateLabel(subscriptionModal.limits.endOfMonth)"></span></span>
+                                                           
                                                         </div>
                                                         <p class="text-xs text-rose-500" x-show="subscriptionModal.option === 'current_month' && !isValidSubscriptionDate()">Seleziona una data valida nel mese corrente.</p>
                                                     </div>
@@ -827,7 +826,7 @@
                                                     @change="handleSubscriptionOptionChange('next_month')">
                                                 <span>
                                                     <span class="font-semibold text-stone-800">Inizia dal prossimo mese</span>
-                                                    <span class="block text-xs text-stone-500">Prima lezione il <span x-text="subscriptionModal.nextMonthLabel"></span>. Prezzo intero.</span>
+                                                    
                                                 </span>
                                             </label>
                                         </div>
@@ -940,7 +939,7 @@
     </div>
 </section>
 
-<?php if (! $__env->hasRenderedOnce('b387242d-d6dc-4f27-98cb-b696213ef17c')): $__env->markAsRenderedOnce('b387242d-d6dc-4f27-98cb-b696213ef17c'); ?>
+<?php if (! $__env->hasRenderedOnce('70856007-b6ff-4c77-a791-4cb5e8874634')): $__env->markAsRenderedOnce('70856007-b6ff-4c77-a791-4cb5e8874634'); ?>
     <?php $__env->startPush('scripts'); ?>
         <script>
             document.addEventListener('alpine:init', () => {
