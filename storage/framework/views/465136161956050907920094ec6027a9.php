@@ -505,6 +505,16 @@ unset($__errorArgs, $__bag); ?>
 
                                     </a>
                                     <p class="text-xs text-stone-500">Piano: <?php echo e($student['plan']); ?></p>
+                                    <?php if(!empty($student['lessons'])): ?>
+                                        <div class="mt-2 flex flex-wrap gap-1">
+                                            <?php $__currentLoopData = $student['lessons']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $lesson): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <span class="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-semibold text-stone-600">
+                                                    <?php echo e($lesson['label'] ?? trim(($lesson['day'] ?? '') . ' ' . ($lesson['time'] ?? ''))); ?>
+
+                                                </span>
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
                                 <div class="text-xs text-stone-500 space-y-1">
                                     <?php if(!empty($student['email'])): ?>

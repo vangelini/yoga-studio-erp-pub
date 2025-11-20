@@ -792,7 +792,7 @@
                                     <div class="space-y-4">
                                         <div class="space-y-1">
                                             <h5 class="text-base font-semibold text-stone-800">Quando vuoi iniziare?</h5>
-                                            <p class="text-xs text-stone-500" x-text="subscriptionModal.supportsProration ? 'Iniziando questo mese il costo viene calcolato sui giorni rimanenti.' : 'Il costo � fisso per l\'intero piano selezionato.'"></p>
+                                            <p class="text-xs text-stone-500" x-text="subscriptionModal.supportsProration ? 'Iniziando questo mese il costo viene calcolato sui giorni rimanenti.' : 'Il costo è fisso per l\'intero piano selezionato.'"></p>
                                         </div>
                                         <div class="grid gap-3 md:grid-cols-2">
                                             <label class="flex items-start gap-3 rounded-2xl border bg-white px-4 py-3 text-sm text-stone-600"
@@ -899,7 +899,7 @@
                                                 </template>
                                             </div>
                                         </div>
-                                        <p class="text-xs text-stone-500">Potrai sempre consultare le istruzioni di pagamento tramite bonifico dopo l'iscrizione.</p>
+
                                     </div>
                                 </template>
                             </div>
@@ -1639,10 +1639,11 @@
                         },
 
                         setupSubscriptionSteps() {
-                            const steps = ['plan'];
+                            const steps = [];
                             if (this.isLessonBasedCourse(this.subscriptionModal.course)) {
                                 steps.push('lessons');
                             }
+                            steps.push('plan');
                             steps.push('start');
                             if (this.shouldShowExtraDayStep()) {
                                 steps.push('extra');
@@ -1662,11 +1663,11 @@
 
                         subscriptionStepLabel(step) {
                             const labels = {
-                                plan: 'Piano',
-                                lessons: 'Lezioni',
-                                start: 'Inizio',
-                                extra: 'Un giorno in più',
-                                review: 'Riepilogo',
+                                plan: '..',
+                                lessons: '..',
+                                start: '..',
+                                extra: '..',
+                                review: '..',
                             };
                             return labels[step] || step;
                         },

@@ -6,7 +6,7 @@
                     <img src="<?php echo e(asset('images/yoga-logo.jpg')); ?>" alt="Shanti Sadhana Logo" class="w-10 h-10 rounded-full ring-2 ring-transparent group-hover:ring-teal-200 transition">
                     <div>
                         <h1 class="text-2xl font-bold text-teal-800 group-hover:text-teal-700 transition">Shanti Sadhana</h1>
-                        <p class="text-sm text-stone-500 -mt-1">Centro Yoga - Area Allieve/i.</p>
+                        <p class="text-sm text-stone-500 -mt-1">Centro Yoga - Area riservata</p>
                     </div>
                 </a>
                 <div class="flex items-center gap-4">

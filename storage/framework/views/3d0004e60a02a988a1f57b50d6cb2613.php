@@ -136,6 +136,14 @@
                         Amministrazione insegnanti
                     </a>
                     <?php endif; ?>
+                    <?php if($showCourseAdmin): ?>
+                    <a href="#admin-course-management" class="inline-flex items-center gap-2 rounded-lg bg-white/20 px-4 py-2 text-xs font-semibold text-white border border-white/40 backdrop-blur-sm hover:bg-white/30 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v12m6-6H6" />
+                        </svg>
+                        Gestione corsi
+                    </a>
+                    <?php endif; ?>
                 </div>
             </div>
             <div class="grid grid-cols-3 gap-4 bg-white/20 backdrop-blur-sm rounded-2xl px-6 py-4 border border-white/30 shadow-inner text-center text-xs uppercase tracking-widest">
@@ -567,16 +575,18 @@
         </div>
     <?php endif; ?>
 
-    <?php echo $__env->make('dashboard.partials.admin-courses', [
-        'teacherOptions' => $teacherSelectOptions,
-        'dayOptions' => $dayOptions,
-        'allowCourseCreation' => $allowCourseCreation,
-        'allowTeacherSelection' => $allowTeacherSelection,
-        'courseCardTitle' => $courseCardTitle,
-        'courseCardSubtitle' => $courseCardSubtitle,
-        'currentTeacherId' => $courseCardTeacherId,
-        'allowStudentManage' => $allowStudentManage,
-        'viewMode' => $viewConfig['mode'] ?? 'admin',
-    ], \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+    <div id="admin-course-management">
+        <?php echo $__env->make('dashboard.partials.admin-courses', [
+            'teacherOptions' => $teacherSelectOptions,
+            'dayOptions' => $dayOptions,
+            'allowCourseCreation' => $allowCourseCreation,
+            'allowTeacherSelection' => $allowTeacherSelection,
+            'courseCardTitle' => $courseCardTitle,
+            'courseCardSubtitle' => $courseCardSubtitle,
+            'currentTeacherId' => $courseCardTeacherId,
+            'allowStudentManage' => $allowStudentManage,
+            'viewMode' => $viewConfig['mode'] ?? 'admin',
+        ], \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+    </div>
 </section>
 <?php /**PATH C:\yoga-studio-erp\resources\views/dashboard/partials/admin.blade.php ENDPATH**/ ?>

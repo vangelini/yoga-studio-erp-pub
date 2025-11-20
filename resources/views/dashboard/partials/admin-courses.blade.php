@@ -444,6 +444,15 @@
                                         {{ $student['name'] }}
                                     </a>
                                     <p class="text-xs text-stone-500">Piano: {{ $student['plan'] }}</p>
+                                    @if (!empty($student['lessons']))
+                                        <div class="mt-2 flex flex-wrap gap-1">
+                                            @foreach ($student['lessons'] as $lesson)
+                                                <span class="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-semibold text-stone-600">
+                                                    {{ $lesson['label'] ?? trim(($lesson['day'] ?? '') . ' ' . ($lesson['time'] ?? '')) }}
+                                                </span>
+                                            @endforeach
+                                        </div>
+                                    @endif
                                 </div>
                                 <div class="text-xs text-stone-500 space-y-1">
                                     @if (!empty($student['email']))

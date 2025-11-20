@@ -1363,6 +1363,7 @@ class DashboardPageController extends Controller
                     'plan' => $subscription->plan_label,
                     'status' => $status['label'],
                     'status_badge' => $status['badge'],
+                    'lessons' => $this->mapSubscriptionLessonLabels($subscription),
                 ];
             })
             ->filter()
@@ -1424,5 +1425,58 @@ class DashboardPageController extends Controller
         $digits = preg_replace('/\D+/', '', $telephone);
 
         return $digits ? 'https://wa.me/' . $digits : null;
+    }
+
+    private function mapSubscriptionLessonLabels(Subscription $subscription): array
+    {
+        $lessons = $subscription->relationLoaded('lessons')
+            ? $subscription->lessons
+            : $subscription->lessons()->with('schedule')->get();
+
+        if (!$lessons || $lessons->isEmpty()) {
+            return [];
+        }
+
+        return $lessons->map(function ($lesson) {
+            $dayRaw = $lesson->schedule->day_of_week ?? $lesson->day_of_week;
+            $day = $this->formatDayLabel($dayRaw);
+            $timeValue = $lesson->schedule->time ?? $lesson->time;
+            $time = $timeValue ? TimeHelper::format($timeValue) : null;
+            $label = trim(($day ?? '') . ' ' . ($time ?? ''));
+
+            return [
+                'day' => $day,
+                'time' => $time,
+                'label' => $label !== '' ? $label : null,
+            ];
+        })
+        ->filter(function ($lesson) {
+            return ($lesson['day'] ?? null) || ($lesson['time'] ?? null) || ($lesson['label'] ?? null);
+        })
+        ->values()
+        ->all();
+    }
+
+    private function formatDayLabel($value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (is_numeric($value)) {
+            $map = [
+                1 => 'Lunedì',
+                2 => 'Martedì',
+                3 => 'Mercoledì',
+                4 => 'Giovedì',
+                5 => 'Venerdì',
+                6 => 'Sabato',
+                7 => 'Domenica',
+            ];
+
+            return $map[(int) $value] ?? null;
+        }
+
+        return $value;
     }
 }

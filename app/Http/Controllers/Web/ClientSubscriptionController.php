@@ -146,7 +146,7 @@ class ClientSubscriptionController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => 'Iscrizione al corso avvenuta con successo, puoi ora scegliere di pagare in contanti al Centro Yoga o fare un bonifico direttamente al conto bancario.',
+                'message' => 'Iscrizione al corso avvenuta con successo. Scegli se pagare in contanti presso il nostro Centro Yoga o tramite bonifico bancario.',
                 'subscription' => $this->formatSubscription($subscription),
                 'payment' => $paymentRecord ? $this->formatPayment($paymentRecord) : null,
             ], 201);
