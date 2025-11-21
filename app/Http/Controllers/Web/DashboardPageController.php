@@ -360,9 +360,9 @@ class DashboardPageController extends Controller
     private function buildMembershipSummary($clients, Request $request): array
     {
         // Paginazione allineata alla contabilità, con default 2 e opzioni consentite.
-        $perPage = (int) $request->get('per_page', 2);
-        if (!in_array($perPage, [2, 25, 50, 100], true)) {
-            $perPage = 2;
+        $perPage = (int) $request->get('per_page', 25);
+        if (!in_array($perPage, [25, 50, 100], true)) {
+            $perPage = 25;
         }
 
         $entries = collect($clients)
