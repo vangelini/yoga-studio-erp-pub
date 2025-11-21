@@ -175,12 +175,17 @@
                 @click="toggleMembershipPanel()"
             >
                 <div>
-                    <h3 class="text-lg font-semibold text-stone-900">Morosità quota associativa</h3>
-                    <p class="text-xs text-stone-500">Totale quote in attesa: <?php echo e($membershipSummary['total']); ?></p>
-                </div>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-stone-500 transition-transform" :class="membershipPanelOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <h3 class="text-2xl font-semibold text-stone-900"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-stone-500 transition-transform" :class="membershipPanelOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 9l6 6 6-6" />
-                </svg>
+                </svg>Morosità quote associative</h3>
+                
+                </div>
+                <span class="inline-flex items-center justify-center rounded-full px-4 py-1.5 text-sm font-semibold
+                                <?php echo e($membershipSummary['total'] > 0 ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'); ?>">
+                                <?php echo e($membershipSummary['total']); ?>
+
+                            </span>
+                
             </button>
 
             <div
@@ -204,7 +209,7 @@
                                     <input type="hidden" name="membership_open" value="1">
                                 <?php endif; ?>
                                 <select name="per_page" class="input-field text-[11px] py-1 h-8 inline-block w-auto align-middle" onchange="this.form.submit()">
-                                    <?php $__currentLoopData = [2, 25, 50, 100]; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $option): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <?php $__currentLoopData = [25, 50, 100]; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $option): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                         <option value="<?php echo e($option); ?>" <?php if($membershipSummary['per_page'] == $option): echo 'selected'; endif; ?>><?php echo e($option); ?></option>
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </select>
@@ -357,7 +362,7 @@
                         </p>
                     <?php else: ?>
                         <p class="text-sm text-stone-500">
-                            Situazione aggiornata per <?php echo e($courseUnpaidSummary['month_label']); ?>. Totale clienti in ritardo: <?php echo e($courseUnpaidSummary['total_unpaid']); ?>.
+                            Situazione aggiornata al <?php echo e($courseUnpaidSummary['month_label']); ?>. Totale clienti in ritardo: <?php echo e($courseUnpaidSummary['total_unpaid']); ?>.
                         </p>
                     <?php endif; ?>
                 </div>
@@ -397,19 +402,11 @@
                             <?php if($summary['count'] === 0): echo 'disabled'; endif; ?>
                         >
                             <div>
-                                <p class="text-base font-semibold text-stone-800"><?php echo e($summary['title']); ?></p>
-                                <?php if(!empty($summary['plans'])): ?>
-                                    <p class="text-xs text-stone-500 flex flex-wrap gap-1">
-                                        <?php $__currentLoopData = $summary['plans']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $plan): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                            <span class="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5">
-                                                <?php echo e($plan['label']); ?> · € <?php echo e(number_format($plan['amount'] ?? 0, 2, ',', '.')); ?>
-
-                                            </span>
-                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                    </p>
-                                <?php else: ?>
-                                    <p class="text-xs text-stone-500">Tariffe non configurate.</p>
-                                <?php endif; ?>
+                                <p class="text-base font-semibold text-stone-800">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg> <?php echo e($summary['title']); ?></p>
+                               
                             </div>
                             <span class="inline-flex items-center justify-center rounded-full px-4 py-1.5 text-sm font-semibold
                                 <?php echo e($summary['count'] > 0 ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'); ?>">

@@ -147,7 +147,7 @@
             </div>
             <div class="grid grid-cols-3 gap-4 bg-white/20 backdrop-blur-sm rounded-2xl px-6 py-4 border border-white/30 shadow-inner text-center text-xs uppercase tracking-widest">
                 <div class="flex flex-col text-white/80">
-                    <span>Clienti</span>
+                    <span>Allieve/i</span>
                     <span class="text-2xl font-semibold text-white">{{ $clientCount }}</span>
                 </div>
                 <div class="flex flex-col text-white/80">
@@ -155,7 +155,7 @@
                     <span class="text-2xl font-semibold text-white">{{ $courseCount }}</span>
                 </div>
                 <div class="flex flex-col text-white/80">
-                    <span>insegnanti</span>
+                    <span>Insegnanti</span>
                     <span class="text-2xl font-semibold text-white">{{ $teacherCount }}</span>
                 </div>
             </div>
@@ -174,12 +174,16 @@
                 @click="toggleMembershipPanel()"
             >
                 <div>
-                    <h3 class="text-lg font-semibold text-stone-900">Morosità quota associativa</h3>
-                    <p class="text-xs text-stone-500">Totale quote in attesa: {{ $membershipSummary['total'] }}</p>
-                </div>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-stone-500 transition-transform" :class="membershipPanelOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <h3 class="text-2xl font-semibold text-stone-900"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-stone-500 transition-transform" :class="membershipPanelOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 9l6 6 6-6" />
-                </svg>
+                </svg>Morosità quote associative</h3>
+                
+                </div>
+                <span class="inline-flex items-center justify-center rounded-full px-4 py-1.5 text-sm font-semibold
+                                {{ $membershipSummary['total'] > 0 ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600' }}">
+                                {{ $membershipSummary['total'] }}
+                            </span>
+                
             </button>
 
             <div
@@ -203,7 +207,7 @@
                                     <input type="hidden" name="membership_open" value="1">
                                 @endif
                                 <select name="per_page" class="input-field text-[11px] py-1 h-8 inline-block w-auto align-middle" onchange="this.form.submit()">
-                                    @foreach ([2, 25, 50, 100] as $option)
+                                    @foreach ([25, 50, 100] as $option)
                                         <option value="{{ $option }}" @selected($membershipSummary['per_page'] == $option)>{{ $option }}</option>
                                     @endforeach
                                 </select>
@@ -351,7 +355,7 @@
                         </p>
                     @else
                         <p class="text-sm text-stone-500">
-                            Situazione aggiornata per {{ $courseUnpaidSummary['month_label'] }}. Totale clienti in ritardo: {{ $courseUnpaidSummary['total_unpaid'] }}.
+                            Situazione aggiornata al {{ $courseUnpaidSummary['month_label'] }}. Totale clienti in ritardo: {{ $courseUnpaidSummary['total_unpaid'] }}.
                         </p>
                     @endif
                 </div>
@@ -391,18 +395,11 @@
                             @disabled($summary['count'] === 0)
                         >
                             <div>
-                                <p class="text-base font-semibold text-stone-800">{{ $summary['title'] }}</p>
-                                @if(!empty($summary['plans']))
-                                    <p class="text-xs text-stone-500 flex flex-wrap gap-1">
-                                        @foreach ($summary['plans'] as $plan)
-                                            <span class="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5">
-                                                {{ $plan['label'] }} · € {{ number_format($plan['amount'] ?? 0, 2, ',', '.') }}
-                                            </span>
-                                        @endforeach
-                                    </p>
-                                @else
-                                    <p class="text-xs text-stone-500">Tariffe non configurate.</p>
-                                @endif
+                                <p class="text-base font-semibold text-stone-800">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg> {{ $summary['title'] }}</p>
+                               
                             </div>
                             <span class="inline-flex items-center justify-center rounded-full px-4 py-1.5 text-sm font-semibold
                                 {{ $summary['count'] > 0 ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600' }}">
