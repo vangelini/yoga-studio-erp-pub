@@ -108,7 +108,22 @@
 
         </div>
     </div>
-
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-right ">
+    <a
+                    :href="routes.bankTransferInfo"
+                    class="text-xs text-stone-500 inline-flex items-right gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 font-semibold text-emerald-600"
+                >
+                    Dati per pagamento con Bonifico ( IBAN..)
+                </a>
+                <a href="{{ route('account.password.edit') }}" 
+                class="text-xs text-stone-500 inline-flex items-right gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 font-semibold text-emerald-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0-1.104-.896-2-2-2m8 10V9a4 4 0 00-4-4H9a4 4 0 00-4 4v10" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 15h10" />
+                        </svg>
+                        Cambia password
+                </a>
+</div>
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
     <button
         type="button"
@@ -117,11 +132,12 @@
         x-text="showDocuments ? ' - Nascondi documenti' : ' + Gestisci documenti'"
     ></button>
     </div>
-    <div x-show="showDocuments" x-cloak x-transition class="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
-        <div class="card p-6 space-y-4">
-
-            <div  class="space-y-4">
-                <div class="text-xs text-stone-500">Carica PDF o immagini (max 5 MB).</div>
+    <div x-show="showDocuments" x-cloak x-transition class="card p-6 space-y-4 mt-4">
+            
+                <h3 class="text-xl font-semibold text-stone-900">Documenti Personali</h3>
+                <div class="text-xs text-stone-500">Carica i tuoi documenti personali "Obligatori per accedere ai corsi".<br>
+                    <i> I file dei documenti devono essere PDF o immagini(JPEG,PNG,BMP,GIF) con dimensioni massime di 2 MB.</i>
+                </div>
 
                 <div class="flex flex-wrap items-center gap-2">
                 @foreach ($documentDefinitions as $type => $definition)
@@ -130,7 +146,7 @@
 
                         <template x-if="!documentByType('{{ $type }}')">
                             <span class="inline-flex items-center gap-1 text-[11px] rounded-full bg-rose-100 text-rose-700 px-2 py-0.5">
-                                Mancante
+                                ! Documento Mancante !
                             </span>
                         </template>
 
@@ -142,7 +158,7 @@
                                 class="inline-flex items-center gap-1 text-[11px] font-semibold text-teal-600 hover:text-teal-700 underline decoration-dotted"
                                 title="Scarica documento"
                             >
-                                Vedi
+                                Vedi Documento Caricato
                             </a>
                         </template>
 
@@ -156,10 +172,7 @@
                         </form>
                     </div>
                 @endforeach
-            </div>
-                
-            </div>
-        </div>
+                </div>
     </div>
 
 
@@ -178,46 +191,7 @@
     <div class="card p-6 space-y-4 mt-4" x-show="showPayments" x-cloak>
 
         
-            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-                <div>
-                    <p class="text-xs tracking-widest text-stone-400 font-semibold">Quota associativa</p>
-                    <h3 class="text-2xl font-semibold text-stone-900">Stagione <span x-text="membershipSeasonLabel()"></span></h3>
-                    <p class="text-sm text-stone-500" x-text="membershipDueLabel()"></p>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-xs font-semibold px-3 py-1.5 rounded-full" :class="membershipStatusClass()" x-text="membershipStatusLabel()"></span>
-                    <span class="text-lg font-semibold text-stone-700" x-text="formatMoney(membership?.amount ?? 0)"></span>
-                </div>
-            </div>
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                <div class="text-xs text-stone-500">
-                    <p class="font-semibold text-stone-600 uppercase tracking-wide">Validità</p>
-                    <p>
-                        <span x-text="membership?.starts_at ?? '—'"></span>
-                        &nbsp;→&nbsp;
-                        <span x-text="membership?.ends_at ?? '—'"></span>
-                    </p>
-                </div>
-                <template x-if="membershipPayment && membershipPayment.status !== 'paid'">
-                    <span class="text-sm text-rose-600 font-semibold">Pagamento in attesa</span>
-                </template>
-                <template x-if="membershipPayment && membershipPayment.status === 'paid'">
-                    <span class="text-sm text-emerald-600 font-semibold">
-                        Pagata il <span x-text="formatDateString(membershipPayment.paid_at)"></span>
-                    </span>
-                </template>
-                <template x-if="membershipPayment && membershipPayment.receipt_route">
-                    <a
-                        :href="membershipPayment.receipt_route"
-                        target="_blank"
-                        rel="noopener"
-                        class="inline-flex items-center gap-1 rounded-lg border border-teal-200 px-3 py-1 text-xs font-semibold text-teal-700 hover:bg-teal-50 transition"
-                    >
-                        Scarica ricevuta
-                    </a>
-                </template>
-            </div>
-       
+          
 
         <div class="flex items-center justify-between">
             <h3 class="text-xl font-semibold text-stone-900">Storico pagamenti</h3>
@@ -227,15 +201,12 @@
             <template x-for="payment in payments" :key="payment.id">
                 <div class="border border-stone-200 rounded-xl px-4 py-3 bg-stone-50 flex flex-col gap-1">
                     <div class="flex items-center justify-between">
-                        <span class="text-sm font-semibold text-stone-800" x-text="payment.type === 'membership' ? 'Quota associativa' : (payment.type === 'course_subscription' ? 'Iscrizione corso' : 'Lezione privata')"></span>
-                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full" :class="paymentStatusClass(payment.status)" x-text="payment.status === 'paid' ? 'Pagato' : 'In attesa'"></span>
+                        <span class="text-sm font-semibold text-stone-800" x-text="payment.type === 'membership' ? 'Quota associativa' : (payment.type === 'course_subscription' ? 'Iscrizione corso ' + payment.course_title : 'Lezione privata')"></span>
+                        <span class="text-xs font-semibold "><span class="font-semibold text-stone-700 text-right" x-text="'Importo: '+ formatMoney(payment.amount)"></span> - Stato Pagamento: <span class="text-xs font-semibold px-2.5 py-1 rounded-full" :class="paymentStatusClass(payment.status)" x-text="payment.status === 'paid' ? 'Pagato' : 'In attesa'"></span>
+                    </span>
                     </div>
                     <template x-if="payment.is_course_payment">
                         <div class="text-[11px] text-stone-500 space-y-1">
-                            <p>
-                                <span class="font-semibold text-stone-600">Corso:</span>
-                                <span x-text="payment.course_title ?? '—'"></span>
-                            </p>
                             <p x-show="payment.plan_label">
                                 <span class="font-semibold text-stone-600">Tipo abbonamento:</span>
                                 <span x-text="payment.plan_label"></span>
@@ -252,7 +223,7 @@
                     </template>
                     <div class="text-xs text-stone-500 flex items-center justify-between gap-4">
                         <div class="flex items-center gap-3">
-                            <span x-text="payment.due_date ? `Scadenza ${formatDateString(payment.due_date)}` : ''"></span>
+                            
                             <template x-if="payment.receipt_route">
                                 <a
                                     :href="payment.receipt_route"
@@ -264,7 +235,7 @@
                                 </a>
                             </template>
                         </div>
-                        <span class="font-semibold text-stone-700 text-right" x-text="formatMoney(payment.amount)"></span>
+                        
                     </div>
                 </div>
             </template>
@@ -275,22 +246,7 @@
     </div>
     <!-- Fine Gestione Pagamenti -->
 
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-right ">
-    <a
-                    :href="routes.bankTransferInfo"
-                    class="text-xs text-stone-500 inline-flex items-right gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 font-semibold text-emerald-600"
-                >
-                    Dati per pagamento con Bonifico ( IBAN..)
-                </a>
-                <a href="{{ route('account.password.edit') }}" 
-                class="text-xs text-stone-500 inline-flex items-right gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 font-semibold text-emerald-600">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0-1.104-.896-2-2-2m8 10V9a4 4 0 00-4-4H9a4 4 0 00-4 4v10" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 15h10" />
-                        </svg>
-                        Cambia password
-                </a>
-</div>
+
     <div class="bg-white rounded-2xl shadow-sm border border-stone-200/80 p-6 md:p-8 space-y-6">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div class="space-y-1">
@@ -304,18 +260,18 @@
             <template x-for="course in courses" :key="course.id">
                 <div class="p-5 rounded-xl border border-stone-200/70 bg-gradient-to-br from-stone-50 via-white to-white shadow-sm hover:shadow-md transition-shadow">
                     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                        <div>
-                            
+                        <div>     
                             <p class="text-lg font-semibold text-teal-700" x-text="course.title"></p>
                             <p class="font-bold text-stone-600 tracking-wide">
                                 Insegnante: <span x-text="course.teacher_name ?? 'Da assegnare'"></span>
                             </p>
  
                         </div>
-                        <template x-if="!isSubscribed(course.id)">
+                        <div class="flex  md:flex-row"><template x-if="!isSubscribed(course.id)">
                             <button
                                 type="button"
                                 class="bg-teal-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-teal-700 transition-colors disabled:bg-teal-400 disabled:cursor-not-allowed"
+                                style="margin-right:11px;"
                                 @click="openSubscriptionModal(course)"
                                 :disabled="loading || !(course.availablePlans?.length)"
                             >
@@ -339,6 +295,7 @@
                                     <p class="text-xs font-semibold text-rose-500">Non impostati</p>
                                 </div>
                             </template>
+                        </div>
                         </div>
                     </div>
                     
