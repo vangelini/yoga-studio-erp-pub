@@ -23,6 +23,7 @@
         <p><strong>{{ $template['association_name'] ?? '' }}</strong></p>
         <p>{{ $template['association_address'] ?? '' }}</p>
         <p>{{ $template['association_email'] ?? '' }} {{ $template['association_phone'] ?? '' }}</p>
+        <p>P.IVA: {{ $template['association_piva'] ?? '' }}</p>
     </div>
 
     <div class="section">

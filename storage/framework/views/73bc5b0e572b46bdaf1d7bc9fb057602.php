@@ -23,6 +23,7 @@
         <p><strong><?php echo e($template['association_name'] ?? ''); ?></strong></p>
         <p><?php echo e($template['association_address'] ?? ''); ?></p>
         <p><?php echo e($template['association_email'] ?? ''); ?> <?php echo e($template['association_phone'] ?? ''); ?></p>
+        <p>P.IVA: <?php echo e($template['association_piva'] ?? ''); ?></p>
     </div>
 
     <div class="section">

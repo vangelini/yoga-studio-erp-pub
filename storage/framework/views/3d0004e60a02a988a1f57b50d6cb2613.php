@@ -148,7 +148,7 @@
             </div>
             <div class="grid grid-cols-3 gap-4 bg-white/20 backdrop-blur-sm rounded-2xl px-6 py-4 border border-white/30 shadow-inner text-center text-xs uppercase tracking-widest">
                 <div class="flex flex-col text-white/80">
-                    <span>Clienti</span>
+                    <span>Allieve/i</span>
                     <span class="text-2xl font-semibold text-white"><?php echo e($clientCount); ?></span>
                 </div>
                 <div class="flex flex-col text-white/80">
@@ -156,7 +156,7 @@
                     <span class="text-2xl font-semibold text-white"><?php echo e($courseCount); ?></span>
                 </div>
                 <div class="flex flex-col text-white/80">
-                    <span>insegnanti</span>
+                    <span>Insegnanti</span>
                     <span class="text-2xl font-semibold text-white"><?php echo e($teacherCount); ?></span>
                 </div>
             </div>
