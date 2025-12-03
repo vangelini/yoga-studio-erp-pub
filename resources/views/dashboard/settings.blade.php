@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('content')
 @php
@@ -6,7 +6,7 @@
     $courseAutoOld = old('course_payment_auto_generate', $course_payment_auto_generate);
     $courseLeadOld = old('course_payment_lead_days', $course_payment_lead_days);
 @endphp
-<div class="max-w-3xl mx-auto" x-data="{ mode: '{{ $receipt_user_password_mode }}' }">
+<div class="max-w-3xl mx-auto" x-data="{ mode: '{{ $receipt_user_password_mode }}', membershipMode: '{{ $membership_expiry_mode }}' }">
     <form id="membership-generate-form" method="POST" action="{{ route('admin.memberships.generate') }}" class="hidden">
         @csrf
         <input type="hidden" name="send_notifications" value="0">
@@ -39,6 +39,48 @@
                 @enderror
             </div>
 
+            <div class="space-y-3">
+                <label class="text-xs uppercase font-semibold text-stone-500">Validità quota associativa</label>
+                <div class="space-y-2" x-data="{ mode: membershipMode }">
+                    <label class="inline-flex items-start gap-2 text-sm text-stone-600">
+                        <input type="radio" name="membership_expiry_mode" value="academic" class="mt-1 text-teal-600 border-stone-300 focus:ring-teal-500"
+                            x-model="mode" {{ old('membership_expiry_mode', $membership_expiry_mode) === 'academic' ? 'checked' : '' }}>
+                        <span>
+                            Anno accademico personalizzato
+                            <span class="block text-xs text-stone-500">Imposta manualmente l'inizio e la fine dell'anno associativo valido per tutte le quote.</span>
+                        </span>
+                    </label>
+                    <div class="space-y-3 border border-stone-200 rounded-xl bg-white px-4 py-4" x-show="mode === 'academic'" x-cloak>
+                        <div>
+                            <label class="text-[11px] uppercase font-semibold text-stone-500">Data inizio anno accademico</label>
+                            <input type="date" name="membership_academic_start_date" value="{{ old('membership_academic_start_date', $membership_academic_start_date) }}" class="input-field mt-1 w-full">
+                            @error('membership_academic_start_date')
+                                <p class="text-xs text-rose-600 mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div>
+                            <label class="text-[11px] uppercase font-semibold text-stone-500">Data fine anno accademico</label>
+                            <input type="date" name="membership_academic_end_date" value="{{ old('membership_academic_end_date', $membership_academic_end_date) }}" class="input-field mt-1 w-full">
+                            <p class="text-xs text-stone-500 mt-1">La quota sarà valida entro queste date; al termine verrà  richiesto il rinnovo.</p>
+                            @error('membership_academic_end_date')
+                                <p class="text-xs text-rose-600 mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+                    <label class="inline-flex items-start gap-2 text-sm text-stone-600">
+                        <input type="radio" name="membership_expiry_mode" value="rolling" class="mt-1 text-teal-600 border-stone-300 focus:ring-teal-500"
+                            x-model="mode" {{ old('membership_expiry_mode', $membership_expiry_mode) === 'rolling' ? 'checked' : '' }}>
+                        <span>
+                            Durata individuale di 12 mesi
+                            <span class="block text-xs text-stone-500">Ogni quota scade 12 mesi dopo la data di iscrizione dell'allievo/a.</span>
+                        </span>
+                    </label>
+                </div>
+                @error('membership_expiry_mode')
+                    <p class="text-xs text-rose-600">{{ $message }}</p>
+                @enderror
+            </div>
+
             <div class="space-y-2">
                 <div class="flex flex-wrap items-center gap-2">
                     <input type="checkbox" name="membership_auto_generate" value="1" id="auto-generate" {{ $autoGenerateOld ? 'checked' : '' }} class="rounded border-stone-300 text-teal-600 focus:ring-teal-500">
@@ -63,7 +105,7 @@
                     <div>
                         <label class="text-xs uppercase font-semibold text-stone-500">Giorni di anticipo</label>
                         <input type="number" min="1" max="120" name="course_payment_lead_days" value="{{ $courseLeadOld }}" class="input-field text-sm mt-1 w-32">
-                        <p class="text-xs text-stone-500 mt-1">La pendenza del periodo successivo verrà creata questo numero di giorni prima della scadenza dell'abbonamento.</p>
+                        <p class="text-xs text-stone-500 mt-1">La pendenza del periodo successivo verrà  creata questo numero di giorni prima della scadenza dell'abbonamento.</p>
                         @error('course_payment_lead_days')
                             <p class="text-xs text-rose-600 mt-1">{{ $message }}</p>
                         @enderror
@@ -77,7 +119,7 @@
                         </button>
                         @if(!empty($course_payment_last_run))
                             <span class="text-[11px] text-stone-500">
-                                Ultima esecuzione: {{ \Carbon\Carbon::parse($course_payment_last_run['run_at'])->format('d/m/Y H:i') ?? '—' }}
+                                Ultima esecuzione: {{ \Carbon\Carbon::parse($course_payment_last_run['run_at'])->format('d/m/Y H:i') ?? 'â€”' }}
                                 · nuove pendenze: {{ $course_payment_last_run['created'] ?? 0 }}
                                 @if(!empty($course_payment_last_run['manual']))
                                     · esecuzione manuale
@@ -96,7 +138,7 @@
                     <label for="private-lessons" class="text-sm text-stone-700">
                         Abilita la gestione delle lezioni individuali. Quando attivo i clienti possono prenotare lezioni private,
                         gli insegnanti possono gestire disponibilità e prossime lezioni e l'amministratore visualizza il flag
-                        "Può tenere lezioni private" nella gestione docenti.
+                        "Puó tenere lezioni private" nella gestione docenti.
                     </label>
                 </div>
                 <p class="text-xs text-stone-500">
@@ -107,7 +149,7 @@
             <div>
                 <label class="text-xs uppercase font-semibold text-stone-500">Morosità quote per pagina</label>
                 <input type="number" min="1" max="50" name="membership_morosita_page_size" value="{{ old('membership_morosita_page_size', $membership_morosita_page_size) }}" required class="input-field mt-1">
-                <p class="text-xs text-stone-500">Numero di elementi mostrati per pagina nel pannello “Morosità quota associativa”.</p>
+                <p class="text-xs text-stone-500">Numero di elementi mostrati per pagina nel pannello "Morosità quota associativa".</p>
                 @error('membership_morosita_page_size')
                     <p class="text-xs text-rose-600 mt-1">{{ $message }}</p>
                 @enderror
@@ -116,7 +158,7 @@
             <div class="space-y-2">
                 <label class="text-xs uppercase font-semibold text-stone-500">Testo info pagamento bonifico (visibile agli allievi)</label>
                 <textarea name="bank_transfer_info_message" rows="6" class="input-field mt-1" required>{{ old('bank_transfer_info_message', $bank_transfer_info_message) }}</textarea>
-                <p class="text-xs text-stone-500">Personalizza le istruzioni che gli allievi vedranno nella pagina “Pagamento tramite bonifico”.</p>
+                <p class="text-xs text-stone-500">Personalizza le istruzioni che gli allievi vedranno nella pagina "Pagamento tramite bonifico".</p>
                 @error('bank_transfer_info_message')
                     <p class="text-xs text-rose-600 mt-1">{{ $message }}</p>
                 @enderror
@@ -125,7 +167,7 @@
             <div class="space-y-2">
                 <div class="flex flex-wrap items-center gap-2">
                     <input type="checkbox" name="extra_day_enabled" value="1" id="extra-day" {{ old('extra_day_enabled', $extra_day_enabled) ? 'checked' : '' }} class="rounded border-stone-300 text-teal-600 focus:ring-teal-500">
-                    <label for="extra-day" class="text-sm text-stone-600">Abilita la modalità “Un giorno in più” (lezione extra da corso candidato).</label>
+                    <label for="extra-day" class="text-sm text-stone-600">Abilita la modalità "Un giorno in più" (lezione extra da corso candidato).</label>
                 </div>
                 <p class="text-xs text-stone-500">Quando attivo, gli Allievi possono aggiungere una lezione settimanale extra scegliendo tra i corsi candidati. Il costo della lezione extra viene aggiunto al prezzo base e proratato sulle lezioni rimanenti.</p>
             </div>
@@ -138,6 +180,18 @@
                         <input type="number" min="1" max="60" name="notification_overdue_days" value="{{ old('notification_overdue_days', $notification_overdue_days) }}" class="input-field mt-1 w-32">
                         <p class="text-xs text-stone-500 mt-1">Numero di giorni trascorsi dalla scadenza prima di inviare l'avviso di morosità.</p>
                         @error('notification_overdue_days')<p class="text-xs text-rose-600 mt-1">{{ $message }}</p>@enderror
+                    </div>
+                    <div>
+                        <label class="text-xs uppercase font-semibold text-stone-500">Messaggio morosità</label>
+                        <textarea name="notification_overdue_message" rows="3" class="input-field mt-1" required>{{ old('notification_overdue_message', $notification_overdue_message) }}</textarea>
+                        <p class="text-xs text-stone-500 mt-1">Testo inviato quando un pagamento risulta in morosità.</p>
+                        @error('notification_overdue_message')<p class="text-xs text-rose-600 mt-1">{{ $message }}</p>@enderror
+                    </div>
+                    <div>
+                        <label class="text-xs uppercase font-semibold text-stone-500">Messaggio nuove pendenze corso</label>
+                        <textarea name="notification_pending_message" rows="3" class="input-field mt-1" required>{{ old('notification_pending_message', $notification_pending_message) }}</textarea>
+                        <p class="text-xs text-stone-500 mt-1">Testo inviato quando vengono generate nuove pendenze per il corso.</p>
+                        @error('notification_pending_message')<p class="text-xs text-rose-600 mt-1">{{ $message }}</p>@enderror
                     </div>
                 </div>
             </div>
@@ -194,3 +248,4 @@
     </div>
 </div>
 @endsection
+

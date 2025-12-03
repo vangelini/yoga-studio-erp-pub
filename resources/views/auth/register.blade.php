@@ -273,6 +273,35 @@
                         </div>
                     </div>
 
+                    @if (!empty($membership_config))
+                        <div class="bg-amber-50 border border-amber-200 rounded-xl p-5 space-y-3 text-sm text-stone-700">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-xs uppercase tracking-wide text-stone-500">Quota associativa</p>
+                                    <p class="text-base font-semibold text-stone-800">€ {{ number_format($membership_config['fee'] ?? 0, 2, ',', '.') }}</p>
+                                </div>
+                                <span class="text-xs text-stone-500 font-semibold">{{ $membership_config['duration_label'] ?? '' }}</span>
+                            </div>
+                            <p class="text-xs text-stone-600">{{ $membership_config['description'] ?? '' }}</p>
+                            <label class="inline-flex items-start gap-3 text-xs text-stone-600">
+                                <input
+                                    type="checkbox"
+                                    name="membership_agreement"
+                                    value="1"
+                                    required
+                                    {{ old('membership_agreement') ? 'checked' : '' }}
+                                    class="mt-1 h-4 w-4 rounded border-stone-300 text-teal-600 focus:ring-teal-500"
+                                >
+                                <span>
+                                    Confermo di aver preso visione dello Statuto dell'associazione, della relativa durata della quota associativa e di accettare l'importo previsto.
+                                </span>
+                            </label>
+                            @error('membership_agreement')
+                                <p class="text-xs text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    @endif
+
                     <div class="bg-stone-100 border border-stone-200 rounded-xl p-5 space-y-4">
                         <div>
                             <p class="text-sm text-stone-600 mb-3">

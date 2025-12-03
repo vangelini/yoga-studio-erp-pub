@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
+use App\Models\MembershipSubscription;
+use App\Services\MembershipManager;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\RedirectResponse;
@@ -22,6 +24,9 @@ class AdminSettingController extends Controller
                 'membership_fee',
                 'membership_auto_generate',
                 'membership_morosita_page_size',
+                'membership_expiry_mode',
+                'membership_academic_start_date',
+                'membership_academic_end_date',
                 'receipt_owner_password',
                 'receipt_user_password_mode',
                 'receipt_user_password_custom',
@@ -53,6 +58,9 @@ class AdminSettingController extends Controller
             'receipt_owner_password' => $settings['receipt_owner_password'] ?? '',
             'receipt_user_password_mode' => $settings['receipt_user_password_mode'] ?? 'blank',
             'receipt_user_password_custom' => $settings['receipt_user_password_custom'] ?? '',
+            'membership_expiry_mode' => $settings['membership_expiry_mode'] ?? 'academic',
+            'membership_academic_start_date' => $settings['membership_academic_start_date'] ?? null,
+            'membership_academic_end_date' => $settings['membership_academic_end_date'] ?? null,
             'course_payment_auto_generate' => isset($settings['course_payment_auto_generate']) ? (bool) $settings['course_payment_auto_generate'] : false,
             'course_payment_lead_days' => isset($settings['course_payment_lead_days']) ? (int) $settings['course_payment_lead_days'] : 10,
             'course_payment_last_run' => $coursePaymentLastRun,
@@ -75,10 +83,17 @@ class AdminSettingController extends Controller
             'bank_len' => strlen((string) $request->input('bank_transfer_info_message')),
         ]);
 
+        $existing = Setting::query()
+            ->whereIn('key', ['membership_expiry_mode', 'membership_academic_start_date', 'membership_academic_end_date'])
+            ->pluck('value', 'key');
+
         $data = $request->validate([
             'membership_fee' => ['required', 'numeric', 'min:0'],
             'membership_auto_generate' => ['nullable', 'boolean'],
             'membership_morosita_page_size' => ['required', 'integer', 'min:1', 'max:50'],
+            'membership_expiry_mode' => ['required', Rule::in(['academic', 'rolling'])],
+            'membership_academic_start_date' => ['nullable', 'date', 'required_if:membership_expiry_mode,academic'],
+            'membership_academic_end_date' => ['nullable', 'date', 'required_if:membership_expiry_mode,academic', 'after:membership_academic_start_date'],
             'receipt_owner_password' => ['nullable', 'string', 'max:255'],
             'receipt_user_password_mode' => ['required', Rule::in(['blank', 'email', 'custom'])],
             'receipt_user_password_custom' => ['nullable', 'string', 'max:255', 'required_if:receipt_user_password_mode,custom'],
@@ -98,6 +113,9 @@ class AdminSettingController extends Controller
             'membership_fee' => (string) $data['membership_fee'],
             'membership_auto_generate' => $request->boolean('membership_auto_generate') ? '1' : '0',
             'membership_morosita_page_size' => (string) $data['membership_morosita_page_size'],
+            'membership_expiry_mode' => $data['membership_expiry_mode'],
+            'membership_academic_start_date' => $data['membership_academic_start_date'] ?? '',
+            'membership_academic_end_date' => $data['membership_academic_end_date'] ?? '',
             'receipt_owner_password' => trim((string) ($data['receipt_owner_password'] ?? '')),
             'receipt_user_password_mode' => $data['receipt_user_password_mode'],
             'receipt_user_password_custom' => $data['receipt_user_password_mode'] === 'custom'
@@ -117,6 +135,20 @@ class AdminSettingController extends Controller
             Setting::updateOrCreate(['key' => $key], ['value' => $value]);
         }
 
+        $modeBefore = $existing['membership_expiry_mode'] ?? 'academic';
+        $startBefore = $existing['membership_academic_start_date'] ?? '';
+        $endBefore = $existing['membership_academic_end_date'] ?? '';
+        $modeAfter = $settingsToPersist['membership_expiry_mode'];
+        $startAfter = $settingsToPersist['membership_academic_start_date'] ?? '';
+        $endAfter = $settingsToPersist['membership_academic_end_date'] ?? '';
+
+        if (
+            $modeBefore !== $modeAfter
+            || ($modeAfter === 'academic' && ($startBefore !== $startAfter || $endBefore !== $endAfter))
+        ) {
+            $this->refreshMembershipExpirations();
+        }
+
         Log::info('bank_transfer_info_message_saved', [
             'length' => strlen((string) $request->input('bank_transfer_info_message', '')),
             'exists' => DB::table('settings')->where('key', 'bank_transfer_info_message')->exists(),
@@ -125,6 +157,90 @@ class AdminSettingController extends Controller
         ]);
 
         return back()->with('status', 'Impostazioni aggiornate con successo.');
+    }
+
+    private function refreshMembershipExpirations(): void
+    {
+        $manager = app(MembershipManager::class);
+        $mode = $manager->currentMode();
+
+        if ($mode === 'academic') {
+            $season = $manager->determineCurrentSeason();
+
+            $updates = [
+                'season_start_year' => $season['start_year'],
+                'starts_at' => $season['starts_at'],
+                'ends_at' => $season['ends_at'],
+                'due_date' => $season['due_date'],
+            ];
+
+            MembershipSubscription::query()
+                ->whereIn('status', ['pending', 'active'])
+                ->with('payment')
+                ->chunkById(100, function ($memberships) use ($updates, $season) {
+                    foreach ($memberships as $membership) {
+                        $membership->fill($updates);
+                        if ($membership->isDirty()) {
+                            $membership->save();
+                        }
+
+                        if ($payment = $membership->payment) {
+                            $meta = $payment->meta ?? [];
+                            $meta['season'] = $season['label'];
+
+                            $payment->fill([
+                                'due_date' => $season['due_date'],
+                                'receipt_year' => $season['start_year'],
+                                'meta' => $meta,
+                            ]);
+
+                            if ($payment->isDirty()) {
+                                $payment->save();
+                            }
+                        }
+                    }
+                });
+
+            return;
+        }
+
+        MembershipSubscription::query()
+            ->with('payment')
+            ->chunkById(100, function ($memberships) use ($manager) {
+                foreach ($memberships as $membership) {
+                    $baseStart = $membership->paid_at
+                        ? $membership->paid_at->copy()->startOfDay()
+                        : ($membership->starts_at ?? now())->copy()->startOfDay();
+
+                    $season = $manager->calculateRollingSeason($baseStart);
+
+                    $membership->fill([
+                        'season_start_year' => $season['start_year'],
+                        'starts_at' => $season['starts_at'],
+                        'ends_at' => $season['ends_at'],
+                        'due_date' => $season['due_date'],
+                    ]);
+
+                    if ($membership->isDirty()) {
+                        $membership->save();
+                    }
+
+                    if ($payment = $membership->payment) {
+                        $meta = $payment->meta ?? [];
+                        $meta['season'] = $season['label'];
+
+                        $payment->fill([
+                            'due_date' => $season['due_date'],
+                            'receipt_year' => $season['start_year'],
+                            'meta' => $meta,
+                        ]);
+
+                        if ($payment->isDirty()) {
+                            $payment->save();
+                        }
+                    }
+                }
+            });
     }
 
     private function authorizeAdmin(): void

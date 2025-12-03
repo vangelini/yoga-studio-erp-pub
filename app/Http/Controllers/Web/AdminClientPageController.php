@@ -246,7 +246,14 @@ class AdminClientPageController extends Controller
             ->map(function ($client) {
                 $payment = $client->membership_payment;
                 $membership = $client->current_membership;
-                $seasonStart = $membership?->season_start_year;
+                $seasonLabel = null;
+                if ($membership) {
+                    if ($membership->starts_at && $membership->ends_at) {
+                        $seasonLabel = $membership->starts_at->format('d/m/Y') . ' - ' . $membership->ends_at->format('d/m/Y');
+                    } elseif ($membership->season_start_year) {
+                        $seasonLabel = (string) $membership->season_start_year;
+                    }
+                }
 
                 return [
                     'client_id' => $client->id,
@@ -254,7 +261,7 @@ class AdminClientPageController extends Controller
                     'email' => $client->email,
                     'telephone' => $client->telephone,
                     'amount' => $payment?->amount ?? $membership?->amount ?? 0,
-                    'season_label' => $seasonStart ? (string) $seasonStart : null,
+                    'season_label' => $seasonLabel,
                     'payment_id' => optional($payment)->id,
                 ];
             })

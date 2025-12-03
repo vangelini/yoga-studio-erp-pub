@@ -8,6 +8,7 @@ use App\Services\MembershipManager;
 use App\Services\RecaptchaValidator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -36,7 +37,9 @@ class AuthSessionController extends Controller
             return redirect()->route('dashboard');
         }
 
-        return view('auth.register');
+        return view('auth.register', [
+            'membership_config' => $this->membershipConfiguration(),
+        ]);
     }
 
     public function login(Request $request): RedirectResponse
@@ -88,6 +91,7 @@ class AuthSessionController extends Controller
             'email' => ['required', 'email', 'unique:users,email'],
             'password' => ['required', 'string', 'min:6', 'confirmed'],
             'statute_agreement' => ['accepted'],
+            'membership_agreement' => ['accepted'],
             'telephone_country' => ['required', 'string', 'max:10'],
             'telephone' => ['required', 'string', 'max:30'],
             'residenza_citta' => ['required', 'string', 'max:150'],
@@ -147,6 +151,45 @@ class AuthSessionController extends Controller
     protected function syncMembershipFor(User $user): void
     {
         $this->membershipManager->ensureCurrentMembership($user, false);
+    }
+
+    private function membershipConfiguration(): array
+    {
+        $settings = \App\Models\Setting::query()
+            ->whereIn('key', [
+                'membership_fee',
+                'membership_expiry_mode',
+                'membership_academic_start_date',
+                'membership_academic_end_date',
+            ])
+            ->pluck('value', 'key');
+
+        $fee = (float) ($settings['membership_fee'] ?? config('app.membership_fee', 20));
+        $mode = $settings['membership_expiry_mode'] ?? 'academic';
+
+        if ($mode === 'academic') {
+            $season = $this->membershipManager->determineCurrentSeason();
+            $startLabel = optional($season['starts_at'])->translatedFormat('d/m/Y');
+            $endLabel = optional($season['ends_at'])->translatedFormat('d/m/Y');
+            $duration = trim(($startLabel ?? '') . ' - ' . ($endLabel ?? ''));
+            if (!$duration || $duration === '-') {
+                $duration = 'Anno in corso';
+            }
+
+            return [
+                'mode' => 'academic',
+                'fee' => $fee,
+                'duration_label' => 'Validità: ' . $duration,
+                'description' => 'La quota associativa é obbligatoria per partecipare alle attivitá del centro ed include la quota dell\'assicurazione sportiva dell\'intero anno.',
+            ];
+        }
+
+        return [
+            'mode' => 'rolling',
+            'fee' => $fee,
+            'duration_label' => '12 mesi dalla data di iscrizione',
+            'description' => 'La quota associativa é obbligatoria per partecipare alle attivitá del centro é ha una durata di 12 mesi a partire dalla data di iscrizione.',
+        ];
     }
 
     public function logout(Request $request): RedirectResponse

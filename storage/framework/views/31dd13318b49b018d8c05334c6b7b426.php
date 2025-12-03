@@ -1,10 +1,12 @@
+﻿
+
 <?php $__env->startSection('content'); ?>
 <?php
     $autoGenerateOld = old('membership_auto_generate', $membership_auto_generate);
     $courseAutoOld = old('course_payment_auto_generate', $course_payment_auto_generate);
     $courseLeadOld = old('course_payment_lead_days', $course_payment_lead_days);
 ?>
-<div class="max-w-3xl mx-auto" x-data="{ mode: '<?php echo e($receipt_user_password_mode); ?>' }">
+<div class="max-w-3xl mx-auto" x-data="{ mode: '<?php echo e($receipt_user_password_mode); ?>', membershipMode: '<?php echo e($membership_expiry_mode); ?>' }">
     <form id="membership-generate-form" method="POST" action="<?php echo e(route('admin.memberships.generate')); ?>" class="hidden">
         <?php echo csrf_field(); ?>
         <input type="hidden" name="send_notifications" value="0">
@@ -45,6 +47,69 @@ endif;
 unset($__errorArgs, $__bag); ?>
             </div>
 
+            <div class="space-y-3">
+                <label class="text-xs uppercase font-semibold text-stone-500">Validità quota associativa</label>
+                <div class="space-y-2" x-data="{ mode: membershipMode }">
+                    <label class="inline-flex items-start gap-2 text-sm text-stone-600">
+                        <input type="radio" name="membership_expiry_mode" value="academic" class="mt-1 text-teal-600 border-stone-300 focus:ring-teal-500"
+                            x-model="mode" <?php echo e(old('membership_expiry_mode', $membership_expiry_mode) === 'academic' ? 'checked' : ''); ?>>
+                        <span>
+                            Anno accademico personalizzato
+                            <span class="block text-xs text-stone-500">Imposta manualmente l'inizio e la fine dell'anno associativo valido per tutte le quote.</span>
+                        </span>
+                    </label>
+                    <div class="space-y-3 border border-stone-200 rounded-xl bg-white px-4 py-4" x-show="mode === 'academic'" x-cloak>
+                        <div>
+                            <label class="text-[11px] uppercase font-semibold text-stone-500">Data inizio anno accademico</label>
+                            <input type="date" name="membership_academic_start_date" value="<?php echo e(old('membership_academic_start_date', $membership_academic_start_date)); ?>" class="input-field mt-1 w-full">
+                            <?php $__errorArgs = ['membership_academic_start_date'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <p class="text-xs text-rose-600 mt-1"><?php echo e($message); ?></p>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                        </div>
+                        <div>
+                            <label class="text-[11px] uppercase font-semibold text-stone-500">Data fine anno accademico</label>
+                            <input type="date" name="membership_academic_end_date" value="<?php echo e(old('membership_academic_end_date', $membership_academic_end_date)); ?>" class="input-field mt-1 w-full">
+                            <p class="text-xs text-stone-500 mt-1">La quota sarà valida entro queste date; al termine verrà  richiesto il rinnovo.</p>
+                            <?php $__errorArgs = ['membership_academic_end_date'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <p class="text-xs text-rose-600 mt-1"><?php echo e($message); ?></p>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                        </div>
+                    </div>
+                    <label class="inline-flex items-start gap-2 text-sm text-stone-600">
+                        <input type="radio" name="membership_expiry_mode" value="rolling" class="mt-1 text-teal-600 border-stone-300 focus:ring-teal-500"
+                            x-model="mode" <?php echo e(old('membership_expiry_mode', $membership_expiry_mode) === 'rolling' ? 'checked' : ''); ?>>
+                        <span>
+                            Durata individuale di 12 mesi
+                            <span class="block text-xs text-stone-500">Ogni quota scade 12 mesi dopo la data di iscrizione dell'allievo/a.</span>
+                        </span>
+                    </label>
+                </div>
+                <?php $__errorArgs = ['membership_expiry_mode'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                    <p class="text-xs text-rose-600"><?php echo e($message); ?></p>
+                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+            </div>
+
             <div class="space-y-2">
                 <div class="flex flex-wrap items-center gap-2">
                     <input type="checkbox" name="membership_auto_generate" value="1" id="auto-generate" <?php echo e($autoGenerateOld ? 'checked' : ''); ?> class="rounded border-stone-300 text-teal-600 focus:ring-teal-500">
@@ -69,7 +134,7 @@ unset($__errorArgs, $__bag); ?>
                     <div>
                         <label class="text-xs uppercase font-semibold text-stone-500">Giorni di anticipo</label>
                         <input type="number" min="1" max="120" name="course_payment_lead_days" value="<?php echo e($courseLeadOld); ?>" class="input-field text-sm mt-1 w-32">
-                        <p class="text-xs text-stone-500 mt-1">La pendenza del periodo successivo verrà creata questo numero di giorni prima della scadenza dell'abbonamento.</p>
+                        <p class="text-xs text-stone-500 mt-1">La pendenza del periodo successivo verrà  creata questo numero di giorni prima della scadenza dell'abbonamento.</p>
                         <?php $__errorArgs = ['course_payment_lead_days'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -90,7 +155,7 @@ unset($__errorArgs, $__bag); ?>
                         </button>
                         <?php if(!empty($course_payment_last_run)): ?>
                             <span class="text-[11px] text-stone-500">
-                                Ultima esecuzione: <?php echo e(\Carbon\Carbon::parse($course_payment_last_run['run_at'])->format('d/m/Y H:i') ?? '—'); ?>
+                                Ultima esecuzione: <?php echo e(\Carbon\Carbon::parse($course_payment_last_run['run_at'])->format('d/m/Y H:i') ?? 'â€”'); ?>
 
                                 · nuove pendenze: <?php echo e($course_payment_last_run['created'] ?? 0); ?>
 
@@ -112,7 +177,7 @@ unset($__errorArgs, $__bag); ?>
                     <label for="private-lessons" class="text-sm text-stone-700">
                         Abilita la gestione delle lezioni individuali. Quando attivo i clienti possono prenotare lezioni private,
                         gli insegnanti possono gestire disponibilità e prossime lezioni e l'amministratore visualizza il flag
-                        "Può tenere lezioni private" nella gestione docenti.
+                        "Puó tenere lezioni private" nella gestione docenti.
                     </label>
                 </div>
                 <p class="text-xs text-stone-500">
@@ -123,7 +188,7 @@ unset($__errorArgs, $__bag); ?>
             <div>
                 <label class="text-xs uppercase font-semibold text-stone-500">Morosità quote per pagina</label>
                 <input type="number" min="1" max="50" name="membership_morosita_page_size" value="<?php echo e(old('membership_morosita_page_size', $membership_morosita_page_size)); ?>" required class="input-field mt-1">
-                <p class="text-xs text-stone-500">Numero di elementi mostrati per pagina nel pannello “Morosità quota associativa”.</p>
+                <p class="text-xs text-stone-500">Numero di elementi mostrati per pagina nel pannello "Morosità quota associativa".</p>
                 <?php $__errorArgs = ['membership_morosita_page_size'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -139,7 +204,7 @@ unset($__errorArgs, $__bag); ?>
             <div class="space-y-2">
                 <label class="text-xs uppercase font-semibold text-stone-500">Testo info pagamento bonifico (visibile agli allievi)</label>
                 <textarea name="bank_transfer_info_message" rows="6" class="input-field mt-1" required><?php echo e(old('bank_transfer_info_message', $bank_transfer_info_message)); ?></textarea>
-                <p class="text-xs text-stone-500">Personalizza le istruzioni che gli allievi vedranno nella pagina “Pagamento tramite bonifico”.</p>
+                <p class="text-xs text-stone-500">Personalizza le istruzioni che gli allievi vedranno nella pagina "Pagamento tramite bonifico".</p>
                 <?php $__errorArgs = ['bank_transfer_info_message'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -155,7 +220,7 @@ unset($__errorArgs, $__bag); ?>
             <div class="space-y-2">
                 <div class="flex flex-wrap items-center gap-2">
                     <input type="checkbox" name="extra_day_enabled" value="1" id="extra-day" <?php echo e(old('extra_day_enabled', $extra_day_enabled) ? 'checked' : ''); ?> class="rounded border-stone-300 text-teal-600 focus:ring-teal-500">
-                    <label for="extra-day" class="text-sm text-stone-600">Abilita la modalità “Un giorno in più” (lezione extra da corso candidato).</label>
+                    <label for="extra-day" class="text-sm text-stone-600">Abilita la modalità "Un giorno in più" (lezione extra da corso candidato).</label>
                 </div>
                 <p class="text-xs text-stone-500">Quando attivo, gli Allievi possono aggiungere una lezione settimanale extra scegliendo tra i corsi candidati. Il costo della lezione extra viene aggiunto al prezzo base e proratato sulle lezioni rimanenti.</p>
             </div>
@@ -168,6 +233,32 @@ unset($__errorArgs, $__bag); ?>
                         <input type="number" min="1" max="60" name="notification_overdue_days" value="<?php echo e(old('notification_overdue_days', $notification_overdue_days)); ?>" class="input-field mt-1 w-32">
                         <p class="text-xs text-stone-500 mt-1">Numero di giorni trascorsi dalla scadenza prima di inviare l'avviso di morosità.</p>
                         <?php $__errorArgs = ['notification_overdue_days'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?><p class="text-xs text-rose-600 mt-1"><?php echo e($message); ?></p><?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                    </div>
+                    <div>
+                        <label class="text-xs uppercase font-semibold text-stone-500">Messaggio morosità</label>
+                        <textarea name="notification_overdue_message" rows="3" class="input-field mt-1" required><?php echo e(old('notification_overdue_message', $notification_overdue_message)); ?></textarea>
+                        <p class="text-xs text-stone-500 mt-1">Testo inviato quando un pagamento risulta in morosità.</p>
+                        <?php $__errorArgs = ['notification_overdue_message'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?><p class="text-xs text-rose-600 mt-1"><?php echo e($message); ?></p><?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                    </div>
+                    <div>
+                        <label class="text-xs uppercase font-semibold text-stone-500">Messaggio nuove pendenze corso</label>
+                        <textarea name="notification_pending_message" rows="3" class="input-field mt-1" required><?php echo e(old('notification_pending_message', $notification_pending_message)); ?></textarea>
+                        <p class="text-xs text-stone-500 mt-1">Testo inviato quando vengono generate nuove pendenze per il corso.</p>
+                        <?php $__errorArgs = ['notification_pending_message'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -245,5 +336,6 @@ unset($__errorArgs, $__bag); ?>
     </div>
 </div>
 <?php $__env->stopSection(); ?>
+
 
 <?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\yoga-studio-erp\resources\views/dashboard/settings.blade.php ENDPATH**/ ?>
