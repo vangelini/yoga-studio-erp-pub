@@ -119,9 +119,18 @@ unset($__errorArgs, $__bag); ?>
                     <label class="text-xs uppercase font-semibold text-stone-500">Prezzi abbonamenti (€)</label>
                     <p class="text-[11px] text-stone-500">Imposta 0 o lascia vuoto per nascondere l'opzione agli allievi.</p>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2" x-show="pricingMode === 'block'" x-cloak>
-                        <input type="number" step="0.01" name="monthly_price" class="input-field text-sm" placeholder="Mensile" value="<?php echo e(old('monthly_price')); ?>">
-                        <input type="number" step="0.01" name="quarterly_price" class="input-field text-sm" placeholder="Trimestrale" value="<?php echo e(old('quarterly_price')); ?>">
-                        <input type="number" step="0.01" name="annual_price" class="input-field text-sm" placeholder="Annuale" value="<?php echo e(old('annual_price')); ?>">
+                        <label class="flex flex-col gap-1 text-sm text-stone-600 w-full">
+                            <span class="text-xs uppercase font-semibold text-stone-500 block">Mensile</span>
+                            <input type="number" step="0.01" name="monthly_price" class="input-field text-sm w-full" value="<?php echo e(old('monthly_price')); ?>">
+                        </label>
+                        <label class="flex flex-col gap-1 text-sm text-stone-600 w-full">
+                            <span class="text-xs uppercase font-semibold text-stone-500 block">Trimestrale</span>
+                            <input type="number" step="0.01" name="quarterly_price" class="input-field text-sm w-full" value="<?php echo e(old('quarterly_price')); ?>">
+                        </label>
+                        <label class="flex flex-col gap-1 text-sm text-stone-600 w-full">
+                            <span class="text-xs uppercase font-semibold text-stone-500 block">Annuale</span>
+                            <input type="number" step="0.01" name="annual_price" class="input-field text-sm w-full" value="<?php echo e(old('annual_price')); ?>">
+                        </label>
                     </div>
                     <div class="space-y-2" x-show="pricingMode === 'per_lesson'" x-cloak>
                         <?php $__currentLoopData = $planOptions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $planKey => $planLabel): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -371,9 +380,18 @@ unset($__errorArgs, $__bag); ?>
                             <div class="space-y-1.5">
                                 <label class="text-xs uppercase font-semibold text-stone-500">Prezzi abbonamenti (€)</label>
                                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-2" x-show="pricingMode === 'block'" x-cloak>
-                                    <input type="number" step="0.01" name="monthly_price" value="<?php echo e(number_format($course['monthly_price'] ?? $course['price'] ?? 0, 2, '.', '')); ?>" class="input-field text-sm" placeholder="Mensile">
-                                    <input type="number" step="0.01" name="quarterly_price" value="<?php echo e(number_format($course['quarterly_price'] ?? 0, 2, '.', '')); ?>" class="input-field text-sm" placeholder="Trimestrale">
-                                    <input type="number" step="0.01" name="annual_price" value="<?php echo e(number_format($course['annual_price'] ?? 0, 2, '.', '')); ?>" class="input-field text-sm" placeholder="Annuale">
+                                    <label class="flex flex-col gap-1 text-sm text-stone-600 w-full">
+                                        <span class="text-xs uppercase font-semibold text-stone-500 block">Mensile</span>
+                                        <input type="number" step="0.01" name="monthly_price" value="<?php echo e(number_format($course['monthly_price'] ?? $course['price'] ?? 0, 2, '.', '')); ?>" class="input-field text-sm w-full" placeholder="Mensile">
+                                    </label>
+                                    <label class="flex flex-col gap-1 text-sm text-stone-600 w-full">
+                                        <span class="text-xs uppercase font-semibold text-stone-500 block">Trimestrale</span>
+                                        <input type="number" step="0.01" name="quarterly_price" value="<?php echo e(number_format($course['quarterly_price'] ?? 0, 2, '.', '')); ?>" class="input-field text-sm w-full" placeholder="Trimestrale">
+                                    </label>
+                                    <label class="flex flex-col gap-1 text-sm text-stone-600 w-full">
+                                        <span class="text-xs uppercase font-semibold text-stone-500 block">Annuale</span>
+                                        <input type="number" step="0.01" name="annual_price" value="<?php echo e(number_format($course['annual_price'] ?? 0, 2, '.', '')); ?>" class="input-field text-sm w-full" placeholder="Annuale">
+                                    </label>
                                 </div>
                                 <div class="space-y-2" x-show="pricingMode === 'per_lesson'" x-cloak>
                                     <?php $__currentLoopData = $planOptions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $planKey => $planLabel): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>

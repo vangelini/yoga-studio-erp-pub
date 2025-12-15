@@ -1,5 +1,4 @@
-
-    @php
+﻿    @php
         $clientPermissions = $clientPagePermissions ?? [
             'mode' => 'admin',
             'can_create' => true,
@@ -10,7 +9,6 @@
             'can_manage_payments' => true,
         ];
     @endphp
-
     <div class="card p-6 space-y-6">
         <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
@@ -83,7 +81,7 @@
             </div>
             <div>
                 <label class="text-xs uppercase text-stone-500 font-semibold">Password temporanea</label>
-                <input type="password" name="password" minlength="6" required class="input-field text-sm" placeholder="••••••">
+                <input type="password" name="password" minlength="6" required class="input-field text-sm" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢">
             </div>
             <div>
                 <label class="text-xs uppercase text-stone-500 font-semibold">Prefisso</label>
@@ -98,7 +96,7 @@
                 <input type="text" name="telephone" required class="input-field text-sm" placeholder="000 000 0000">
             </div>
             <div>
-                <label class="text-xs uppercase text-stone-500 font-semibold">Città</label>
+                <label class="text-xs uppercase text-stone-500 font-semibold">CittÃ </label>
                 <input type="text" name="residenza_citta" required class="input-field text-sm">
             </div>
             <div>
@@ -141,7 +139,7 @@
                     $currentDir = $dir ?? 'asc';
                     $toggleDir = $currentDir === 'asc' ? 'desc' : 'asc';
 
-                    $sortUrl = function ($field) use ($currentSort, $toggleDir) {
+                                        $sortUrl = function ($field) use ($currentSort, $toggleDir) {
                         $dir = $currentSort === $field ? $toggleDir : 'asc';
                         return request()->fullUrlWithQuery(['sort' => $field, 'dir' => $dir]);
                     };
@@ -149,34 +147,47 @@
                         if ($currentSort !== $field) {
                             return '';
                         }
-                        return $currentDir === 'asc' ? '▲' : '▼';
+                        return $currentDir === 'asc' ? '↑' : '↓';
                     };
+
+                    if (($sort ?? null) === 'payment_status') {
+                        $clients = $clients
+                            ->sortBy(function ($client) {
+                                return (int) ($client->getAttribute('admin_pending_payments_count') ?? 0);
+                            }, SORT_REGULAR, $currentDir === 'desc')
+                            ->values();
+                    }
                 @endphp
                 <thead class="bg-stone-100 text-stone-600 uppercase text-xs tracking-wide">
                     <tr>
                         <th class="px-4 py-3 text-left font-semibold">
-                            <a href="{{ $sortUrl('name') }}" class="inline-flex items-center gap-1 hover:text-stone-800">
+                            <a href="{{ $sortUrl('name') }}" class="inline-flex items-center gap-1 hover:text-stone-800 underline decoration-dotted underline-offset-2">
                                 Nome
                                 <span class="text-[10px]">{{ $sortIndicator('name') }}</span>
                             </a>
                         </th>
                         <th class="px-4 py-3 text-left font-semibold">
-                            <a href="{{ $sortUrl('email') }}" class="inline-flex items-center gap-1 hover:text-stone-800">
+                            <a href="{{ $sortUrl('email') }}" class="inline-flex items-center gap-1 hover:text-stone-800 underline decoration-dotted underline-offset-2">
                                 Email
                                 <span class="text-[10px]">{{ $sortIndicator('email') }}</span>
                             </a>
                         </th>
                         <th class="px-4 py-3 text-left font-semibold">Telefono</th>
                         <th class="px-4 py-3 text-left font-semibold">
-                            <a href="{{ $sortUrl('status') }}" class="inline-flex items-center gap-1 hover:text-stone-800">
+                            <a href="{{ $sortUrl('status') }}" class="inline-flex items-center gap-1 hover:text-stone-800 underline decoration-dotted underline-offset-2">
                                 Stato Account
                                 <span class="text-[10px]">{{ $sortIndicator('status') }}</span>
                             </a>
                         </th>
+                        <th class="px-4 py-3 text-left font-semibold">
+                            <a href="{{ $sortUrl('payment_status') }}" class="inline-flex items-center gap-1 hover:text-stone-800 underline decoration-dotted underline-offset-2">
+                                Stato Pagamenti
+                                <span class="text-[10px]">{{ $sortIndicator('payment_status') }}</span>
+                            </a>
+                        </th>
                         <th class="px-4 py-3 text-left font-semibold">Azioni</th>
                     </tr>
-                </thead>
-                <tbody class="divide-y divide-stone-100">
+                </thead><tbody class="divide-y divide-stone-100">
                     @forelse ($clients as $client)
                         @php
                             $phoneParts = explode(' ', $client->telephone ?? '', 2);
@@ -197,7 +208,7 @@
                                 @if ($client->email)
                                     <a href="mailto:{{ $client->email }}" class="text-teal-600 hover:text-teal-800 font-semibold underline decoration-dotted">{{ $client->email }}</a>
                                 @else
-                                    —
+                                    â€”
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-stone-600">
@@ -206,16 +217,27 @@
                                         {{ $client->telephone }}
                                     </a>
                                 @else
-                                    {{ $client->telephone ?? '—' }}
+                                    {{ $client->telephone ?? 'â€”' }}
                                 @endif
                             </td>
                             <td class="px-4 py-3">
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold
-                                    @if($client->status === 'active') bg-emerald-100 text-emerald-700
-                                    @elseif($client->status === 'pending') bg-amber-100 text-amber-700
-                                    @else bg-rose-100 text-rose-700 @endif">
-                                    {{ ucfirst($client->status) }}
-                                </span>
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold
+                                @if($client->status === 'active') bg-emerald-100 text-emerald-700
+                                @elseif($client->status === 'pending') bg-amber-100 text-amber-700
+                                @else bg-rose-100 text-rose-700 @endif">
+                                {{ ucfirst($client->status) }}
+                            </span>
+                        </td>
+                            <td class="px-4 py-3">
+                                @if($pendingPaymentsCount > 0)
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
+                                        In Attesa
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
+                                        In regola
+                                    </span>
+                                @endif
                             </td>
                             <td class="px-4 py-3">
                                 <button type="button" class="text-xs font-semibold inline-flex items-center gap-1 bg-stone-200 text-stone-700 px-3 py-1.5 rounded-lg hover:bg-stone-300 transition-colors" @click="toggleClient({{ $client->id }})">
@@ -224,7 +246,7 @@
                             </td>
                         </tr>
                         <tr x-show="expandedClient === {{ $client->id }}" x-cloak x-transition>
-                            <td colspan="5" class="px-4 pb-5">
+                            <td colspan="6" class="px-4 pb-5">
                                 <div x-data="{ showProfile: false }" class="bg-stone-50 border border-stone-200 rounded-lg p-5 space-y-5">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -301,7 +323,7 @@
                 <input type="text" name="telephone" value="{{ $clientNumber }}" required class="input-field text-sm">
             </div>
             <div>
-                <label class="text-xs uppercase text-stone-500 font-semibold">Città</label>
+                <label class="text-xs uppercase text-stone-500 font-semibold">CittÃ </label>
                 <input type="text" name="residenza_citta" value="{{ $client->residenza_citta }}" required class="input-field text-sm">
             </div>
             <div>
@@ -376,7 +398,7 @@
                 @endif
                 @if($clientPermissions['can_manage_account'] ?? true)
                     <form method="POST" action="{{ route('admin.users.passwordEmail', $client) }}" class="inline-flex"
-                        onsubmit="return confirm('Vuoi inviare un\'email di reset password a {{ $client->email }}? L\'utente riceverà un link per impostare una nuova password.');">
+                        onsubmit="return confirm('Vuoi inviare un\'email di reset password a {{ $client->email }}? L\'utente riceverÃ  un link per impostare una nuova password.');">
                         @csrf
                         <button type="submit" class="inline-flex items-center gap-1.5 rounded-md bg-rose-500 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-rose-600 transition-colors">
                             Invia reset password
@@ -535,10 +557,10 @@
         <div class="border border-stone-200 rounded-lg px-4 py-3 bg-white space-y-2 text-xs text-stone-600">
             <p class="font-semibold text-stone-700 uppercase tracking-wide">Quota {{ $client->current_membership->season_start_year }}/{{ $client->current_membership->season_start_year + 1 }}</p>
             <div class="flex flex-wrap items-center gap-3">
-                <span>Scadenza: <strong>{{ optional($client->current_membership->due_date)->format('d/m/Y') ?? '—' }}</strong></span>
-                <span>Importo: <strong>€ {{ number_format($client->current_membership->amount ?? 0, 2, ',', '.') }}</strong></span>
+                <span>Scadenza: <strong>{{ optional($client->current_membership->due_date)->format('d/m/Y') ?? 'â€”' }}</strong></span>
+                <span>Importo: <strong>â‚¬ {{ number_format($client->current_membership->amount ?? 0, 2, ',', '.') }}</strong></span>
                 <span>Stato: <strong>{{ ucfirst($client->current_membership->status) }}</strong></span>
-                <span>Pagato il: <strong>{{ optional($client->current_membership->paid_at)->format('d/m/Y H:i') ?? '—' }}</strong></span>
+                <span>Pagato il: <strong>{{ optional($client->current_membership->paid_at)->format('d/m/Y H:i') ?? 'â€”' }}</strong></span>
             </div>
             @if(optional($client->membership_payment)?->receipt_url)
                 <div class="mt-2">
@@ -604,10 +626,10 @@
                                                     },
                                                     sortIndicator(field) {
                                                         if (this.sortField !== field) {
-                                                            return '⇅';
+                                                            return 'â‡…';
                                                         }
 
-                                                        return this.sortDirection === 'asc' ? '↑' : '↓';
+                                                        return this.sortDirection === 'asc' ? 'â†‘' : 'â†“';
                                                     }
                                                 }"
                                                 class="w-full border border-stone-200 rounded-lg px-4 py-4 bg-white space-y-3 text-xs text-stone-600"
@@ -679,20 +701,20 @@
                                                             <template x-for="payment in dataset" :key="`payment-${payment.id}`">
                                                                 <tr class="hover:bg-stone-50" x-data="{ showWaiveForm: false }">
                                                                     <td class="px-3 py-2 align-top">
-                                                                        <p class="text-sm font-semibold text-stone-800" x-text="payment.created_at_display ?? '—'"></p>
+                                                                        <p class="text-sm font-semibold text-stone-800" x-text="payment.created_at_display ?? 'â€”'"></p>
                                                                         <p class="text-[11px] text-stone-400" x-text="payment.year ? `Anno ${payment.year}` : ''"></p>
                                                                     </td>
                                                                     <td class="px-3 py-2 align-top">
                                                                         <span class="text-sm font-semibold text-stone-800" x-text="payment.type_label"></span>
                                                                     </td>
                                                                     <td class="px-3 py-2 align-top">
-                                                                        <span class="font-semibold text-stone-800">€ <span x-text="payment.amount_formatted"></span></span>
+                                                                        <span class="font-semibold text-stone-800">â‚¬ <span x-text="payment.amount_formatted"></span></span>
                                                                     </td>
                                                                     <td class="px-3 py-2 align-top">
                                                                         <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold" :class="payment.status_badge_class" x-text="payment.status_label"></span>
                                                                     </td>
                                                                     <td class="px-3 py-2 align-top">
-                                                                        <span x-text="payment.due_date_display ?? '—'"></span>
+                                                                        <span x-text="payment.due_date_display ?? 'â€”'"></span>
                                                                     </td>
                                                                     <td class="px-3 py-2 align-top">
                                                                         <div class="space-y-2">
@@ -715,7 +737,7 @@
                                                                                         method="POST"
                                                                                         :action="payment.routes.reprint"
                                                                                         class="inline-flex"
-                                                                                        onsubmit="return confirm('Confermi di ristampare la ricevuta? Il documento esistente verrà archiviato.');"
+                                                                                        onsubmit="return confirm('Confermi di ristampare la ricevuta? Il documento esistente verrÃ  archiviato.');"
                                                                                     >
                                                                                         @csrf
                                                                                         <button type="submit" class="inline-flex items-center gap-1 rounded-lg border border-stone-300 px-2 py-1 text-[10px] font-semibold text-stone-600 hover:bg-stone-100 transition-colors">
@@ -830,3 +852,5 @@
             </table>
         </div>
     </div>
+
+

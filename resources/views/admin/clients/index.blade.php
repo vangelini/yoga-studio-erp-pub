@@ -14,6 +14,11 @@
     $flashStatus = session('status');
     $flashErrors = $errors->any() ? $errors->all() : [];
 @endphp
+<style>
+    .min-h-screen > .mx-auto{
+ padding-top:0px;
+}
+</style>
 <section
     x-data="{
         showCreateClient: false,
@@ -50,8 +55,7 @@
         },
     }"
     x-init="setInitialClient()"
-    class="space-y-10"
->
+    >
     <template x-if="flashOpen">
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
             <div class="w-full max-w-md rounded-2xl bg-white shadow-2xl border border-stone-200 p-6 space-y-4">
