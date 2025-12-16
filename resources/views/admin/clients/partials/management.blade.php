@@ -208,7 +208,7 @@
                                 @if ($client->email)
                                     <a href="mailto:{{ $client->email }}" class="text-teal-600 hover:text-teal-800 font-semibold underline decoration-dotted">{{ $client->email }}</a>
                                 @else
-                                    â€”
+                                    -
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-stone-600">
@@ -217,7 +217,7 @@
                                         {{ $client->telephone }}
                                     </a>
                                 @else
-                                    {{ $client->telephone ?? 'â€”' }}
+                                    {{ $client->telephone ?? '-' }}
                                 @endif
                             </td>
                             <td class="px-4 py-3">
