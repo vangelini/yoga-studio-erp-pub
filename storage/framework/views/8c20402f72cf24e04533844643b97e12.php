@@ -2,17 +2,84 @@
     <div class="flex flex-col min-h-screen">
         <header class="bg-white/80 backdrop-blur shadow-sm sticky top-0 z-40">
             <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-                <a href="<?php echo e(route('dashboard')); ?>" class="flex items-center gap-3 group transition">
-                    <img src="<?php echo e(asset('images/yoga-logo.jpg')); ?>" alt="Shanti Sadhana Logo" class="w-10 h-10 rounded-full ring-2 ring-transparent group-hover:ring-teal-200 transition">
-                    <div>
-                        <h1 class="text-2xl font-bold text-teal-800 group-hover:text-teal-700 transition">Shanti Sadhana</h1>
-                        <p class="text-sm text-stone-500 -mt-1">Centro Yoga - Area riservata</p>
+                <div class="flex items-center gap-4">
+                    
+                    <!-- Menu di navigazione -->
+                    <?php
+                        $role = auth()->user()->role ?? null;
+                        $viewConfig = $dashboardViewConfig ?? [];
+                        $showClientAdmin = $viewConfig['show_client_admin'] ?? ($role === 'Admin');
+                        $showCourseAdmin = $viewConfig['show_course_admin'] ?? in_array($role, ['Admin', 'Teacher']);
+                        $showTeacherAdmin = $viewConfig['show_teacher_admin'] ?? ($role === 'Admin');
+                        $showSettings = $viewConfig['show_settings'] ?? ($role === 'Admin');
+                        $showNotifications = $viewConfig['show_course_unpaid'] ?? ($role === 'Admin');
+                        $showMenuAdminTeacher = in_array($role, ['Admin', 'Teacher']);
+                    ?>
+                    <?php if($showMenuAdminTeacher): ?>
+                    <div x-data="{ openNav: false }" class="relative bg-green-100 text-green-800 rounded-lg">
+                        <button @click="openNav = !openNav" class="inline-flex items-center gap-2 rounded-lg bg-teal-600/90 px-3 py-2 text-sm font-semibold border border-white/30 shadow-sm hover:bg-teal-500 transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 22 22" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                            Menu
+                        </button>
+                        <div x-show="openNav" x-transition @click.away="openNav = false" class="absolute left-0 mt-2 w-56 rounded-xl border border-stone-200 bg-white text-stone-700 shadow-lg z-50">
+                            <ul class="divide-y divide-stone-100 text-sm">
+                                <li><a href="<?php echo e(route('dashboard')); ?>" class="flex items-center gap-2 px-3 py-2 hover:bg-stone-50">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l9-9 9 9M4.5 10.5v9.75A1.5 1.5 0 006 21.75h12a1.5 1.5 0 001.5-1.5V10.5"/></svg>
+                                    Home
+                                </a></li>
+                                <?php if($showClientAdmin): ?>
+                                <li><a href="<?php echo e(route('admin.clients.index')); ?>" class="flex items-center gap-2 px-3 py-2 hover:bg-stone-50">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.5 9.75h15m-13.5 3H12m-7.5 3H12m6.75-6v6.75a2.25 2.25 0 01-2.25 2.25h-9a2.25 2.25 0 01-2.25-2.25V6.75A2.25 2.25 0 016.75 4.5h9a2.25 2.25 0 012.25 2.25V9.75z" /></svg>
+                                    Allieve/i
+                                </a></li>
+                                <?php endif; ?>
+                                <?php if($showCourseAdmin): ?>
+                                <li><a href="<?php echo e(route('dashboard.courses')); ?>" class="flex items-center gap-2 px-3 py-2 hover:bg-stone-50">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v12m6-6H6" /></svg>
+                                    Corsi
+                                </a></li>
+                                <?php endif; ?>
+                                <?php if($role === 'Admin'): ?>
+                                <li><a href="<?php echo e(route('admin.accounting.index')); ?>" class="flex items-center gap-2 px-3 py-2 hover:bg-stone-50">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M3 14h18M10 6h11M3 6h4m-4 12h4m6 0h9" /></svg>
+                                    Contabilità
+                                </a></li>
+                                <?php endif; ?>
+                                <?php if($showTeacherAdmin): ?>
+                                <li><a href="<?php echo e(route('admin.teachers.index')); ?>" class="flex items-center gap-2 px-3 py-2 hover:bg-stone-50">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 14l-3 3m3-3l3 3m-3-3V4m9 5v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9" /></svg>
+                                    Insegnanti
+                                </a></li>
+                                <?php endif; ?>
+                                <?php if($showNotifications): ?>
+                                <li><a href="<?php echo e(route('notifications.index')); ?>" class="flex items-center gap-2 px-3 py-2 hover:bg-stone-50">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                                    Centro notifiche
+                                </a></li>
+                                <?php endif; ?>
+                                <?php if($showSettings): ?>
+                                <li><a href="<?php echo e(route('admin.settings.edit')); ?>" class="flex items-center gap-2 px-3 py-2 hover:bg-stone-50">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.5 3.75a1.5 1.5 0 013 0V5a1.5 1.5 0 01-3 0V3.75zM5.636 5.636a1.5 1.5 0 010 2.121l-.884.884a1.5 1.5 0 01-2.122-2.121l.884-.884a1.5 1.5 0 012.122 0zM3.75 10.5H5a1.5 1.5 0 010 3H3.75a1.5 1.5 0 010-3zM5.636 18.364a1.5 1.5 0 01-2.122 0l-.884-.884a1.5 1.5 0 112.122-2.121l.884.884a1.5 1.5 0 000 2.121zM10.5 18.75V20a1.5 1.5 0 003 0v-1.25a1.5 1.5 0 00-3 0zM18.364 18.364a1.5 1.5 0 002.122 0l.884-.884a1.5 1.5 0 10-2.122-2.121l-.884.884a1.5 1.5 0 000 2.121zM20.25 13.5H19a1.5 1.5 0 110-3h1.25a1.5 1.5 0 110 3zM18.364 5.636l.884-.884a1.5 1.5 0 10-2.122-2.121l-.884.884a1.5 1.5 0 002.122 2.121z"/></svg>
+                                    Impostazioni
+                                </a></li>
+                                <?php endif; ?>
+                            </ul>
+                        </div>
                     </div>
-                </a>
+                    <?php endif; ?>
+                    <!-- Fine Menu di navigazione -->
+                    <a href="<?php echo e(route('dashboard')); ?>" class="flex items-center gap-2 sm:gap-3 group transition">
+                        <img src="<?php echo e(asset('images/yoga-logo.jpg')); ?>" alt="Shanti Sadhana Logo" class="w-9 h-9 sm:w-11 sm:h-11 rounded-full ring-2 ring-transparent group-hover:ring-teal-200 transition">
+                    </a>
+                    <div>
+                        <h1 class="text-lg sm:text-2xl font-bold text-teal-800 group-hover:text-teal-700 transition">Shanti Sadhana</h1>
+                        <p class="text-xs sm:text-sm text-stone-500 -mt-1">Centro Yoga - Area riservata</p>
+                    </div>
+                </div>
                 <div class="flex items-center gap-4">
                     
                     <div class="text-right">
-                        <p class="text-sm text-stone-500">Benvenuta/o</p>
+                        <p class="text-xs text-stone-400">Benvenuta/o</p>
                         <p class="font-semibold text-teal-700"><?php echo e(auth()->user()->name); ?></p>
                         
                     </div>
@@ -145,6 +212,7 @@
             </div>
         </footer>
     </div>
+    
 <?php $__env->stopSection(); ?>
 
 <?php echo $__env->make('layouts.base', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\yoga-studio-erp\resources\views/layouts/app.blade.php ENDPATH**/ ?>

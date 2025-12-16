@@ -51,7 +51,7 @@ Route::middleware('auth')->group(function () {
             $request->user()->update(['status' => 'active']);
         }
 
-        return redirect()->route('dashboard')->with('status', 'Email verificata con successo. Benvenuto!');
+        return redirect()->route('dashboard')->with('status', 'Email verificata con successo. Benvenuta!');
     })->middleware(['signed'])->name('verification.verify');
 
     Route::post('/email/verification-notification', function (Request $request) {
@@ -72,6 +72,14 @@ Route::post('/password/reset', [PasswordResetController::class, 'reset'])->name(
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', DashboardPageController::class)->name('dashboard');
+    Route::get('/dashboard/corsi', function (Request $request, DashboardPageController $controller) {
+        $user = $request->user();
+        if (!in_array($user?->role, ['Admin', 'Teacher'], true)) {
+            abort(403);
+        }
+        $request->merge(['courses_only' => true]);
+        return $controller($request);
+    })->name('dashboard.courses');
 
     Route::middleware('throttle:15,1')->group(function () {
         Route::get('/admin/accounting', [\App\Http\Controllers\Web\AdminAccountingController::class, 'index'])->name('admin.accounting.index');

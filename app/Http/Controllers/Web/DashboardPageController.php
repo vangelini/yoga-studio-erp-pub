@@ -241,7 +241,7 @@ class DashboardPageController extends Controller
             $extra = array_merge($extra, $this->loadClientData($user->id));
         }
 
-        return view('dashboard.index', [
+        $viewData = [
             'user' => $user,
             'courses' => $courses,
             'teachers' => $teachers,
@@ -253,7 +253,13 @@ class DashboardPageController extends Controller
             'dashboardViewConfig' => $dashboardViewConfig,
             'dashboardStats' => $dashboardStats,
             ...$extra,
-        ]);
+        ];
+
+        if ($request->boolean('courses_only')) {
+            return view('dashboard.courses', $viewData);
+        }
+
+        return view('dashboard.index', $viewData);
     }
 
     private function loadClients(bool $autoGenerate)
@@ -1220,13 +1226,33 @@ class DashboardPageController extends Controller
         $startDate = $meta['start_date'] ?? $meta['renewal_cycle_start'] ?? optional($payment->due_date)?->format('Y-m-d');
         $startDateDisplay = $startDate ? Carbon::parse($startDate)->translatedFormat('d/m/Y') : null;
         $extraDay = $meta['extra_day'] ?? null;
+        $dueDate = $payment->due_date;
+
+        $referencePeriod = $meta['period_label'] ?? null;
+        if (!$referencePeriod) {
+            if ($planType === 'quarterly' && $payment->payable instanceof Subscription) {
+                $subStart = $payment->payable->start_date;
+                $subEnd = $payment->payable->end_date;
+                if ($subStart && $subEnd) {
+                    $referencePeriod = $subStart->translatedFormat('F Y') . ' - ' . $subEnd->translatedFormat('F Y');
+                }
+            }
+        }
+        if (!$referencePeriod && $dueDate) {
+            $referencePeriod = match ($planType) {
+                'monthly' => $dueDate->translatedFormat('F Y'),
+                'quarterly' => $dueDate->copy()->subMonths(2)->translatedFormat('F') . ' - ' . $dueDate->translatedFormat('F Y'),
+                'annual' => $dueDate->format('Y'),
+                default => $dueDate->translatedFormat('F Y'),
+            };
+        }
 
         return [
             'id' => $payment->id,
             'type' => $payment->type,
             'status' => $payment->status,
             'amount' => $payment->amount,
-            'due_date' => optional($payment->due_date)?->format('Y-m-d'),
+            'due_date' => optional($dueDate)?->format('Y-m-d'),
             'paid_at' => optional($payment->paid_at)?->format('Y-m-d H:i'),
             'method' => $payment->method,
             'meta' => $meta,
@@ -1240,6 +1266,7 @@ class DashboardPageController extends Controller
             'subscription_start_date' => $startDate,
             'subscriptionStartDate' => $startDate,
             'subscriptionStartDateDisplay' => $startDateDisplay,
+            'reference_period' => $referencePeriod,
             'extra_day' => $extraDay,
             'has_extra_day' => !empty($extraDay),
             'receipt_url' => $payment->receipt_url,

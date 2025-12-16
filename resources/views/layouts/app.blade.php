@@ -81,7 +81,7 @@
                 <div class="flex items-center gap-4">
                     
                     <div class="text-right">
-                        <p class="text-sm text-stone-400">Benvenuta/o</p>
+                        <p class="text-xs text-stone-400">Benvenuta/o</p>
                         <p class="font-semibold text-teal-700">{{ auth()->user()->name }}</p>
                         
                     </div>

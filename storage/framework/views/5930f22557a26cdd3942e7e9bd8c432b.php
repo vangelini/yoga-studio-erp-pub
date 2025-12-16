@@ -1,4 +1,4 @@
-﻿    <?php
+  <?php
         $clientPermissions = $clientPagePermissions ?? [
             'mode' => 'admin',
             'can_create' => true,
@@ -12,7 +12,7 @@
     <div class="card p-6 space-y-6">
         <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-                <h3 class="text-2xl font-semibold text-stone-900">Allieve/i</h3>
+                <h3 class="text-2xl font-semibold text-green-800">Allieve/i</h3>
                 <p class="text-sm text-stone-500">Gestisci dati anagrafici, stato account e pagamenti.</p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
@@ -96,7 +96,7 @@
                 <input type="text" name="telephone" required class="input-field text-sm" placeholder="000 000 0000">
             </div>
             <div>
-                <label class="text-xs uppercase text-stone-500 font-semibold">CittÃ </label>
+                <label class="text-xs uppercase text-stone-500 font-semibold">CittÃ </label>
                 <input type="text" name="residenza_citta" required class="input-field text-sm">
             </div>
             <div>
@@ -326,7 +326,7 @@
                 <input type="text" name="telephone" value="<?php echo e($clientNumber); ?>" required class="input-field text-sm">
             </div>
             <div>
-                <label class="text-xs uppercase text-stone-500 font-semibold">CittÃ </label>
+                <label class="text-xs uppercase text-stone-500 font-semibold">CittÃ </label>
                 <input type="text" name="residenza_citta" value="<?php echo e($client->residenza_citta); ?>" required class="input-field text-sm">
             </div>
             <div>
@@ -401,7 +401,7 @@
                 <?php endif; ?>
                 <?php if($clientPermissions['can_manage_account'] ?? true): ?>
                     <form method="POST" action="<?php echo e(route('admin.users.passwordEmail', $client)); ?>" class="inline-flex"
-                        onsubmit="return confirm('Vuoi inviare un\'email di reset password a <?php echo e($client->email); ?>? L\'utente riceverÃ  un link per impostare una nuova password.');">
+                        onsubmit="return confirm('Vuoi inviare un\'email di reset password a <?php echo e($client->email); ?>? L\'utente riceverÃ  un link per impostare una nuova password.');">
                         <?php echo csrf_field(); ?>
                         <button type="submit" class="inline-flex items-center gap-1.5 rounded-md bg-rose-500 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-rose-600 transition-colors">
                             Invia reset password
@@ -561,7 +561,7 @@
             <p class="font-semibold text-stone-700 uppercase tracking-wide">Quota <?php echo e($client->current_membership->season_start_year); ?>/<?php echo e($client->current_membership->season_start_year + 1); ?></p>
             <div class="flex flex-wrap items-center gap-3">
                 <span>Scadenza: <strong><?php echo e(optional($client->current_membership->due_date)->format('d/m/Y') ?? 'â€”'); ?></strong></span>
-                <span>Importo: <strong>â‚¬ <?php echo e(number_format($client->current_membership->amount ?? 0, 2, ',', '.')); ?></strong></span>
+                <span>Importo: <strong>€ <?php echo e(number_format($client->current_membership->amount ?? 0, 2, ',', '.')); ?></strong></span>
                 <span>Stato: <strong><?php echo e(ucfirst($client->current_membership->status)); ?></strong></span>
                 <span>Pagato il: <strong><?php echo e(optional($client->current_membership->paid_at)->format('d/m/Y H:i') ?? 'â€”'); ?></strong></span>
             </div>
@@ -629,10 +629,10 @@
                                                     },
                                                     sortIndicator(field) {
                                                         if (this.sortField !== field) {
-                                                            return 'â‡…';
+                                                            return '↑';
                                                         }
 
-                                                        return this.sortDirection === 'asc' ? 'â†‘' : 'â†“';
+                                                        return this.sortDirection === 'asc' ? '↑' : '↓';
                                                     }
                                                 }"
                                                 class="w-full border border-stone-200 rounded-lg px-4 py-4 bg-white space-y-3 text-xs text-stone-600"
@@ -667,9 +667,9 @@
                                                     <table class="min-w-full divide-y divide-stone-200 text-xs leading-tight">
                                                         <thead class="bg-stone-100 text-[11px] uppercase tracking-wider text-stone-500">
                                                             <tr>
-                                                                <th class="px-3 py-2 text-left font-semibold">
+                                                                <th class="px-2 py-2 text-left font-semibold w-28">
                                                                     <button type="button" class="flex items-center gap-1" @click="toggleSort('created_at')">
-                                                                        Data
+                                                                        Data Creazione Pagamento
                                                                         <span class="text-[10px]" x-text="sortIndicator('created_at')"></span>
                                                                     </button>
                                                                 </th>
@@ -677,6 +677,12 @@
                                                                     <button type="button" class="flex items-center gap-1" @click="toggleSort('type_label')">
                                                                         Tipo
                                                                         <span class="text-[10px]" x-text="sortIndicator('type_label')"></span>
+                                                                    </button>
+                                                                </th>
+                                                                <th class="px-3 py-2 text-left font-semibold">
+                                                                    <button type="button" class="flex items-center gap-1" @click="toggleSort('course_title')">
+                                                                        Corso
+                                                                        <span class="text-[10px]" x-text="sortIndicator('course_title')"></span>
                                                                     </button>
                                                                 </th>
                                                                 <th class="px-3 py-2 text-left font-semibold">
@@ -692,9 +698,15 @@
                                                                     </button>
                                                                 </th>
                                                                 <th class="px-3 py-2 text-left font-semibold">
-                                                                    <button type="button" class="flex items-center gap-1" @click="toggleSort('due_date')">
-                                                                        Scadenza
-                                                                        <span class="text-[10px]" x-text="sortIndicator('due_date')"></span>
+                                                                    <button type="button" class="flex items-center gap-1" @click="toggleSort('reference_period')">
+                                                                        Periodo di riferimento
+                                                                        <span class="text-[10px]" x-text="sortIndicator('reference_period')"></span>
+                                                                    </button>
+                                                                </th>
+                                                                <th class="px-3 py-2 text-left font-semibold">
+                                                                    <button type="button" class="flex items-center gap-1" @click="toggleSort('start_date')">
+                                                                        Data inizio scelta
+                                                                        <span class="text-[10px]" x-text="sortIndicator('start_date')"></span>
                                                                     </button>
                                                                 </th>
                                                                 <th class="px-3 py-2 text-left font-semibold">Azioni</th>
@@ -704,20 +716,25 @@
                                                             <template x-for="payment in dataset" :key="`payment-${payment.id}`">
                                                                 <tr class="hover:bg-stone-50" x-data="{ showWaiveForm: false }">
                                                                     <td class="px-3 py-2 align-top">
-                                                                        <p class="text-sm font-semibold text-stone-800" x-text="payment.created_at_display ?? 'â€”'"></p>
-                                                                        <p class="text-[11px] text-stone-400" x-text="payment.year ? `Anno ${payment.year}` : ''"></p>
+                                                                        <p x-text="payment.created_at_display ?? '-'"></p>
                                                                     </td>
                                                                     <td class="px-3 py-2 align-top">
                                                                         <span class="text-sm font-semibold text-stone-800" x-text="payment.type_label"></span>
                                                                     </td>
                                                                     <td class="px-3 py-2 align-top">
-                                                                        <span class="font-semibold text-stone-800">â‚¬ <span x-text="payment.amount_formatted"></span></span>
+                                                                        <span x-text="payment.course_title ?? '-'"></span>
+                                                                    </td>
+                                                                    <td class="px-3 py-2 align-top">
+                                                                        <span class="font-semibold text-stone-800">€ <span x-text="payment.amount_formatted"></span></span>
                                                                     </td>
                                                                     <td class="px-3 py-2 align-top">
                                                                         <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold" :class="payment.status_badge_class" x-text="payment.status_label"></span>
                                                                     </td>
                                                                     <td class="px-3 py-2 align-top">
-                                                                        <span x-text="payment.due_date_display ?? 'â€”'"></span>
+                                                                        <span x-text="payment.reference_period ?? '-'"></span>
+                                                                    </td>
+                                                                    <td class="px-3 py-2 align-top">
+                                                                        <span x-text="payment.start_date_display ?? payment.start_date ?? '-'"></span>
                                                                     </td>
                                                                     <td class="px-3 py-2 align-top">
                                                                         <div class="space-y-2">
@@ -740,7 +757,7 @@
                                                                                         method="POST"
                                                                                         :action="payment.routes.reprint"
                                                                                         class="inline-flex"
-                                                                                        onsubmit="return confirm('Confermi di ristampare la ricevuta? Il documento esistente verrÃ  archiviato.');"
+                                                                                        onsubmit="return confirm('Confermi di ristampare la ricevuta? Il documento esistente verrá  archiviato.');"
                                                                                     >
                                                                                         <?php echo csrf_field(); ?>
                                                                                         <button type="submit" class="inline-flex items-center gap-1 rounded-lg border border-stone-300 px-2 py-1 text-[10px] font-semibold text-stone-600 hover:bg-stone-100 transition-colors">
@@ -755,7 +772,7 @@
                                                                                     <form
                                                                                         method="POST"
                                                                                         :action="payment.routes.update"
-                                                                                        class="inline-flex"
+                                                                                        class="flex flex-wrap items-center gap-2"
                                                                                         onsubmit="return confirm('Confermi di registrare questo pagamento?');"
                                                                                     >
                                                                                         <?php echo csrf_field(); ?>
@@ -771,35 +788,40 @@
                                                                                             <option value="bank_transfer">Bonifico</option>
                                                                                         </select>
                                                                                         <input type="hidden" name="reason" value="">
+                                                                                        <input type="number" step="0.01" name="amount" :value="payment.amount" placeholder="Importo" class="input-field text-[10px] py-1 h-8 w-24">
                                                                                         <input type="text" name="transfer_reference" placeholder="CRO / Riferimento" class="input-field text-[10px] py-1 h-8 w-32 hidden" data-transfer-reference>
+                                                                                        <input type="text" name="note" placeholder="Nota (opz.)" class="input-field text-[10px] py-1 h-8 w-32">
                                                                                         <button type="submit" class="inline-flex items-center gap-1.5 rounded-md bg-teal-600 px-2.5 py-1 text-[10px] font-semibold text-white hover:bg-teal-700 transition-colors">
                                                                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-10c1.486 0-2.737.81-2.959 1.893M12 6c-1.486 0-2.737.81-2.959 1.893M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                                                                             </svg>
                                                                                             Registra pagamento
                                                                                         </button>
+                                                                                        <template x-if="payment.is_pending && payment.is_course">
+                                                                                                <button
+                                                                                                    type="button"
+                                                                                                    class="bg-stone-200 inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[10px] font-semibold hover:bg-stone-300 transition"
+                                                                                                    @click="showWaiveForm = !showWaiveForm"
+                                                                                                >
+                                                                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                                                                    </svg>
+                                                                                                    <span x-text="showWaiveForm ? 'Nascondi annulla' : 'Annulla mese'"></span>
+                                                                                                </button>
+                                                                                        </template>
                                                                                     </form>
                                                                                 </template>
-                                                                            </div>
+                                                                            
                                                                             <template x-if="payment.is_pending && payment.is_course">
-                                                                                <div class="space-y-2">
-                                                                                    <button
-                                                                                        type="button"
-                                                                                        class="inline-flex items-center justify-center gap-2 rounded-lg bg-stone-200 px-3 py-1.5 text-[11px] font-semibold text-stone-700 hover:bg-stone-300 transition-colors"
-                                                                                        @click="showWaiveForm = !showWaiveForm"
-                                                                                    >
-                                                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                                                                        </svg>
-                                                                                        <span x-text="showWaiveForm ? 'Nascondi annulla' : 'Annulla mese'"></span>
-                                                                                    </button>
+                                                                                
+                                                                                    
                                                                                     <form
                                                                                         method="POST"
                                                                                         :action="payment.routes.update"
                                                                                         class="space-y-2"
                                                                                         x-show="showWaiveForm"
                                                                                         x-cloak
-                                                                                        onsubmit="return confirm('Confermi di annullare il mese per questa allieva/o?');"
+                                                                                        onsubmit="return confirm('Confermi l\'annullamento del mese per questa allieva/o?');"
                                                                                     >
                                                                                         <?php echo csrf_field(); ?>
                                                                                         <input type="hidden" name="action" value="waive">
@@ -813,8 +835,9 @@
                                                                                             </button>
                                                                                         </div>
                                                                                     </form>
-                                                                                </div>
+                                                                                
                                                                             </template>
+                                                                            </div>
                                                                         </div>
                                                                     </td>
                                                                 </tr>
@@ -855,6 +878,4 @@
             </table>
         </div>
     </div>
-
-
 <?php /**PATH C:\yoga-studio-erp\resources\views/admin/clients/partials/management.blade.php ENDPATH**/ ?>

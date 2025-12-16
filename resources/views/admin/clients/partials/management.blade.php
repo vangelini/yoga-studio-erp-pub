@@ -794,23 +794,24 @@
                                                                                             </svg>
                                                                                             Registra pagamento
                                                                                         </button>
+                                                                                        <template x-if="payment.is_pending && payment.is_course">
+                                                                                                <button
+                                                                                                    type="button"
+                                                                                                    class="bg-stone-200 inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[10px] font-semibold hover:bg-stone-300 transition"
+                                                                                                    @click="showWaiveForm = !showWaiveForm"
+                                                                                                >
+                                                                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                                                                    </svg>
+                                                                                                    <span x-text="showWaiveForm ? 'Nascondi annulla' : 'Annulla mese'"></span>
+                                                                                                </button>
+                                                                                        </template>
                                                                                     </form>
                                                                                 </template>
-                                                                            </div>
+                                                                            
                                                                             <template x-if="payment.is_pending && payment.is_course">
-                                                                                <div class="flex flex-col gap-2">
-                                                                                    <div class="flex flex-wrap items-center gap-2">
-                                                                                        <button
-                                                                                            type="button"
-                                                                                            class="bg-stone-200 inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[10px] font-semibold hover:bg-stone-300 transition"
-                                                                                            @click="showWaiveForm = !showWaiveForm"
-                                                                                        >
-                                                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                                                                            </svg>
-                                                                                            <span x-text="showWaiveForm ? 'Nascondi annulla' : 'Annulla mese'"></span>
-                                                                                        </button>
-                                                                                    </div>
+                                                                                
+                                                                                    
                                                                                     <form
                                                                                         method="POST"
                                                                                         :action="payment.routes.update"
@@ -831,8 +832,9 @@
                                                                                             </button>
                                                                                         </div>
                                                                                     </form>
-                                                                                </div>
+                                                                                
                                                                             </template>
+                                                                            </div>
                                                                         </div>
                                                                     </td>
                                                                 </tr>

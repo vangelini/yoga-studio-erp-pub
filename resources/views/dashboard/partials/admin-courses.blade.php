@@ -1,4 +1,4 @@
-@php
+﻿@php
     $allowCourseCreation = $allowCourseCreation ?? true;
     $allowTeacherSelection = $allowTeacherSelection ?? true;
     $allowStudentManage = $allowStudentManage ?? true;
@@ -14,12 +14,19 @@
         'annual' => 'Annuale',
     ];
 @endphp
-
-<div class="card p-6 space-y-6" x-data="{ showCreateCourse: false }">
+<style>
+.min-h-screen .mx-auto  .space-y-8{
+  margin-top:0px;
+}
+.min-h-screen > .mx-auto{
+ padding-top:0px;
+}
+</style>
+<div class="card p-6 space-y-8" x-data="{ showCreateCourse: false }">
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div class="space-y-1">
-            <h3 class="text-2xl font-semibold text-stone-900">{{ $courseCardTitle }}</h3>
-            <p class="text-sm text-stone-500">{!! $courseCardSubtitle !!}</p>
+            <h3 class="text-2xl font-semibold text-green-800">{{ $courseCardTitle }}</h3>
+            
         </div>
         @if($allowCourseCreation)
             <button
@@ -57,6 +64,7 @@
         x-transition
     >
         <h4 class="text-lg font-semibold text-teal-800 mb-4">Crea nuovo corso</h4>
+        <p class="text-sm text-stone-500">{!! $courseCardSubtitle !!}</p>
         <form method="POST" action="{{ route('admin.courses.store') }}" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
             @csrf
             <div class="space-y-3">
@@ -170,12 +178,12 @@
                 <div class="flex items-start gap-3 rounded-xl border border-teal-100 bg-white px-3 py-2">
                     <input type="checkbox" name="allows_extra_day" value="1" class="mt-1 h-4 w-4 rounded border-stone-300 text-teal-600 focus:ring-teal-500">
                     <div>
-                        <p class="text-sm font-semibold text-stone-700">Disponibile come “Un giorno in più”</p>
+                        <p class="text-sm font-semibold text-stone-700">Disponibile come "Un giorno in piú"</p>
                         <p class="text-xs text-stone-500">Se selezionato, questo corso potrà essere scelto dagli Allievi come lezione extra.</p>
                     </div>
                 </div>
                 <div class="space-y-1.5">
-                    <label class="text-xs uppercase font-semibold text-stone-500">Sconto “Un giorno in più” (%)</label>
+                    <label class="text-xs uppercase font-semibold text-stone-500">Sconto "Un giorno in piú" (%)</label>
                     <input type="number" step="0.1" min="0" max="100" name="extra_day_discount_percent" value="{{ old('extra_day_discount_percent', 0) }}" class="input-field text-sm" placeholder="Es. 10">
                     <p class="text-[11px] text-stone-500">Percentuale applicata sul costo extra prima della riduzione per lezioni rimanenti.</p>
                     @error('extra_day_discount_percent')
@@ -237,11 +245,21 @@
                 }"
             >
                 <div class="flex flex-wrap items-center gap-3 text-sm text-stone-600">
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:gap-2">
-                        <span class="font-semibold text-stone-900">{{ $course['title'] }}</span>
+                        <button
+                                type="button"
+                                class=" flex justify-end items-center gap-2 rounded-lg border border-stone-300 px-3 py-1.5 text-xs font-semibold text-stone-600 hover:bg-stone-100 transition"
+                                @click="open = !open"
+                            >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16.862 3.487a1.75 1.75 0 0 1 2.476 2.476l-1.07 1.07-2.476-2.475zm-2.383 2.384-9.23 9.23a1.5 1.5 0 0 0-.39.68l-.73 2.92a.75.75 0 0 0 .916.916l2.92-.73a1.5 1.5 0 0 0 .68-.39l9.23-9.23-2.476-2.476z"/>
+                            </svg>
+                            <span x-text="open ? 'Annulla' : 'Modifica'"></span>
+                        </button>
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:gap-2 w-full">
+                        <span class="text-xl font-semibold text-green-800">{{ $course['title'] }}</span>
                         <span class="text-xs text-stone-400">(#{{ $course['id'] }})</span>
                     </div>
-                    <div class="flex items-center gap-2 text-xs text-stone-500">
+                    <div class=" items-center gap-2 text-xs text-stone-500">
                         <span class="font-semibold uppercase text-stone-600">Insegnante:</span>
                         <span>
                             {{ $course['teacher_name'] ?? ($isTeacherView ? $currentTeacherName : 'Non assegnato') }}
@@ -250,7 +268,7 @@
                     @if(!empty($course['start_date_human']) || !empty($course['end_date_human']))
                         <div class="flex items-center gap-2 text-xs text-stone-500">
                             <span class="font-semibold uppercase text-stone-600">Periodo:</span>
-                            <span>{{ $course['start_date_human'] ?? '—' }} → {{ $course['end_date_human'] ?? '—' }}</span>
+                            <span>{{ $course['start_date_human'] ?? 'â€”' }} â†’ {{ $course['end_date_human'] ?? 'â€”' }}</span>
                         </div>
                     @endif
                     <div class="flex flex-wrap items-center gap-1 text-xs text-stone-500">
@@ -265,7 +283,7 @@
                         @elseif(!empty($plans))
                             @foreach ($plans as $plan)
                                 <span class="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2 py-0.5 font-semibold text-teal-700">
-                                    {{ $plan['label'] }} · € {{ number_format($plan['amount'], 2, ',', '.') }}
+                                    {{ $plan['label'] }} Â· € {{ number_format($plan['amount'], 2, ',', '.') }}
                                 </span>
                             @endforeach
                         @else
@@ -279,19 +297,82 @@
                             </span>
                         @endif
                     </div>
-                        <button
-                            type="button"
-                            class=" flex justify-end items-center gap-2 rounded-lg border border-stone-300 px-3 py-1.5 text-xs font-semibold text-stone-600 hover:bg-stone-100 transition"
-                            @click="open = !open"
-                        >
+                        
+                </div>
+
+  
+                
+                <div class="mt-6 space-y-3" x-data="{ showStudents: false }">
+                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <button type="button" class=" flex justify-end items-center gap-2 rounded-lg border border-stone-300 px-3 py-1.5 text-xs font-semibold text-stone-600 hover:bg-stone-100 transition" @click="showStudents = !showStudents">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                             </svg>
-                            <span x-text="open ? 'Nascondi dettagli corso' : 'Mostra dettagli corso'"></span>
+                            <span x-show="!showStudents">Mostra Allieve/i iscritti (num. {{ count($course['students'] ?? []) }})</span>
+                            <span x-show="showStudents">Nascondi</span>
                         </button>
-                </div>
-
-                
+                        
+                        </div>
+                    </div>
+                @if (!empty($course['students']))
+                    <div class="space-y-3" x-show="showStudents" x-transition>
+                        @foreach ($course['students'] as $student)
+                            <div class="flex flex-col gap-3 rounded-xl border border-stone-200 bg-white px-4 py-3 shadow-sm md:flex-row md:items-center md:justify-between">
+                                <div>
+                                    <a href="{{ route('admin.clients.index', ['client_id' => $student['client_id']]) }}#client-{{ $student['client_id'] }}" class="text-sm font-semibold text-teal-700 hover:text-teal-900">
+                                        {{ $student['name'] }}
+                                    </a>
+                                    <p class="text-xs text-stone-500">Piano: {{ $student['plan'] }}</p>
+                                    @if (!empty($student['lessons']))
+                                        <div class="mt-2 flex flex-wrap gap-1">
+                                            @foreach ($student['lessons'] as $lesson)
+                                                <span class="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-semibold text-stone-600">
+                                                    {{ $lesson['label'] ?? trim(($lesson['day'] ?? '') . ' ' . ($lesson['time'] ?? '')) }}
+                                                </span>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="text-xs text-stone-500 space-y-1">
+                                    @if (!empty($student['email']))
+                                        <a href="mailto:{{ $student['email'] }}" class="inline-flex items-center gap-1 text-teal-600 font-semibold hover:text-teal-800">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12l-4 4m0 0l-4-4m4 4V8m-6 4V7a2 2 0 012-2h8a2 2 0 012 2v5"/>
+                                            </svg>
+                                            {{ $student['email'] }}
+                                        </a>
+                                    @endif
+                                    @if (!empty($student['telephone']))
+                                        <div class="flex items-center gap-2">
+                                            <span class="font-semibold text-stone-600">Telefono:</span>
+                                            @if (!empty($student['whatsapp']))
+                                                <a href="{{ $student['whatsapp'] }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-emerald-600 font-semibold hover:text-emerald-800">
+                                                    {{ $student['telephone'] }}
+                                                </a>
+                                            @else
+                                                <span>{{ $student['telephone'] }}</span>
+                                            @endif
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold {{ $student['status_badge'] }}">
+                                        {{ $student['status'] }}
+                                    </span>
+                                    @if($allowStudentManage)
+                                        <a href="{{ route('admin.clients.index', ['client_id' => $student['client_id']]) }}#client-{{ $student['client_id'] }}" class="inline-flex items-center gap-1 rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-semibold text-stone-600 hover:bg-stone-100">
+                                            Gestisci
+                                        </a>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <p class="text-sm text-stone-500" x-show="showStudents">Nessun allievo iscritto a questo corso.</p>
+                @endif
+            </div>
 
                 <div x-show="open" x-cloak x-transition class="mt-4 border border-stone-200 rounded-xl bg-stone-50 px-4 py-4 space-y-4">
                     <form method="POST" action="{{ route('admin.courses.update', $course['id']) }}" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -388,18 +469,18 @@
                                 </div>
                             </div>
                             <div class="space-y-1.5">
-                                <label class="text-xs uppercase font-semibold text-stone-500">Specialità / focus</label>
+                                <label class="text-xs uppercase font-semibold text-stone-500">Specialità/ focus</label>
                                 <input type="text" name="speciality_description" value="{{ $course['speciality_description'] ?? '' }}" class="input-field text-sm">
                             </div>
                             <div class="flex items-start gap-3 rounded-xl border border-teal-100 bg-white px-3 py-2">
                                 <input type="checkbox" name="allows_extra_day" value="1" class="mt-1 h-4 w-4 rounded border-stone-300 text-teal-600 focus:ring-teal-500" @checked($course['allows_extra_day'] ?? false)>
                                 <div>
-                                    <p class="text-sm font-semibold text-stone-700">Disponibile come “Un giorno in più”</p>
+                                    <p class="text-sm font-semibold text-stone-700">Disponibile come "Un giorno in piú"</p>
                                     <p class="text-xs text-stone-500">Consente agli allievi di scegliere una lezione settimanale extra da questo corso.</p>
                                 </div>
                             </div>
                             <div class="space-y-1.5">
-                                <label class="text-xs uppercase font-semibold text-stone-500">Sconto “Un giorno in più” (%)</label>
+                                <label class="text-xs uppercase font-semibold text-stone-500">Sconto "Un giorno in piú" (%)</label>
                                 <input type="number" step="0.1" min="0" max="100" name="extra_day_discount_percent" value="{{ number_format($course['extra_day_discount_percent'] ?? 0, 1, '.', '') }}" class="input-field text-sm">
                                 <p class="text-[11px] text-stone-500">Applicato sul costo extra prima del calcolo delle lezioni rimanenti.</p>
                                 @error('extra_day_discount_percent')
@@ -445,72 +526,7 @@
 
                 </div>
 
-            <div class="mt-6 space-y-3">
-                <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <p class="text-sm font-semibold text-stone-700">Allieve/i iscritti</p>
-                    </div>
-                    <span class="text-xs font-semibold text-stone-500">{{ count($course['students'] ?? []) }} iscritti</span>
-                </div>
-
-                @if (!empty($course['students']))
-                    <div class="space-y-3">
-                        @foreach ($course['students'] as $student)
-                            <div class="flex flex-col gap-3 rounded-xl border border-stone-200 bg-white px-4 py-3 shadow-sm md:flex-row md:items-center md:justify-between">
-                                <div>
-                                    <a href="{{ route('admin.clients.index', ['client_id' => $student['client_id']]) }}#client-{{ $student['client_id'] }}" class="text-sm font-semibold text-teal-700 hover:text-teal-900">
-                                        {{ $student['name'] }}
-                                    </a>
-                                    <p class="text-xs text-stone-500">Piano: {{ $student['plan'] }}</p>
-                                    @if (!empty($student['lessons']))
-                                        <div class="mt-2 flex flex-wrap gap-1">
-                                            @foreach ($student['lessons'] as $lesson)
-                                                <span class="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-semibold text-stone-600">
-                                                    {{ $lesson['label'] ?? trim(($lesson['day'] ?? '') . ' ' . ($lesson['time'] ?? '')) }}
-                                                </span>
-                                            @endforeach
-                                        </div>
-                                    @endif
-                                </div>
-                                <div class="text-xs text-stone-500 space-y-1">
-                                    @if (!empty($student['email']))
-                                        <a href="mailto:{{ $student['email'] }}" class="inline-flex items-center gap-1 text-teal-600 font-semibold hover:text-teal-800">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12l-4 4m0 0l-4-4m4 4V8m-6 4V7a2 2 0 012-2h8a2 2 0 012 2v5"/>
-                                            </svg>
-                                            {{ $student['email'] }}
-                                        </a>
-                                    @endif
-                                    @if (!empty($student['telephone']))
-                                        <div class="flex items-center gap-2">
-                                            <span class="font-semibold text-stone-600">Telefono:</span>
-                                            @if (!empty($student['whatsapp']))
-                                                <a href="{{ $student['whatsapp'] }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-emerald-600 font-semibold hover:text-emerald-800">
-                                                    {{ $student['telephone'] }}
-                                                </a>
-                                            @else
-                                                <span>{{ $student['telephone'] }}</span>
-                                            @endif
-                                        </div>
-                                    @endif
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold {{ $student['status_badge'] }}">
-                                        {{ $student['status'] }}
-                                    </span>
-                                    @if($allowStudentManage)
-                                        <a href="{{ route('admin.clients.index', ['client_id' => $student['client_id']]) }}#client-{{ $student['client_id'] }}" class="inline-flex items-center gap-1 rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-semibold text-stone-600 hover:bg-stone-100">
-                                            Gestisci
-                                        </a>
-                                    @endif
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                @else
-                    <p class="text-sm text-stone-500">Nessun allievo iscritto a questo corso.</p>
-                @endif
-            </div>
+          
             </div>
         @empty
             <div class="rounded-xl border border-dashed border-stone-300 bg-stone-50 px-6 py-6 text-center text-stone-500">

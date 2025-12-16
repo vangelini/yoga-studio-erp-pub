@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\Payment;
+use App\Models\MembershipSubscription;
 use App\Models\Setting;
 use App\Models\Subscription;
 use App\Models\User;
@@ -312,6 +313,41 @@ class AdminClientPageController extends Controller
 
         $meta = $payment->meta ?? [];
         $planLabel = $meta['plan_label'] ?? null;
+        $startDateMeta = $meta['start_date'] ?? null;
+        $startOption = $meta['start_option'] ?? null;
+        $planType = $meta['plan_type'] ?? null;
+
+        $membershipStart = null;
+        $membershipEnd = null;
+        if ($payment->payable instanceof MembershipSubscription) {
+            $membershipStart = optional($payment->payable->starts_at)?->format('Y-m-d');
+            $membershipEnd = optional($payment->payable->ends_at)?->format('Y-m-d');
+        }
+
+        $referencePeriod = $meta['period_label'] ?? null;
+        if (!$referencePeriod) {
+            if ($planType === 'quarterly' && $payment->payable instanceof Subscription) {
+                $subStart = $payment->payable->start_date;
+                $subEnd = $payment->payable->end_date;
+                if ($subStart && $subEnd) {
+                    $referencePeriod = $subStart->translatedFormat('F Y') . ' - ' . $subEnd->translatedFormat('F Y');
+                }
+            }
+        }
+
+        if (!$referencePeriod && $dueDate) {
+            $referencePeriod = match ($planType) {
+                'monthly' => $dueDate->translatedFormat('F Y'),
+                'quarterly' => $dueDate->copy()->subMonths(2)->translatedFormat('F') . ' - ' . $dueDate->translatedFormat('F Y'),
+                'annual' => $dueDate->format('Y'),
+                default => $dueDate->translatedFormat('F Y'),
+            };
+        }
+
+        $courseTitle = $meta['course_title'] ?? null;
+        if (!$courseTitle && $payment->course) {
+            $courseTitle = $payment->course->title;
+        }
 
         $typeLabel = $typeLabels[$payment->type] ?? ucfirst(str_replace('_', ' ', $payment->type));
         if ($payment->type === 'course_subscription' && $planLabel) {
@@ -332,8 +368,18 @@ class AdminClientPageController extends Controller
             'created_at' => optional($createdAt)?->toIso8601String(),
             'created_at_display' => optional($createdAt)?->format('d/m/Y H:i'),
             'year' => optional($createdAt)?->year,
-            'plan_type' => $meta['plan_type'] ?? null,
+            'reference_period' => $referencePeriod,
+            'start_date' => $startDateMeta,
+            'start_date_display' => $startDateMeta ? \Carbon\Carbon::parse($startDateMeta)->format('d/m/Y') : null,
+            'start_option' => $startOption,
+            'course_title' => $courseTitle,
+            'membership_start' => $membershipStart,
+            'membership_start_display' => $membershipStart ? \Carbon\Carbon::parse($membershipStart)->format('d/m/Y') : null,
+            'membership_end' => $membershipEnd,
+            'membership_end_display' => $membershipEnd ? \Carbon\Carbon::parse($membershipEnd)->format('d/m/Y') : null,
+            'plan_type' => $planType,
             'plan_label' => $planLabel,
+            'is_course' => $payment->type === 'course_subscription',
             'routes' => [
                 'update' => route('admin.payments.update', $payment->id),
                 'receipt' => $payment->receipt_url ? route('admin.payments.receipt', $payment->id) : null,

@@ -39,7 +39,7 @@
     <div class="card p-6 space-y-6">
         <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <div>
-                <h3 class="text-2xl font-semibold text-stone-900">Insegnanti del centro</h3>
+                <h3 class="text-2xl font-semibold text-green-800">Insegnanti del centro</h3>
                 <p class="text-sm text-stone-500">Gestisci anagrafica degli insegnanti.</p>
             </div>
             <button type="button" class="btn-primary text-xs self-start md:self-auto" @click="showCreateTeacher = !showCreateTeacher">
@@ -388,14 +388,7 @@
         </div>
     </div>
 
-    <div class="flex justify-start">
-        <a href="<?php echo e(route('dashboard')); ?>" class="inline-flex items-center gap-2 rounded-lg border border-stone-300 px-3 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-100 transition">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7m-9 2v8m-4 0h8" />
-            </svg>
-            Torna al dashboard
-        </a>
-    </div>
+
 </section>
 <?php $__env->stopSection(); ?>
 

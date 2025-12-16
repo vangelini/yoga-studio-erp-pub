@@ -56,7 +56,7 @@ class AdminCourseController extends Controller
         });
 
         return redirect()
-            ->route('dashboard')
+            ->route('dashboard.courses')
             ->with('status', 'Corso creato con successo.');
     }
 
@@ -107,7 +107,7 @@ class AdminCourseController extends Controller
         });
 
         return redirect()
-            ->route('dashboard')
+            ->route('dashboard.courses')
             ->with('status', 'Corso aggiornato con successo.');
     }
 

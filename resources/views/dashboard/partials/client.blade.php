@@ -195,25 +195,24 @@
 
         <div class="flex items-center justify-between">
             <h3 class="text-xl font-semibold text-stone-900">Storico pagamenti</h3>
-            <span class="text-xs text-stone-400 uppercase tracking-wide">Ultimi movimenti</span>
         </div>
         <div class="space-y-3 max-h-64 overflow-y-auto pr-1">
             <template x-for="payment in payments" :key="payment.id">
                 <div class="border border-stone-200 rounded-xl px-4 py-3 bg-stone-50 flex flex-col gap-1">
                     <div class="flex items-center justify-between">
-                        <span class="text-sm font-semibold text-stone-800" x-text="payment.type === 'membership' ? 'Quota associativa' : (payment.type === 'course_subscription' ? 'Iscrizione corso ' + payment.course_title : 'Lezione privata')"></span>
+                        <span class="text-sm font-semibold text-stone-800" x-text="payment.type === 'membership' ? 'Quota associativa' : (payment.type === 'course_subscription' ? 'corso ' + payment.course_title : 'Lezione privata')"></span>
                         <span class="text-xs font-semibold "><span class="font-semibold text-stone-700 text-right" x-text="'Importo: '+ formatMoney(payment.amount)"></span> - Stato Pagamento: <span class="text-xs font-semibold px-2.5 py-1 rounded-full" :class="paymentStatusClass(payment.status)" x-text="payment.status === 'paid' ? 'Pagato' : 'In attesa'"></span>
                     </span>
                     </div>
                     <template x-if="payment.is_course_payment">
                         <div class="text-[11px] text-stone-500 space-y-1">
                             <p x-show="payment.plan_label">
-                                <span class="font-semibold text-stone-600">Tipo abbonamento:</span>
+                                <span class="font-semibold text-stone-600">Abbonamento:</span>
                                 <span x-text="payment.plan_label"></span>
                             </p>
-                            <p x-show="payment.subscriptionStartDateDisplay">
-                                <span class="font-semibold text-stone-600">Data inizio:</span>
-                                <span x-text="payment.subscriptionStartDateDisplay"></span>
+                            <p x-show="payment.reference_period">
+                                <span class="font-semibold text-stone-600">Periodo di riferimento:</span>
+                                <span x-text="payment.reference_period"></span>
                             </p>
                             <p x-show="payment.has_extra_day">
                                 <span class="font-semibold text-stone-600">Modalità “Un giorno in più”:</span>
@@ -649,7 +648,7 @@
                         <div class="space-y-2">
                             <p class="text-sm text-stone-600" x-text="subscriptionModal.course.description"></p>
                             <p class="text-xs font-semibold text-rose-600" x-show="courseEnrollmentFull(subscriptionModal.course)">
-                                Questo corso ha raggiunto il numero massimo di iscritti. Potrai iscriverti quando si liberer� un posto.
+                                Questo corso ha raggiunto il numero massimo di iscritti. Potrai iscriverti quando si libererá un posto.
                             </p>
                         </div>
 
@@ -800,7 +799,7 @@
                                 <template x-if="currentSubscriptionStep() === 'extra'">
                                     <div class="space-y-4">
                                         <div class="space-y-1">
-                                            <h5 class="text-base font-semibold text-stone-800">Opzione �Un giorno in pi��</h5>
+                                            <h5 class="text-base font-semibold text-stone-800">Opzione "Un giorno in piú"</h5>
                                             <p class="text-xs text-stone-500">Aggiungi una lezione settimanale da un altro corso per ampliare il tuo percorso.</p>
                                         </div>
                                         <template x-if="extraDayCandidates().length > 0">
@@ -815,7 +814,7 @@
                                                 </select>
                                                 <p class="text-xs text-stone-500">Il costo aggiuntivo viene calcolato in base alle lezioni rimanenti del corso selezionato.</p>
                                                 <template x-if="Number(subscriptionModal.previewExtra) > 0">
-                                                    <p class="text-sm font-semibold text-emerald-600">+ � <span x-text="subscriptionModal.previewExtra"></span></p>
+                                                    <p class="text-sm font-semibold text-emerald-600">+ € <span x-text="subscriptionModal.previewExtra"></span></p>
                                                 </template>
                                             </div>
                                         </template>
@@ -2254,7 +2253,6 @@
         </script>
     @endpush
 @endonce
-
 
 
 

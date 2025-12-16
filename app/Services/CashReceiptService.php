@@ -4,6 +4,9 @@ namespace App\Services;
 
 use App\Models\Payment;
 use App\Models\Setting;
+use App\Models\Subscription;
+use App\Models\MembershipSubscription;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use RuntimeException;
@@ -22,7 +25,7 @@ class CashReceiptService
         $template = $this->loadTemplate();
 
         $amountFormatted = sprintf('%s %s', config('receipt.currency_symbol', '€'), number_format($payment->amount, 2, ',', '.'));
-        $period = optional($payment->due_date)->translatedFormat('F Y') ?: '—';
+        $period = $this->referencePeriod($payment);
 
         $html = view('receipts.pdf', [
             'template' => $template,
@@ -98,11 +101,13 @@ class CashReceiptService
 
     protected function descriptionForPayment(Payment $payment): string
     {
+        $planLabel = $this->planTypeLabel($payment->meta['plan_type'] ?? null);
+
         return match ($payment->type) {
-            'membership' => 'Quota associativa annuale',
-            'course_subscription' => $payment->meta['course_title'] ?? 'Lezione/Corso mensile',
+            'membership' => trim('Quota associativa ' . ($planLabel ? '(' . $planLabel . ')' : '')),
+            'course_subscription' => trim(($payment->meta['course_title'] ?? 'Lezione/Corso') . ($planLabel ? ' - Abbonamento: ' . $planLabel . '' : '')),
             'private_lesson' => 'Lezione privata',
-            default => 'Pagamento',
+            default => 'Pagamento' . ($planLabel ? ' (' . $planLabel . ')' : ''),
         };
     }
 
@@ -169,6 +174,57 @@ class CashReceiptService
     {
         $setting = Setting::query()->find($key);
         return $setting?->value ?? $default;
+    }
+
+    private function planTypeLabel(?string $planType): ?string
+    {
+        return match ($planType) {
+            'monthly' => 'Mensile',
+            'quarterly' => 'Trimestrale',
+            'annual' => 'Annuale',
+            default => $planType ? ucfirst($planType) : null,
+        };
+    }
+
+    private function referencePeriod(Payment $payment): string
+    {
+        $meta = $payment->meta ?? [];
+        $planType = $meta['plan_type'] ?? null;
+        $period = $meta['period_label'] ?? null;
+
+        // Prefer subscription dates for trimestrali.
+        if (!$period && $planType === 'quarterly' && $payment->payable instanceof Subscription) {
+            $start = $payment->payable->start_date;
+            $end = $payment->payable->end_date;
+            if ($start && $end) {
+                return $start->translatedFormat('F Y') . ' - ' . $end->translatedFormat('F Y');
+            }
+        }
+
+        // Membership annuale: se disponibile uso il range della membership.
+        if (!$period && $planType === 'annual' && $payment->payable instanceof MembershipSubscription) {
+            $start = $payment->payable->starts_at;
+            $end = $payment->payable->ends_at;
+            if ($start && $end) {
+                // stesso anno -> solo anno, altrimenti range
+                return $start->format('Y') === $end->format('Y')
+                    ? $start->format('Y')
+                    : $start->translatedFormat('d/m/Y') . ' - ' . $end->translatedFormat('d/m/Y');
+            }
+        }
+
+        // Fallback basato sulla due_date.
+        $due = $payment->due_date ? Carbon::parse($payment->due_date) : null;
+        if ($due) {
+            return match ($planType) {
+                'monthly' => $due->translatedFormat('F Y'),
+                'quarterly' => $due->copy()->subMonths(2)->translatedFormat('F') . ' - ' . $due->translatedFormat('F Y'),
+                'annual' => $due->format('Y'),
+                default => $due->translatedFormat('F Y'),
+            };
+        }
+
+        return '—';
     }
 
     protected function archiveExistingReceipt(Payment $payment): ?string
