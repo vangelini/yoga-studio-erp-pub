@@ -464,7 +464,7 @@ class DashboardPageController extends Controller
             })->values()->all();
 
             return [
-                'month_label' => $includeFuture ? __('tutte le scadenze') : $now->translatedFormat('F Y'),
+                'month_label' => $includeFuture ? __('tutte le scadenze') : $this->formatItalianMonthYear($now),
                 'total_unpaid' => 0,
                 'future_total' => 0,
                 'showing_future' => $includeFuture,
@@ -546,7 +546,7 @@ class DashboardPageController extends Controller
                 'client_telephone' => optional($subscription->client)->telephone,
                 'amount' => $payment->amount,
                 'due_date' => optional($payment->due_date)->format('Y-m-d'),
-                'period_label' => optional($payment->due_date)->translatedFormat('F Y'),
+                'period_label' => $this->formatCoursePeriodFromSubscription($subscription, $payment),
                 'created_at' => optional($payment->created_at)->format('Y-m-d H:i'),
                 'plan_type' => $subscription->plan_type,
                 'plan_label' => $subscription->plan_label,
@@ -588,7 +588,7 @@ class DashboardPageController extends Controller
         $futureTotal = array_sum(array_map(fn ($course) => $course['future_count'] ?? 0, $courseSummary));
 
         return [
-            'month_label' => $includeFuture ? __('tutte le scadenze') : $now->translatedFormat('F Y'),
+                'month_label' => $includeFuture ? __('tutte le scadenze') : $this->formatItalianMonthYear($now),
             'total_unpaid' => $totalUnpaid,
             'future_total' => $futureTotal,
             'showing_future' => $includeFuture,
@@ -670,7 +670,7 @@ class DashboardPageController extends Controller
                 'client_telephone' => $payment['user_telephone'] ?? null,
                 'amount' => $payment['amount'] ?? 0,
                 'due_date' => $payment['due_date'] ?? null,
-                'period_label' => $dueDate ? $dueDate->translatedFormat('F Y') : null,
+                'period_label' => $this->formatCoursePeriodLabel($payment, $dueDate),
                 'plan_label' => $payment['plan_label'] ?? null,
                 'plan_type' => $payment['plan_type'] ?? null,
                 'plan_amount' => $payment['plan_amount'] ?? $payment['amount'] ?? 0,
@@ -680,7 +680,7 @@ class DashboardPageController extends Controller
 
         if (empty($courseSummaries)) {
             return [
-                'month_label' => $includeFuture ? __('tutte le scadenze') : $now->translatedFormat('F Y'),
+                'month_label' => $includeFuture ? __('tutte le scadenze') : $this->formatItalianMonthYear($now),
                 'total_unpaid' => 0,
                 'future_total' => 0,
                 'showing_future' => $includeFuture,
@@ -1227,23 +1227,24 @@ class DashboardPageController extends Controller
         $startDateDisplay = $startDate ? Carbon::parse($startDate)->translatedFormat('d/m/Y') : null;
         $extraDay = $meta['extra_day'] ?? null;
         $dueDate = $payment->due_date;
+        $locale = app()->getLocale() ?? 'it';
+        $carbonLocale = ($locale === 'it') ? 'it' : $locale;
+        Carbon::setLocale($carbonLocale);
 
-        $referencePeriod = $meta['period_label'] ?? null;
-        if (!$referencePeriod) {
-            if ($planType === 'quarterly' && $payment->payable instanceof Subscription) {
-                $subStart = $payment->payable->start_date;
-                $subEnd = $payment->payable->end_date;
-                if ($subStart && $subEnd) {
-                    $referencePeriod = $subStart->translatedFormat('F Y') . ' - ' . $subEnd->translatedFormat('F Y');
-                }
+        $referencePeriod = null;
+        if ($planType === 'quarterly' && $payment->payable instanceof Subscription) {
+            $subStart = $payment->payable->start_date;
+            $subEnd = $payment->payable->end_date;
+            if ($subStart && $subEnd) {
+                $referencePeriod = $this->formatItalianMonthYear($subStart) . ' - ' . $this->formatItalianMonthYear($subEnd);
             }
         }
         if (!$referencePeriod && $dueDate) {
             $referencePeriod = match ($planType) {
-                'monthly' => $dueDate->translatedFormat('F Y'),
-                'quarterly' => $dueDate->copy()->subMonths(2)->translatedFormat('F') . ' - ' . $dueDate->translatedFormat('F Y'),
+                'monthly' => $this->formatItalianMonthYear($dueDate),
+                'quarterly' => $this->formatItalianMonthYear($dueDate->copy()->subMonths(2)) . ' - ' . $this->formatItalianMonthYear($dueDate),
                 'annual' => $dueDate->format('Y'),
-                default => $dueDate->translatedFormat('F Y'),
+                default => $this->formatItalianMonthYear($dueDate),
             };
         }
 
@@ -1273,6 +1274,89 @@ class DashboardPageController extends Controller
             'receipt_route' => $payment->receipt_url ? route('payments.receipt', $payment->id) : null,
             'is_course_payment' => $payment->type === 'course_subscription',
         ];
+    }
+
+    private function formatItalianMonthYear(Carbon $date): string
+    {
+        $months = [
+            1 => 'gennaio', 2 => 'febbraio', 3 => 'marzo', 4 => 'aprile',
+            5 => 'maggio', 6 => 'giugno', 7 => 'luglio', 8 => 'agosto',
+            9 => 'settembre', 10 => 'ottobre', 11 => 'novembre', 12 => 'dicembre',
+        ];
+
+        $month = $months[(int) $date->month] ?? $date->format('F');
+
+        return ucfirst($month) . ' ' . $date->year;
+    }
+
+    private function formatCoursePeriodLabel(array $payment, ?Carbon $dueDate): ?string
+    {
+        $planType = $payment['plan_type'] ?? null;
+        $periodLabel = $payment['period_label'] ?? null;
+
+        // Se già fornito (es. period_label calcolato altrove), usa quello
+        if ($periodLabel) {
+            return $periodLabel;
+        }
+
+        // Per trimestrali/annual, prova a usare eventuali date start/end dalla subscription se presenti in meta
+        $meta = $payment['meta'] ?? [];
+        if ($planType === 'quarterly' && !empty($meta['subscription_start']) && !empty($meta['subscription_end'])) {
+            $start = Carbon::parse($meta['subscription_start']);
+            $end = Carbon::parse($meta['subscription_end']);
+            return $this->formatItalianMonthYear($start) . ' - ' . $this->formatItalianMonthYear($end);
+        }
+
+        if ($planType === 'annual' && !empty($meta['subscription_start']) && !empty($meta['subscription_end'])) {
+            $start = Carbon::parse($meta['subscription_start']);
+            $end = Carbon::parse($meta['subscription_end']);
+            if ($start->year === $end->year) {
+                return (string) $start->year;
+            }
+            return $start->format('d/m/Y') . ' - ' . $end->format('d/m/Y');
+        }
+
+        if ($dueDate) {
+            return match ($planType) {
+                'monthly' => $this->formatItalianMonthYear($dueDate),
+                'quarterly' => $this->formatItalianMonthYear($dueDate->copy()->subMonths(2)) . ' - ' . $this->formatItalianMonthYear($dueDate),
+                'annual' => $dueDate->year,
+                default => $this->formatItalianMonthYear($dueDate),
+            };
+        }
+
+        return null;
+    }
+
+    private function formatCoursePeriodFromSubscription(Subscription $subscription, Payment $payment): ?string
+    {
+        $planType = $subscription->plan_type;
+        $start = $subscription->start_date;
+        $end = $subscription->end_date;
+        $due = $payment->due_date;
+
+        if ($planType === 'quarterly' && $start && $end) {
+            return $this->formatItalianMonthYear($start) . ' - ' . $this->formatItalianMonthYear($end);
+        }
+
+        if ($planType === 'annual' && $start && $end) {
+            if ($start->year === $end->year) {
+                return (string) $start->year;
+            }
+            return $start->format('d/m/Y') . ' - ' . $end->format('d/m/Y');
+        }
+
+        if ($due) {
+            $dueDate = Carbon::parse($due);
+            return match ($planType) {
+                'monthly' => $this->formatItalianMonthYear($dueDate),
+                'quarterly' => $this->formatItalianMonthYear($dueDate->copy()->subMonths(2)) . ' - ' . $this->formatItalianMonthYear($dueDate),
+                'annual' => $dueDate->year,
+                default => $this->formatItalianMonthYear($dueDate),
+            };
+        }
+
+        return null;
     }
 
     private function presentAdminPayment(Payment $payment): array

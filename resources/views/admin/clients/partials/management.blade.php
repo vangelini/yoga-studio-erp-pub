@@ -1,5 +1,5 @@
   @php
-        $clientPermissions = $clientPagePermissions ?? [
+        $clientPermissions = $clientPagePermissions ? [
             'mode' => 'admin',
             'can_create' => true,
             'can_export' => true,
@@ -81,7 +81,7 @@
             </div>
             <div>
                 <label class="text-xs uppercase text-stone-500 font-semibold">Password temporanea</label>
-                <input type="password" name="password" minlength="6" required class="input-field text-sm" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢">
+                <input type="password" name="password" minlength="6" required class="input-field text-sm" placeholder="••••••">
             </div>
             <div>
                 <label class="text-xs uppercase text-stone-500 font-semibold">Prefisso</label>
@@ -96,7 +96,7 @@
                 <input type="text" name="telephone" required class="input-field text-sm" placeholder="000 000 0000">
             </div>
             <div>
-                <label class="text-xs uppercase text-stone-500 font-semibold">CittÃ </label>
+                <label class="text-xs uppercase text-stone-500 font-semibold">Città</label>
                 <input type="text" name="residenza_citta" required class="input-field text-sm">
             </div>
             <div>
@@ -323,7 +323,7 @@
                 <input type="text" name="telephone" value="{{ $clientNumber }}" required class="input-field text-sm">
             </div>
             <div>
-                <label class="text-xs uppercase text-stone-500 font-semibold">CittÃ </label>
+                <label class="text-xs uppercase text-stone-500 font-semibold">Città</label>
                 <input type="text" name="residenza_citta" value="{{ $client->residenza_citta }}" required class="input-field text-sm">
             </div>
             <div>
@@ -398,7 +398,7 @@
                 @endif
                 @if($clientPermissions['can_manage_account'] ?? true)
                     <form method="POST" action="{{ route('admin.users.passwordEmail', $client) }}" class="inline-flex"
-                        onsubmit="return confirm('Vuoi inviare un\'email di reset password a {{ $client->email }}? L\'utente riceverÃ  un link per impostare una nuova password.');">
+                        onsubmit="return confirm('Vuoi inviare un\'email di reset password a {{ $client->email }}? L\'utente riceverà un link per impostare una nuova password.');">
                         @csrf
                         <button type="submit" class="inline-flex items-center gap-1.5 rounded-md bg-rose-500 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-rose-600 transition-colors">
                             Invia reset password
@@ -557,10 +557,10 @@
         <div class="border border-stone-200 rounded-lg px-4 py-3 bg-white space-y-2 text-xs text-stone-600">
             <p class="font-semibold text-stone-700 uppercase tracking-wide">Quota {{ $client->current_membership->season_start_year }}/{{ $client->current_membership->season_start_year + 1 }}</p>
             <div class="flex flex-wrap items-center gap-3">
-                <span>Scadenza: <strong>{{ optional($client->current_membership->due_date)->format('d/m/Y') ?? 'â€”' }}</strong></span>
+                <span>Scadenza: <strong>{{ optional($client->current_membership->due_date)->format('d/m/Y') ?? '—' }}</strong></span>
                 <span>Importo: <strong>€ {{ number_format($client->current_membership->amount ?? 0, 2, ',', '.') }}</strong></span>
                 <span>Stato: <strong>{{ ucfirst($client->current_membership->status) }}</strong></span>
-                <span>Pagato il: <strong>{{ optional($client->current_membership->paid_at)->format('d/m/Y H:i') ?? 'â€”' }}</strong></span>
+                <span>Pagato il: <strong>{{ optional($client->current_membership->paid_at)->format('d/m/Y H:i') ?? '—' }}</strong></span>
             </div>
             @if(optional($client->membership_payment)?->receipt_url)
                 <div class="mt-2">

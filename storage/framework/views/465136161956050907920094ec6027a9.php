@@ -1,13 +1,13 @@
 ﻿<?php
-    $allowCourseCreation = $allowCourseCreation ?? true;
-    $allowTeacherSelection = $allowTeacherSelection ?? true;
-    $allowStudentManage = $allowStudentManage ?? true;
-    $courseCardTitle = $courseCardTitle ?? 'Gestione corsi';
-    $courseCardSubtitle = $courseCardSubtitle ?? 'I campi contrassegnati con <span class="text-rose-600 font-semibold">*</span> sono obbligatori.';
-    $currentTeacherId = $currentTeacherId ?? null;
-    $viewMode = $viewMode ?? 'admin';
+    $allowCourseCreation = $allowCourseCreation ? true;
+    $allowTeacherSelection = $allowTeacherSelection ? true;
+    $allowStudentManage = $allowStudentManage ? true;
+    $courseCardTitle = $courseCardTitle ? 'Gestione corsi';
+    $courseCardSubtitle = $courseCardSubtitle ? 'I campi contrassegnati con <span class="text-rose-600 font-semibold">*</span> sono obbligatori.';
+    $currentTeacherId = $currentTeacherId ? null;
+    $viewMode = $viewMode ? 'admin';
     $isTeacherView = $viewMode === 'teacher';
-    $currentTeacherName = auth()->user()->name ?? 'Insegnante';
+    $currentTeacherName = auth()->user()->name ? 'Insegnante';
     $planOptions = [
         'monthly' => 'Mensile',
         'quarterly' => 'Trimestrale',
@@ -94,7 +94,7 @@ unset($__errorArgs, $__bag); ?>
                     <?php else: ?>
                         <input type="hidden" name="teacher_id" value="<?php echo e($currentTeacherId); ?>">
                         <div class="rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm text-stone-600">
-                            <?php echo e(auth()->user()->name ?? 'Docente'); ?>
+                            <?php echo e(auth()->user()->name ? 'Docente'); ?>
 
                         </div>
                     <?php endif; ?>
@@ -279,7 +279,7 @@ unset($__errorArgs, $__bag); ?>
                 class="border border-stone-200 rounded-xl bg-white px-4 py-3 shadow-sm"
                 x-data="{
                     open: false,
-                    pricingMode: '<?php echo e($course['pricing_mode'] ?? 'block'); ?>',
+                    pricingMode: '<?php echo e($course['pricing_mode'] ? 'block'); ?>',
                     schedule: <?php echo e(Js::from($course['schedule'])); ?>.length ? <?php echo e(Js::from($course['schedule'])); ?> : [{ day: '', time: '', capacity: '' }],
                     addSlot() { this.schedule.push({ day: '', time: '', capacity: '' }); },
                     removeSlot(index) { if (this.schedule.length > 1) this.schedule.splice(index, 1); },
@@ -305,20 +305,20 @@ unset($__errorArgs, $__bag); ?>
                     <div class=" items-center gap-2 text-xs text-stone-500">
                         <span class="font-semibold uppercase text-stone-600">Insegnante:</span>
                         <span>
-                            <?php echo e($course['teacher_name'] ?? ($isTeacherView ? $currentTeacherName : 'Non assegnato')); ?>
+                            <?php echo e($course['teacher_name'] ? ($isTeacherView ? $currentTeacherName : 'Non assegnato')); ?>
 
                         </span>
                     </div>
                     <?php if(!empty($course['start_date_human']) || !empty($course['end_date_human'])): ?>
                         <div class="flex items-center gap-2 text-xs text-stone-500">
                             <span class="font-semibold uppercase text-stone-600">Periodo:</span>
-                            <span><?php echo e($course['start_date_human'] ?? 'â€”'); ?> â†’ <?php echo e($course['end_date_human'] ?? 'â€”'); ?></span>
+                            <span><?php echo e($course['start_date_human'] ?? '—'); ?> → <?php echo e($course['end_date_human'] ?? '—'); ?></span>
                         </div>
                     <?php endif; ?>
                     <div class="flex flex-wrap items-center gap-1 text-xs text-stone-500">
                         <?php
-                            $plans = $course['available_plans'] ?? $course['availablePlans'] ?? [];
-                            $pricingMode = $course['pricing_mode'] ?? 'block';
+                            $plans = $course['available_plans'] ? $course['availablePlans'] ? [];
+                            $pricingMode = $course['pricing_mode'] ? 'block';
                         ?>
                         <?php if($pricingMode === 'per_lesson'): ?>
                             <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 font-semibold text-amber-700">
@@ -327,7 +327,7 @@ unset($__errorArgs, $__bag); ?>
                         <?php elseif(!empty($plans)): ?>
                             <?php $__currentLoopData = $plans; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $plan): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <span class="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2 py-0.5 font-semibold text-teal-700">
-                                    <?php echo e($plan['label']); ?> Â· € <?php echo e(number_format($plan['amount'], 2, ',', '.')); ?>
+                                    <?php echo e($plan['label']); ?> · € <?php echo e(number_format($plan['amount'], 2, ',', '.')); ?>
 
                                 </span>
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
@@ -354,7 +354,7 @@ unset($__errorArgs, $__bag); ?>
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                             </svg>
-                            <span x-show="!showStudents">Mostra Allieve/i iscritti (num. <?php echo e(count($course['students'] ?? [])); ?>)</span>
+                            <span x-show="!showStudents">Mostra Allieve/i iscritti (num. <?php echo e(count($course['students'] ? [])); ?>)</span>
                             <span x-show="showStudents">Nascondi</span>
                         </button>
                         
@@ -374,7 +374,7 @@ unset($__errorArgs, $__bag); ?>
                                         <div class="mt-2 flex flex-wrap gap-1">
                                             <?php $__currentLoopData = $student['lessons']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $lesson): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                                 <span class="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-semibold text-stone-600">
-                                                    <?php echo e($lesson['label'] ?? trim(($lesson['day'] ?? '') . ' ' . ($lesson['time'] ?? ''))); ?>
+                                                    <?php echo e($lesson['label'] ? trim(($lesson['day'] ? '') . ' ' . ($lesson['time'] ? ''))); ?>
 
                                                 </span>
                                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
@@ -445,7 +445,7 @@ unset($__errorArgs, $__bag); ?>
                                 <?php else: ?>
                                     <input type="hidden" name="teacher_id" value="<?php echo e($currentTeacherId); ?>">
                                     <div class="rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm text-stone-600">
-                                        <?php echo e(auth()->user()->name ?? 'Docente'); ?>
+                                        <?php echo e(auth()->user()->name ? 'Docente'); ?>
 
                                     </div>
                                 <?php endif; ?>
@@ -454,11 +454,11 @@ unset($__errorArgs, $__bag); ?>
                                 <label class="text-xs uppercase font-semibold text-stone-500">Modalità prezzo</label>
                                 <div class="flex flex-wrap items-center gap-4 text-sm text-stone-600">
                                     <label class="inline-flex items-center gap-2">
-                                        <input type="radio" name="pricing_mode" value="block" class="h-4 w-4 border-stone-300 text-teal-600" x-model="pricingMode" <?php if(($course['pricing_mode'] ?? 'block') === 'block'): echo 'checked'; endif; ?>>
+                                        <input type="radio" name="pricing_mode" value="block" class="h-4 w-4 border-stone-300 text-teal-600" x-model="pricingMode" <?php if(($course['pricing_mode'] ? 'block') === 'block'): echo 'checked'; endif; ?>>
                                         <span>Prezzo a blocco</span>
                                     </label>
                                     <label class="inline-flex items-center gap-2">
-                                        <input type="radio" name="pricing_mode" value="per_lesson" class="h-4 w-4 border-stone-300 text-teal-600" x-model="pricingMode" <?php if(($course['pricing_mode'] ?? 'block') === 'per_lesson'): echo 'checked'; endif; ?>>
+                                        <input type="radio" name="pricing_mode" value="per_lesson" class="h-4 w-4 border-stone-300 text-teal-600" x-model="pricingMode" <?php if(($course['pricing_mode'] ? 'block') === 'per_lesson'): echo 'checked'; endif; ?>>
                                         <span>Prezzo per numero di lezioni</span>
                                     </label>
                                 </div>
@@ -468,20 +468,20 @@ unset($__errorArgs, $__bag); ?>
                                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-2" x-show="pricingMode === 'block'" x-cloak>
                                     <label class="flex flex-col gap-1 text-sm text-stone-600 w-full">
                                         <span class="text-xs uppercase font-semibold text-stone-500 block">Mensile</span>
-                                        <input type="number" step="0.01" name="monthly_price" value="<?php echo e(number_format($course['monthly_price'] ?? $course['price'] ?? 0, 2, '.', '')); ?>" class="input-field text-sm w-full" placeholder="Mensile">
+                                        <input type="number" step="0.01" name="monthly_price" value="<?php echo e(number_format($course['monthly_price'] ? $course['price'] ? 0, 2, '.', '')); ?>" class="input-field text-sm w-full" placeholder="Mensile">
                                     </label>
                                     <label class="flex flex-col gap-1 text-sm text-stone-600 w-full">
                                         <span class="text-xs uppercase font-semibold text-stone-500 block">Trimestrale</span>
-                                        <input type="number" step="0.01" name="quarterly_price" value="<?php echo e(number_format($course['quarterly_price'] ?? 0, 2, '.', '')); ?>" class="input-field text-sm w-full" placeholder="Trimestrale">
+                                        <input type="number" step="0.01" name="quarterly_price" value="<?php echo e(number_format($course['quarterly_price'] ? 0, 2, '.', '')); ?>" class="input-field text-sm w-full" placeholder="Trimestrale">
                                     </label>
                                     <label class="flex flex-col gap-1 text-sm text-stone-600 w-full">
                                         <span class="text-xs uppercase font-semibold text-stone-500 block">Annuale</span>
-                                        <input type="number" step="0.01" name="annual_price" value="<?php echo e(number_format($course['annual_price'] ?? 0, 2, '.', '')); ?>" class="input-field text-sm w-full" placeholder="Annuale">
+                                        <input type="number" step="0.01" name="annual_price" value="<?php echo e(number_format($course['annual_price'] ? 0, 2, '.', '')); ?>" class="input-field text-sm w-full" placeholder="Annuale">
                                     </label>
                                 </div>
                                 <div class="space-y-2" x-show="pricingMode === 'per_lesson'" x-cloak>
                                     <?php $__currentLoopData = $planOptions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $planKey => $planLabel): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                        <?php $planPricing = $course['lesson_pricing'][$planKey] ?? []; ?>
+                                        <?php $planPricing = $course['lesson_pricing'][$planKey] ? []; ?>
                                         <div class="rounded-lg border border-stone-200 bg-white px-3 py-2">
                                             <p class="text-xs font-semibold text-stone-600"><?php echo e($planLabel); ?></p>
                                             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2">
@@ -493,7 +493,7 @@ unset($__errorArgs, $__bag); ?>
                                                             step="0.01"
                                                             min="0"
                                                             name="lesson_pricing[<?php echo e($planKey); ?>][<?php echo e($lessons); ?>]"
-                                                            value="<?php echo e($planPricing[$lessons] ?? ''); ?>"
+                                                            value="<?php echo e($planPricing[$lessons] ? ''); ?>"
                                                             class="input-field text-xs"
                                                             placeholder="€"
                                                         >
@@ -512,19 +512,19 @@ unset($__errorArgs, $__bag); ?>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 <div class="space-y-1.5">
                                     <label class="text-xs uppercase font-semibold text-stone-500">Data inizio <span class="text-rose-600">*</span></label>
-                                    <input type="date" name="start_date" value="<?php echo e($course['start_date'] ?? ''); ?>" required class="input-field text-sm">
+                                    <input type="date" name="start_date" value="<?php echo e($course['start_date'] ? ''); ?>" required class="input-field text-sm">
                                 </div>
                                 <div class="space-y-1.5">
                                     <label class="text-xs uppercase font-semibold text-stone-500">Data fine <span class="text-rose-600">*</span></label>
-                                    <input type="date" name="end_date" value="<?php echo e($course['end_date'] ?? ''); ?>" required class="input-field text-sm">
+                                    <input type="date" name="end_date" value="<?php echo e($course['end_date'] ? ''); ?>" required class="input-field text-sm">
                                 </div>
                             </div>
                             <div class="space-y-1.5">
                                 <label class="text-xs uppercase font-semibold text-stone-500">Specialità/ focus</label>
-                                <input type="text" name="speciality_description" value="<?php echo e($course['speciality_description'] ?? ''); ?>" class="input-field text-sm">
+                                <input type="text" name="speciality_description" value="<?php echo e($course['speciality_description'] ? ''); ?>" class="input-field text-sm">
                             </div>
                             <div class="flex items-start gap-3 rounded-xl border border-teal-100 bg-white px-3 py-2">
-                                <input type="checkbox" name="allows_extra_day" value="1" class="mt-1 h-4 w-4 rounded border-stone-300 text-teal-600 focus:ring-teal-500" <?php if($course['allows_extra_day'] ?? false): echo 'checked'; endif; ?>>
+                                <input type="checkbox" name="allows_extra_day" value="1" class="mt-1 h-4 w-4 rounded border-stone-300 text-teal-600 focus:ring-teal-500" <?php if($course['allows_extra_day'] ? false): echo 'checked'; endif; ?>>
                                 <div>
                                     <p class="text-sm font-semibold text-stone-700">Disponibile come "Un giorno in piú"</p>
                                     <p class="text-xs text-stone-500">Consente agli allievi di scegliere una lezione settimanale extra da questo corso.</p>
@@ -532,7 +532,7 @@ unset($__errorArgs, $__bag); ?>
                             </div>
                             <div class="space-y-1.5">
                                 <label class="text-xs uppercase font-semibold text-stone-500">Sconto "Un giorno in piú" (%)</label>
-                                <input type="number" step="0.1" min="0" max="100" name="extra_day_discount_percent" value="<?php echo e(number_format($course['extra_day_discount_percent'] ?? 0, 1, '.', '')); ?>" class="input-field text-sm">
+                                <input type="number" step="0.1" min="0" max="100" name="extra_day_discount_percent" value="<?php echo e(number_format($course['extra_day_discount_percent'] ? 0, 1, '.', '')); ?>" class="input-field text-sm">
                                 <p class="text-[11px] text-stone-500">Applicato sul costo extra prima del calcolo delle lezioni rimanenti.</p>
                                 <?php $__errorArgs = ['extra_day_discount_percent'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');

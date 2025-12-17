@@ -268,7 +268,7 @@
                     @if(!empty($course['start_date_human']) || !empty($course['end_date_human']))
                         <div class="flex items-center gap-2 text-xs text-stone-500">
                             <span class="font-semibold uppercase text-stone-600">Periodo:</span>
-                            <span>{{ $course['start_date_human'] ?? 'â€”' }} â†’ {{ $course['end_date_human'] ?? 'â€”' }}</span>
+                            <span>{{ $course['start_date_human'] ?? '—' }} → {{ $course['end_date_human'] ?? '—' }}</span>
                         </div>
                     @endif
                     <div class="flex flex-wrap items-center gap-1 text-xs text-stone-500">
@@ -283,7 +283,7 @@
                         @elseif(!empty($plans))
                             @foreach ($plans as $plan)
                                 <span class="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2 py-0.5 font-semibold text-teal-700">
-                                    {{ $plan['label'] }} Â· € {{ number_format($plan['amount'], 2, ',', '.') }}
+                                    {{ $plan['label'] }} · € {{ number_format($plan['amount'], 2, ',', '.') }}
                                 </span>
                             @endforeach
                         @else

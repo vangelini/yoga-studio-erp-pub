@@ -119,7 +119,7 @@
                         </button>
                         @if(!empty($course_payment_last_run))
                             <span class="text-[11px] text-stone-500">
-                                Ultima esecuzione: {{ \Carbon\Carbon::parse($course_payment_last_run['run_at'])->format('d/m/Y H:i') ?? 'â€”' }}
+                                Ultima esecuzione: {{ \Carbon\Carbon::parse($course_payment_last_run['run_at'])->format('d/m/Y H:i') ?? '—' }}
                                 · nuove pendenze: {{ $course_payment_last_run['created'] ?? 0 }}
                                 @if(!empty($course_payment_last_run['manual']))
                                     · esecuzione manuale
@@ -248,4 +248,3 @@
     </div>
 </div>
 @endsection
-

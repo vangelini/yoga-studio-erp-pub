@@ -3,24 +3,27 @@
 
     $documents = $documents ?? collect();
 
-    $documentDefinitions = [
-        'id_front' => [
+        $documentDefinitions = [
+            'id_front' => [
             'label' => "Carta d'identità - fronte",
             'description' => 'Carica una scansione leggibile del fronte della carta di identità o passaporto.',
-        ],
-        'id_back' => [
+            ],
+            'id_back' => [
             'label' => "Carta d'identità - retro",
-            'description' => 'Assicurati che i dati siano visibili e non tagliati.',
-        ],
-        'health_card' => [
-            'label' => 'Tessera sanitaria',
+                'description' => 'Assicurati che i dati siano visibili e non tagliati.',
+            ],
+            'health_card' => [
+                'label' => 'Tessera sanitaria',
             'description' => 'Foto o PDF della tessera sanitaria in corso di validità.',
-        ],
-        'medical_certificate' => [
-            'label' => 'Certificato medico',
-            'description' => 'Certificato per attività sportiva non agonistica valido per l’anno in corso.',
-        ],
-    ];
+            ],
+            'medical_certificate' => [
+                'label' => 'Certificato medico',
+            'description' => 'Certificato per attività sportiva non agonistica valido per l\'anno in corso.',
+            ],
+        ];
+
+    $academicStart = optional(\App\Models\Setting::find('membership_academic_start_date'))->value;
+    $academicEnd = optional(\App\Models\Setting::find('membership_academic_end_date'))->value;
 
     $clientDashboardPayload = [
         'clientId' => auth()->id(),
@@ -32,6 +35,10 @@
         'membershipPayment' => $membership_payment ?? null,
         'payments' => $payments ?? collect(),
         'documents' => $documents,
+        'academicPeriod' => [
+            'start' => $academicStart,
+            'end' => $academicEnd,
+        ],
         'extraDay' => [
             'enabled' => $extra_day_config['enabled'] ?? false,
             'candidateCourseIds' => $extra_day_config['candidateCourseIds'] ?? [],
@@ -53,7 +60,7 @@
 @endphp
 
 <section
-    x-data="clientDashboard({{ Js::from($clientDashboardPayload) }})"
+            x-data="clientDashboard({{ Js::from($clientDashboardPayload) }})"
     x-init="init(); if ({{ $flashOpenInitial ? 'true' : 'false' }} || statusMessage || (flashErrors && flashErrors.length) || errorMessage) { flashOpen = true; }"
     class="space-y-2"
 ><div x-show="flashOpen" x-cloak class="fixed inset-0 z-60 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
@@ -424,7 +431,7 @@
                     </div>
                     <div class="text-xs text-stone-500 space-y-1">
                         
-                        <div class="flex flex-wrap gap-2"><p class="uppercase tracking-wide font-semibold text-stone-600">Specialitá:
+                        <div class="flex flex-wrap gap-2"><p class="uppercase tracking-wide font-semibold text-stone-600">Specialità:
                             <template x-for="tag in (teacher.specializations || []).length ? teacher.specializations : ['TBA']" :key="tag">
                                 <span class="px-3 py-1 rounded-full border border-stone-200 bg-white text-stone-600 font-medium">
                                     <span x-text="tag"></span>
@@ -434,7 +441,7 @@
                         </div>
                     </div>
                     <div class="text-xs text-stone-500 bg-stone-100 rounded-lg px-3 py-2 border border-stone-200">
-                        <span class="font-semibold text-stone-700">Disponibilitá:</span>
+                        <span class="font-semibold text-stone-700">Disponibilità:</span>
                         <span x-text="availableSlots(teacher)[0]?.displayDate ?? 'Nessuna'"></span>
                     </div>
                     <div
@@ -505,7 +512,7 @@
                         <p class="text-lg font-semibold text-teal-700" x-text="formatDate(booking)"></p>
                         <p class="text-sm text-stone-600">
                             <span x-text="formatTime(booking)"></span>
-                            &nbsp;·&nbsp;
+                            &nbsp;?&nbsp;
                             con <span x-text="booking.teacher?.name ?? 'Instructor'"></span>
                         </p>
                         <div class="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -584,7 +591,7 @@
             </div>
             <div class="px-6 py-5 space-y-5">
                 <template x-if="availableSlots(bookingModal.teacher).length === 0">
-                    <p class="text-sm text-stone-500">L' insegnante al momento no ha disponibilitá.</p>
+                    <p class="text-sm text-stone-500">L' insegnante al momento no ha disponibilità.</p>
                 </template>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-80 overflow-y-auto pr-2">
                     <template x-for="slot in availableSlots(bookingModal.teacher)" :key="slot.id">
@@ -648,7 +655,7 @@
                         <div class="space-y-2">
                             <p class="text-sm text-stone-600" x-text="subscriptionModal.course.description"></p>
                             <p class="text-xs font-semibold text-rose-600" x-show="courseEnrollmentFull(subscriptionModal.course)">
-                                Questo corso ha raggiunto il numero massimo di iscritti. Potrai iscriverti quando si libererá un posto.
+                                Questo corso ha raggiunto il numero massimo di iscritti. Potrai iscriverti quando si libererà un posto.
                             </p>
                         </div>
 
@@ -672,7 +679,7 @@
                                     <div class="space-y-4">
                                         <div class="space-y-1">
                                             <h5 class="text-base font-semibold text-stone-800">Scegli il piano di abbonamento</h5>
-                                            <p class="text-xs text-stone-500">Seleziona il piano piú adatto alle tue esigenze. Potrai tornare indietro in qualsiasi momento.</p>
+                                            <p class="text-xs text-stone-500">Seleziona il piano più adatto alle tue esigenze. Potrai tornare indietro in qualsiasi momento.</p>
                                         </div>
                                         <template x-if="coursePlans(subscriptionModal.course).length > 0">
                                             <div class="grid gap-3 md:grid-cols-2">
@@ -685,12 +692,12 @@
                                                             <span class="font-semibold text-stone-800" x-text="plan.label"></span>
                                                             <span class="block text-xs text-stone-500">
                                                                 <template x-if="plan.lesson_based">
-                                                                    <span>da <span x-text="Number(plan.amount ?? 0).toFixed(2)"></span> € prezzo in base alle lezioni scelte</span>
+                                                                    <span>da € <span x-text="Number(plan.amount ?? 0).toFixed(2)"></span> · prezzo in base alle lezioni scelte</span>
                                                                 </template>
                                                                 <template x-if="!plan.lesson_based">
                                                                     <span>
                                                                         € <span x-text="Number(plan.amount ?? 0).toFixed(2)"></span>
-                                                                        € <span x-text="plan.months === 1 ? '1 mese' : `${plan.months} mesi`"></span>
+                                                                        · <span x-text="plan.months === 1 ? '1 mese' : `${plan.months} mesi`"></span>
                                                                     </span>
                                                                 </template>
                                                             </span>
@@ -749,43 +756,54 @@
                                         <div class="space-y-1">
                                             <h5 class="text-base font-semibold text-stone-800">Quando vuoi iniziare?</h5>
                                         </div>
-                                        <div class="grid gap-3 md:grid-cols-2">
-                                            <label class="flex items-start gap-3 rounded-2xl border bg-white px-4 py-3 text-sm text-stone-600"
-                                                :class="subscriptionModal.option === 'current_month' ? 'border-teal-500 shadow-sm' : 'border-stone-200'">
-                                                <input type="radio" name="subscription-start-option" value="current_month" class="mt-1 h-4 w-4 text-teal-600 border-stone-300 focus:ring-teal-500"
-                                                    :checked="subscriptionModal.option === 'current_month'"
-                                                    @change="handleSubscriptionOptionChange('current_month')">
-                                                <span class="space-y-2">
-                                                    <span>
-                                                        <span class="font-semibold text-stone-800">Inizia questo mese</span>
-                                                        <span class="block text-xs text-stone-500">Costo proporzionato ai giorni rimanenti.</span>
-                                                    </span>
-                                                    <div class="space-y-2" x-show="subscriptionModal.option === 'current_month'">
-                                                        <div class="flex flex-col gap-2">
-                                                            <input type="date" class="w-full rounded-lg border border-stone-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-                                                                :min="subscriptionModal.limits.today"
-                                                                :max="subscriptionModal.limits.endOfMonth"
-                                                                x-model="subscriptionModal.startDate"
-                                                                @input="handleSubscriptionDateChange(.target.value)"
-                                                                @change="handleSubscriptionDateChange(.target.value)">
-                                                           
+                                        <template x-if="selectedPlan()?.type === 'annual'">
+                                            <div class="rounded-2xl border border-teal-100 bg-teal-50 px-4 py-3 space-y-1 text-sm text-stone-700">
+                                                <p class="font-semibold text-teal-800">Periodo fisso del piano annuale</p>
+                                                <p>
+                                                    <span class="font-semibold">Durata: </span>
+                                                    <span x-text="academicPeriodLabel() || 'Periodo annuale impostato dal centro'"></span>
+                                                </p>
+                                            </div>
+                                        </template>
+                                        <template x-if="selectedPlan()?.type !== 'annual'">
+                                            <div class="grid gap-3 md:grid-cols-2">
+                                                <label class="flex items-start gap-3 rounded-2xl border bg-white px-4 py-3 text-sm text-stone-600"
+                                                    :class="subscriptionModal.option === 'current_month' ? 'border-teal-500 shadow-sm' : 'border-stone-200'">
+                                                    <input type="radio" name="subscription-start-option" value="current_month" class="mt-1 h-4 w-4 text-teal-600 border-stone-300 focus:ring-teal-500"
+                                                        :checked="subscriptionModal.option === 'current_month'"
+                                                        @change="handleSubscriptionOptionChange('current_month')">
+                                                    <span class="space-y-2">
+                                                        <span>
+                                                            <span class="font-semibold text-stone-800">Inizia questo mese</span>
+                                                            <span class="block text-xs text-stone-500">Costo proporzionato ai giorni rimanenti.</span>
+                                                        </span>
+                                                        <div class="space-y-2" x-show="subscriptionModal.option === 'current_month'">
+                                                            <div class="flex flex-col gap-2">
+                                                                <input type="date" class="w-full rounded-lg border border-stone-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                                                    :min="subscriptionModal.limits.today"
+                                                                    :max="subscriptionModal.limits.endOfMonth"
+                                                                    x-model="subscriptionModal.startDate"
+                                                                    @input="handleSubscriptionDateChange($event.target.value)"
+                                                                    @change="handleSubscriptionDateChange($event.target.value)">
+                                                               
+                                                            </div>
+                                                            <p class="text-xs text-rose-500" x-show="subscriptionModal.option === 'current_month' && !isValidSubscriptionDate()">Seleziona una data valida nel mese corrente.</p>
                                                         </div>
-                                                        <p class="text-xs text-rose-500" x-show="subscriptionModal.option === 'current_month' && !isValidSubscriptionDate()">Seleziona una data valida nel mese corrente.</p>
-                                                    </div>
-                                                </span>
-                                            </label>
+                                                    </span>
+                                                </label>
 
-                                            <label class="flex items-start gap-3 rounded-2xl border bg-white px-4 py-3 text-sm text-stone-600"
-                                                :class="subscriptionModal.option === 'next_month' ? 'border-teal-500 shadow-sm' : 'border-stone-200'">
-                                                <input type="radio" name="subscription-start-option" value="next_month" class="mt-1 h-4 w-4 text-teal-600 border-stone-300 focus:ring-teal-500"
-                                                    :checked="subscriptionModal.option === 'next_month'"
-                                                    @change="handleSubscriptionOptionChange('next_month')">
-                                                <span>
-                                                    <span class="font-semibold text-stone-800">Inizia dal prossimo mese</span>
-                                                    
-                                                </span>
-                                            </label>
-                                        </div>
+                                                <label class="flex items-start gap-3 rounded-2xl border bg-white px-4 py-3 text-sm text-stone-600"
+                                                    :class="subscriptionModal.option === 'next_month' ? 'border-teal-500 shadow-sm' : 'border-stone-200'">
+                                                    <input type="radio" name="subscription-start-option" value="next_month" class="mt-1 h-4 w-4 text-teal-600 border-stone-300 focus:ring-teal-500"
+                                                        :checked="subscriptionModal.option === 'next_month'"
+                                                        @change="handleSubscriptionOptionChange('next_month')">
+                                                    <span>
+                                                        <span class="font-semibold text-stone-800">Inizia dal prossimo mese</span>
+                                                        
+                                                    </span>
+                                                </label>
+                                            </div>
+                                        </template>
 
                                         <template x-if="subscriptionModal.prorationInfo">
                                             <div class="rounded-2xl border border-teal-100 bg-teal-50 px-4 py-3 text-xs text-teal-800 space-y-1">
@@ -799,14 +817,14 @@
                                 <template x-if="currentSubscriptionStep() === 'extra'">
                                     <div class="space-y-4">
                                         <div class="space-y-1">
-                                            <h5 class="text-base font-semibold text-stone-800">Opzione "Un giorno in piú"</h5>
+                                            <h5 class="text-base font-semibold text-stone-800">Opzione "Un giorno in più"</h5>
                                             <p class="text-xs text-stone-500">Aggiungi una lezione settimanale da un altro corso per ampliare il tuo percorso.</p>
                                         </div>
                                         <template x-if="extraDayCandidates().length > 0">
                                             <div class="space-y-2 rounded-2xl border border-stone-200 bg-white px-4 py-4">
                                                 <select class="w-full rounded-lg border border-stone-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                                                     x-model="subscriptionModal.selectedExtraCourseId"
-                                                    @change="handleExtraCourseChange(.target.value)">
+                                                    @change="handleExtraCourseChange($event.target.value)">
                                                     <option value="">Nessuna lezione extra</option>
                                                     <template x-for="candidate in extraDayCandidates()" :key="candidate.id">
                                                         <option :value="candidate.id" :disabled="isSubscribed(candidate.id)" x-text="candidate.title"></option>
@@ -833,11 +851,11 @@
                                         <div class="space-y-3 rounded-2xl border border-stone-200 bg-white px-4 py-4 text-sm">
                                             <div class="flex items-center justify-between">
                                                 <span class="text-stone-500">Piano selezionato</span>
-                                                <span class="font-semibold text-stone-800" x-text="(coursePlans(subscriptionModal.course).find(plan => plan.type === subscriptionModal.planType) || {}).label || '�'"></span>
+                                                <span class="font-semibold text-stone-800" x-text="(coursePlans(subscriptionModal.course).find(plan => plan.type === subscriptionModal.planType) || {}).label || '-'"></span>
                                             </div>
                                             <div class="flex items-center justify-between">
                                                 <span class="text-stone-500">Data di inizio</span>
-                                                <span class="font-semibold text-stone-800" x-text="subscriptionModal.option === 'current_month' ? formatDateLabel(subscriptionModal.startDate) : subscriptionModal.nextMonthLabel"></span>
+                                                <span class="font-semibold text-stone-800" x-text="subscriptionModal.planType === 'annual' ? academicPeriodLabel() : (subscriptionModal.option === 'current_month' ? formatDateLabel(subscriptionModal.startDate) : subscriptionModal.nextMonthLabel)"></span>
                                             </div>
                                             <div class="flex items-center justify-between">
                                                 <span class="text-stone-500">Lezioni settimanali</span>
@@ -929,6 +947,7 @@
 
                     return {
                         clientId: payload.clientId,
+                        academicPeriod: payload.academicPeriod || {},
                         courses: normalize(payload.courses).map(course => {
                             const plans = normalize(course.availablePlans ?? course.available_plans ?? []);
                             return {
@@ -1076,11 +1095,11 @@
 
                         truncate(text, limit) {
                             if (!text) return '';
-                            return text.length > limit ? `${text.slice(0, limit)}…` : text;
+                            return text.length > limit ? `${text.slice(0, limit)}??` : text;
                         },
 
                         membershipSeasonLabel() {
-                            if (!this.membership) return '—';
+                            if (!this.membership) return '?';
                             const start = this.membership.season_start_year;
                             return `${start}/${start + 1}`;
                         },
@@ -1100,6 +1119,14 @@
                             const now = new Date();
                             const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
                             return next.toISOString().slice(0, 10);
+                        },
+                        academicPeriodLabel() {
+                            const start = this.academicPeriod?.start;
+                            const end = this.academicPeriod?.end;
+                            if (start && end) {
+                                return `${this.formatDateLabel(start)} - ${this.formatDateLabel(end)}`;
+                            }
+                            return '';
                         },
 
                         formatDateLabel(isoString) {
@@ -1226,6 +1253,10 @@
                         selectSubscriptionPlan(planType) {
                             this.subscriptionModal.planType = planType;
                             this.subscriptionModal.supportsProration = planType === 'monthly';
+                            if (planType === 'annual') {
+                                this.subscriptionModal.option = 'annual_fixed';
+                                this.subscriptionModal.startDate = this.academicPeriod?.start ?? this.isoToday();
+                            }
                             this.updateSubscriptionPreview();
                         },
 
@@ -1547,7 +1578,7 @@
                             };
                             this.subscriptionModal.planType = plans[0]?.type ?? null;
                             this.subscriptionModal.supportsProration = this.subscriptionModal.planType === 'monthly';
-                            this.subscriptionModal.option = 'current_month';
+                            this.subscriptionModal.option = 'annual_fixed';
                             this.subscriptionModal.startDate = today;
                             this.subscriptionModal.selectedExtraCourseId = null;
                             this.subscriptionModal.selectedLessons = [];
@@ -1627,10 +1658,11 @@
                             return labels[step] || step;
                         },
 
-                        isFinalSubscriptionStep() {
-                            return this.subscriptionModal.stepIndex >= this.subscriptionModal.steps.length - 1;
-                        },
+                         isFinalSubscriptionStep() {
+                             return this.subscriptionModal.stepIndex >= this.subscriptionModal.steps.length - 1;
+                         },
 
+                         
                         canProceedCurrentStep() {
                             const step = this.currentSubscriptionStep();
                             if (step === 'plan') {
@@ -1640,7 +1672,12 @@
                                 return this.validateLessonSelection();
                             }
                             if (step === 'start') {
-                                return this.isValidSubscriptionDate();
+                                if (this.subscriptionModal.planType === 'annual') return true;
+                                if (!['current_month', 'next_month'].includes(this.subscriptionModal.option)) return false;
+                                if (this.subscriptionModal.option === 'current_month') {
+                                    return this.isValidSubscriptionDate();
+                                }
+                                return true;
                             }
                             if (step === 'extra') {
                                 return true;
@@ -1692,6 +1729,9 @@
                                  if (!this.subscriptionModal.selectedLessons.length) return false;
                                  if (this.subscriptionModal.lessonError) return false;
                              }
+                            if (this.subscriptionModal.planType === 'annual') {
+                                return true;
+                            }
                             if (this.subscriptionModal.option === 'current_month') {
                                 return this.isValidSubscriptionDate();
                             }
@@ -1840,7 +1880,7 @@
                         },
 
                         membershipDueLabel() {
-                            if (!this.membership) return '—';
+                            if (!this.membership) return '?';
                             if (this.membership.status === 'active' && this.membership.paid_at) {
                                 return `Pagata il ${this.formatDateString(this.membership.paid_at)}`;
                             }
@@ -2253,18 +2293,6 @@
         </script>
     @endpush
 @endonce
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

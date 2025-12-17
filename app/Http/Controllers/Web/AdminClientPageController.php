@@ -10,6 +10,7 @@ use App\Models\Setting;
 use App\Models\Subscription;
 use App\Models\User;
 use App\Services\MembershipManager;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
@@ -307,6 +308,7 @@ class AdminClientPageController extends Controller
             'waived' => 'bg-sky-100 text-sky-600',
             default => 'bg-amber-100 text-amber-600',
         };
+        $locale = app()->getLocale() ?? 'it';
 
         $createdAt = $payment->created_at;
         $dueDate = $payment->due_date;
@@ -324,23 +326,24 @@ class AdminClientPageController extends Controller
             $membershipEnd = optional($payment->payable->ends_at)?->format('Y-m-d');
         }
 
-        $referencePeriod = $meta['period_label'] ?? null;
-        if (!$referencePeriod) {
-            if ($planType === 'quarterly' && $payment->payable instanceof Subscription) {
-                $subStart = $payment->payable->start_date;
-                $subEnd = $payment->payable->end_date;
-                if ($subStart && $subEnd) {
-                    $referencePeriod = $subStart->translatedFormat('F Y') . ' - ' . $subEnd->translatedFormat('F Y');
-                }
+        $carbonLocale = ($locale === 'it') ? 'it' : $locale;
+        setlocale(LC_TIME, 'it_IT.UTF-8', 'it_IT', 'it');
+        Carbon::setLocale($carbonLocale);
+        $referencePeriod = null;
+        if ($planType === 'quarterly' && $payment->payable instanceof Subscription) {
+            $subStart = $payment->payable->start_date;
+            $subEnd = $payment->payable->end_date;
+            if ($subStart && $subEnd) {
+                $referencePeriod = $this->formatItalianMonthYear($subStart) . ' - ' . $this->formatItalianMonthYear($subEnd);
             }
         }
 
         if (!$referencePeriod && $dueDate) {
             $referencePeriod = match ($planType) {
-                'monthly' => $dueDate->translatedFormat('F Y'),
-                'quarterly' => $dueDate->copy()->subMonths(2)->translatedFormat('F') . ' - ' . $dueDate->translatedFormat('F Y'),
+                'monthly' => $this->formatItalianMonthYear($dueDate),
+                'quarterly' => $this->formatItalianMonthYear($dueDate->copy()->subMonths(2)) . ' - ' . $this->formatItalianMonthYear($dueDate),
                 'annual' => $dueDate->format('Y'),
-                default => $dueDate->translatedFormat('F Y'),
+                default => $this->formatItalianMonthYear($dueDate),
             };
         }
 
@@ -389,6 +392,19 @@ class AdminClientPageController extends Controller
             'receipt_route' => $payment->receipt_url ? route('admin.payments.receipt', $payment->id) : null,
             'is_pending' => $payment->status === 'pending',
         ];
+    }
+
+    private function formatItalianMonthYear(Carbon $date): string
+    {
+        $months = [
+            1 => 'gennaio', 2 => 'febbraio', 3 => 'marzo', 4 => 'aprile',
+            5 => 'maggio', 6 => 'giugno', 7 => 'luglio', 8 => 'agosto',
+            9 => 'settembre', 10 => 'ottobre', 11 => 'novembre', 12 => 'dicembre',
+        ];
+
+        $month = $months[(int) $date->month] ?? $date->format('F');
+
+        return ucfirst($month) . ' ' . $date->year;
     }
 
     private function shouldAutoGenerateMemberships(): bool

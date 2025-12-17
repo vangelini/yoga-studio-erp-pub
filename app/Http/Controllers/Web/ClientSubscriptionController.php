@@ -25,7 +25,7 @@ class ClientSubscriptionController extends Controller
         $data = $request->validate([
             'course_id' => ['required', 'integer', 'exists:courses,id'],
             'plan_type' => ['required', Rule::in(['monthly', 'quarterly', 'annual'])],
-            'start_option' => ['required', Rule::in(['current_month', 'next_month'])],
+            'start_option' => ['required', Rule::in(['current_month', 'next_month', 'annual_fixed'])],
             'start_date' => ['nullable', 'date', 'required_if:start_option,current_month'],
             'extra_course_id' => ['nullable', 'integer', 'different:course_id'],
             'selected_lessons' => ['nullable', 'array'],

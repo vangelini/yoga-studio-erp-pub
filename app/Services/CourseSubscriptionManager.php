@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Course;
 use App\Models\Payment;
+use App\Models\Setting;
 use App\Models\Subscription;
 use App\Models\SubscriptionLesson;
 use App\Models\User;
@@ -30,7 +31,7 @@ class CourseSubscriptionManager
     ): array
     {
         $planType = in_array($planType, array_keys(Course::PLAN_MONTHS), true) ? $planType : 'monthly';
-        $startOption = $startOption === 'next_month' ? 'next_month' : 'current_month';
+        $startOption = in_array($startOption, ['current_month', 'next_month', 'annual_fixed'], true) ? $startOption : 'current_month';
         $today = Carbon::today(config('app.timezone'));
 
         $existing = Subscription::where('client_id', $client->id)
@@ -100,6 +101,7 @@ class CourseSubscriptionManager
         $lessonSnapshot = $this->formatLessonSnapshot($selectedLessonSlots);
         $durationMonths = Course::PLAN_MONTHS[$planType] ?? 1;
         $startDate = null;
+        $endDate = null;
         $amount = $basePrice;
         $meta = [
             'course_title' => $course->title,
@@ -121,7 +123,22 @@ class CourseSubscriptionManager
         $periodStart = null;
         $periodEnd = null;
 
-        if ($startOption === 'current_month') {
+        if ($planType === 'annual') {
+            $season = $this->calculateAcademicWindow($today);
+            $startDate = $season['starts_at']->copy();
+            $endDate = $season['ends_at']->copy();
+            $amount = round($basePrice, 2);
+            if ($basePrice > 0 && $amount < 0.01) {
+                $amount = 0.01;
+            }
+            $meta = array_merge($meta, [
+                'start_option' => 'academic_year',
+                'start_date' => $startDate->toDateString(),
+                'subscription_start' => $startDate->toDateString(),
+                'subscription_end' => $endDate->toDateString(),
+                'prorated' => false,
+            ]);
+        } elseif ($startOption === 'current_month') {
             $startDate = $startDateInput ? Carbon::parse($startDateInput, $today->timezone) : $today->copy();
             $startDate = $startDate->startOfDay();
 
@@ -214,7 +231,7 @@ class CourseSubscriptionManager
             ]);
         }
 
-        $endDate = $startDate ? $startDate->copy()->addMonthsNoOverflow($durationMonths)->subDay() : null;
+        $endDate = $endDate ?? ($startDate ? $startDate->copy()->addMonthsNoOverflow($durationMonths)->subDay() : null);
         $extraData = $this->prepareExtraDayData(
             $extraCourse,
             $durationMonths,
@@ -304,6 +321,43 @@ class CourseSubscriptionManager
                 'payment' => $payment,
             ];
         });
+    }
+
+    private function calculateAcademicWindow(Carbon $reference): array
+    {
+        $startSetting = Setting::query()->find('membership_academic_start_date')?->value;
+        $endSetting = Setting::query()->find('membership_academic_end_date')?->value;
+
+        $defaultStart = Carbon::create($reference->year, 9, 1);
+        $defaultEnd = Carbon::create($reference->year, 8, 31)->addYear();
+
+        try {
+            $startTemplate = $startSetting ? Carbon::parse($startSetting) : $defaultStart;
+        } catch (\Exception $e) {
+            $startTemplate = $defaultStart;
+        }
+
+        try {
+            $endTemplate = $endSetting ? Carbon::parse($endSetting) : $defaultEnd;
+        } catch (\Exception $e) {
+            $endTemplate = $defaultEnd;
+        }
+
+        $seasonStart = Carbon::create($reference->year, $startTemplate->month, $startTemplate->day);
+        if ($reference->lt($seasonStart)) {
+            $seasonStart->subYear();
+        }
+
+        $seasonEnd = Carbon::create($seasonStart->year, $endTemplate->month, $endTemplate->day);
+        if ($seasonEnd->lte($seasonStart)) {
+            $seasonEnd->addYear();
+        }
+
+        return [
+            'starts_at' => $seasonStart,
+            'ends_at' => $seasonEnd,
+            'due_date' => $seasonStart->copy(),
+        ];
     }
 
     protected function assertMaxEnrollments(Course $course, ?Subscription $existing = null): void

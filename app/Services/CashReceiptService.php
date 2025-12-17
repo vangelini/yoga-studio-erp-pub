@@ -190,14 +190,17 @@ class CashReceiptService
     {
         $meta = $payment->meta ?? [];
         $planType = $meta['plan_type'] ?? null;
-        $period = $meta['period_label'] ?? null;
+        $period = null;
+        $locale = app()->getLocale() ?? 'it';
+        $carbonLocale = ($locale === 'it') ? 'it' : $locale;
+        Carbon::setLocale($carbonLocale);
 
         // Prefer subscription dates for trimestrali.
         if (!$period && $planType === 'quarterly' && $payment->payable instanceof Subscription) {
             $start = $payment->payable->start_date;
             $end = $payment->payable->end_date;
             if ($start && $end) {
-                return $start->translatedFormat('F Y') . ' - ' . $end->translatedFormat('F Y');
+                return $this->formatItalianMonthYear($start) . ' - ' . $this->formatItalianMonthYear($end);
             }
         }
 
@@ -217,14 +220,27 @@ class CashReceiptService
         $due = $payment->due_date ? Carbon::parse($payment->due_date) : null;
         if ($due) {
             return match ($planType) {
-                'monthly' => $due->translatedFormat('F Y'),
-                'quarterly' => $due->copy()->subMonths(2)->translatedFormat('F') . ' - ' . $due->translatedFormat('F Y'),
+                'monthly' => $this->formatItalianMonthYear($due),
+                'quarterly' => $this->formatItalianMonthYear($due->copy()->subMonths(2)) . ' - ' . $this->formatItalianMonthYear($due),
                 'annual' => $due->format('Y'),
-                default => $due->translatedFormat('F Y'),
+                default => $this->formatItalianMonthYear($due),
             };
         }
 
         return '—';
+    }
+
+    private function formatItalianMonthYear(Carbon $date): string
+    {
+        $months = [
+            1 => 'gennaio', 2 => 'febbraio', 3 => 'marzo', 4 => 'aprile',
+            5 => 'maggio', 6 => 'giugno', 7 => 'luglio', 8 => 'agosto',
+            9 => 'settembre', 10 => 'ottobre', 11 => 'novembre', 12 => 'dicembre',
+        ];
+
+        $month = $months[(int) $date->month] ?? $date->format('F');
+
+        return ucfirst($month) . ' ' . $date->year;
     }
 
     protected function archiveExistingReceipt(Payment $payment): ?string
