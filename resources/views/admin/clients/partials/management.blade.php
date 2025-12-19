@@ -1,5 +1,5 @@
   @php
-        $clientPermissions = $clientPagePermissions ? [
+        $clientPermissions = $clientPagePermissions ?? [
             'mode' => 'admin',
             'can_create' => true,
             'can_export' => true,
