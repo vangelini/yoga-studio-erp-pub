@@ -2,6 +2,13 @@
 
 @section('content')
 <section class="space-y-6">
+    @php
+        $statusLabels = [
+            'pending' => __('In attesa'),
+            'paid' => __('Pagato'),
+            'waived' => __('Annullato'),
+        ];
+    @endphp
     <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h1 class="text-2xl font-semibold text-stone-900">Contabilità</h1>
@@ -47,7 +54,7 @@
                 <label class="text-xs uppercase font-semibold text-stone-500">Stato</label>
                 <select name="status" class="input-field text-sm">
                     <option value="">Tutti</option>
-                    @foreach (['pending' => 'In attesa', 'paid' => 'Pagato', 'waived' => 'Annullato'] as $key => $label)
+                    @foreach ($statusLabels as $key => $label)
                         <option value="{{ $key }}" @selected(request('status') === $key)>{{ $label }}</option>
                     @endforeach
                 </select>
@@ -132,7 +139,7 @@
                                 @if($payment->status === 'paid') bg-emerald-100 text-emerald-700
                                 @elseif($payment->status === 'pending') bg-amber-100 text-amber-700
                                 @else bg-rose-100 text-rose-700 @endif">
-                                {{ $payment->status }}
+                                {{ $statusLabels[$payment->status] ?? ucfirst($payment->status) }}
                             </span>
                         </td>
                         <td class="px-3 py-2 text-stone-600">{{ optional($payment->paid_at)->format('d/m/Y') ?: '—' }}</td>

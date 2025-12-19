@@ -16549,3 +16549,419 @@ Shanti Sadhana</p>
 #62 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(16): require_once('C:\\\\yoga-studio-...')
 #63 {main}
 "} 
+[2025-12-19 09:15:36] local.ERROR: syntax error, unexpected token ";" {"view":{"view":"C:\\yoga-studio-erp\\resources\\views\\admin\\clients\\partials\\management.blade.php","data":{"errors":"<pre class=sf-dump id=sf-dump-1069857227 data-indent-pad=\"  \"><span class=sf-dump-note>Illuminate\\Support\\ViewErrorBag</span> {<a class=sf-dump-ref>#366</a><samp data-depth=1 class=sf-dump-expanded>
+  #<span class=sf-dump-protected title=\"Protected property\">bags</span>: []
+</samp>}
+</pre><script>Sfdump(\"sf-dump-1069857227\", {\"maxDepth\":3,\"maxStringLength\":160})</script>
+","clients":"<pre class=sf-dump id=sf-dump-974808268 data-indent-pad=\"  \"><span class=sf-dump-note>Illuminate\\Database\\Eloquent\\Collection</span> {<a class=sf-dump-ref>#1129</a><samp data-depth=1 class=sf-dump-expanded>
+  #<span class=sf-dump-protected title=\"Protected property\">items</span>: <span class=sf-dump-note>array:4</span> [<samp data-depth=2 class=sf-dump-compact>
+    <span class=sf-dump-index>0</span> => <span class=\"sf-dump-note sf-dump-ellipsization\" title=\"App\\Models\\User
+\"><span class=\"sf-dump-ellipsis sf-dump-ellipsis-note\">App\\Models</span><span class=\"sf-dump-ellipsis sf-dump-ellipsis-note\">\\</span><span class=\"sf-dump-ellipsis-tail\">User</span></span> {<a class=sf-dump-ref>#1107</a><samp data-depth=3 class=sf-dump-compact>
+      #<span class=sf-dump-protected title=\"Protected property\">connection</span>: \"<span class=sf-dump-str title=\"5 characters\">mysql</span>\"
+      #<span class=sf-dump-protected title=\"Protected property\">table</span>: \"<span class=sf-dump-str title=\"5 characters\">users</span>\"
+      #<span class=sf-dump-protected title=\"Protected property\">primaryKey</span>: \"<span class=sf-dump-str title=\"2 characters\">id</span>\"
+      #<span class=sf-dump-protected title=\"Protected property\">keyType</span>: \"<span class=sf-dump-str title=\"3 characters\">int</span>\"
+      +<span class=sf-dump-public title=\"Public property\">incrementing</span>: <span class=sf-dump-const>true</span>
+      #<span class=sf-dump-protected title=\"Protected property\">with</span>: []
+      #<span class=sf-dump-protected title=\"Protected property\">withCount</span>: []
+      +<span class=sf-dump-public title=\"Public property\">preventsLazyLoading</span>: <span class=sf-dump-const>false</span>
+      #<span class=sf-dump-protected title=\"Protected property\">perPage</span>: <span class=sf-dump-num>15</span>
+      +<span class=sf-dump-public title=\"Public property\">exists</span>: <span class=sf-dump-const>true</span>
+      +<span class=sf-dump-public title=\"Public property\">wasRecentlyCreated</span>: <span class=sf-dump-const>false</span>
+      #<span class=sf-dump-protected title=\"Protected property\">escapeWhenCastingToString</span>: <span class=sf-dump-const>false</span>
+      #<span class=sf-dump-protected title=\"Protected property\">attributes</span>: <span class=sf-dump-note>array:24</span> [ &#8230;24]
+      #<span class=sf-dump-protected title=\"Protected property\">original</span>: <span class=sf-dump-note>array:17</span> [ &#8230;17]
+      #<span class=sf-dump-protected title=\"Protected property\">changes</span>: []
+      #<span class=sf-dump-protected title=\"Protected property\">casts</span>: <span class=sf-dump-note>array:1</span> [ &#8230;1]
+      #<span class=sf-dump-protected title=\"Protected property\">classCastCache</span>: []
+      #<span class=sf-dump-protected title=\"Protected property\">attributeCastCache</span>: []
+      #<span class=sf-dump-protected title=\"Protected property\">dateFormat</span>: <span class=sf-dump-const>null</span>
+      #<span class=sf-dump-protected title=\"Protected property\">appends</span>: []
+      #<span class=sf-dump-protected title=\"Protected property\">dispatchesEvents</span>: []
+      #<span class=sf-dump-protected title=\"Protected property\">observables</span>: []
+      #<span class=sf-dump-protected title=\"Protected property\">relations</span>: <span class=sf-dump-note>array:3</span> [ &#8230;3]
+      #<span class=sf-dump-protected title=\"Protected property\">touches</span>: []
+      +<span class=sf-dump-public title=\"Public property\">timestamps</span>: <span class=sf-dump-const>true</span>
+      +<span class=sf-dump-public title=\"Public property\">usesUniqueIds</span>: <span class=sf-dump-const>false</span>
+      #<span class=sf-dump-protected title=\"Protected property\">hidden</span>: <span class=sf-dump-note>array:1</span> [ &#8230;1]
+      #<span class=sf-dump-protected title=\"Protected property\">visible</span>: []
+      #<span class=sf-dump-protected title=\"Protected property\">fillable</span>: <span class=sf-dump-note>array:16</span> [ &#8230;16]
+      #<span class=sf-dump-protected title=\"Protected property\">guarded</span>: <span class=sf-dump-note>array:1</span> [ &#8230;1]
+      #<span class=sf-dump-protected title=\"Protected property\">rememberTokenName</span>: \"<span class=sf-dump-str title=\"14 characters\">remember_token</span>\"
+    </samp>}
+    <span class=sf-dump-index>1</span> => <span class=\"sf-dump-note sf-dump-ellipsization\" title=\"App\\Models\\User
+\"><span class=\"sf-dump-ellipsis sf-dump-ellipsis-note\">App\\Models</span><span class=\"sf-dump-ellipsis sf-dump-ellipsis-note\">\\</span><span class=\"sf-dump-ellipsis-tail\">User</span></span> {<a class=sf-dump-ref>#1108</a><samp data-depth=3 class=sf-dump-compact>
+      #<span class=sf-dump-protected title=\"Protected property\">connection</span>: \"<span class=sf-dump-str title=\"5 characters\">mysql</span>\"
+      #<span class=sf-dump-protected title=\"Protected property\">table</span>: \"<span class=sf-dump-str title=\"5 characters\">users</span>\"
+      #<span class=sf-dump-protected title=\"Protected property\">primaryKey</span>: \"<span class=sf-dump-str title=\"2 characters\">id</span>\"
+      #<span class=sf-dump-protected title=\"Protected property\">keyType</span>: \"<span class=sf-dump-str title=\"3 characters\">int</span>\"
+      +<span class=sf-dump-public title=\"Public property\">incrementing</span>: <span class=sf-dump-const>true</span>
+      #<span class=sf-dump-protected title=\"Protected property\">with</span>: []
+      #<span class=sf-dump-protected title=\"Protected property\">withCount</span>: []
+      +<span class=sf-dump-public title=\"Public property\">preventsLazyLoading</span>: <span class=sf-dump-const>false</span>
+      #<span class=sf-dump-protected title=\"Protected property\">perPage</span>: <span class=sf-dump-num>15</span>
+      +<span class=sf-dump-public title=\"Public property\">exists</span>: <span class=sf-dump-const>true</span>
+      +<span class=sf-dump-public title=\"Public property\">wasRecentlyCreated</span>: <span class=sf-dump-const>false</span>
+      #<span class=sf-dump-protected title=\"Protected property\">escapeWhenCastingToString</span>: <span class=sf-dump-const>false</span>
+      #<span class=sf-dump-protected title=\"Protected property\">attributes</span>: <span class=sf-dump-note>array:24</span> [ &#8230;24]
+      #<span class=sf-dump-protected title=\"Protected property\">original</span>: <span class=sf-dump-note>array:17</span> [ &#8230;17]
+      #<span class=sf-dump-protected title=\"Protected property\">changes</span>: []
+      #<span class=sf-dump-protected title=\"Protected property\">casts</span>: <span class=sf-dump-note>array:1</span> [ &#8230;1]
+      #<span class=sf-dump-protected title=\"Protected property\">classCastCache</span>: []
+      #<span class=sf-dump-protected title=\"Protected property\">attributeCastCache</span>: []
+      #<span class=sf-dump-protected title=\"Protected property\">dateFormat</span>: <span class=sf-dump-const>null</span>
+      #<span class=sf-dump-protected title=\"Protected property\">appends</span>: []
+      #<span class=sf-dump-protected title=\"Protected property\">dispatchesEvents</span>: []
+      #<span class=sf-dump-protected title=\"Protected property\">observables</span>: []
+      #<span class=sf-dump-protected title=\"Protected property\">relations</span>: <span class=sf-dump-note>array:3</span> [ &#8230;3]
+      #<span class=sf-dump-protected title=\"Protected property\">touches</span>: []
+      +<span class=sf-dump-public title=\"Public property\">timestamps</span>: <span class=sf-dump-const>true</span>
+      +<span class=sf-dump-public title=\"Public property\">usesUniqueIds</span>: <span class=sf-dump-const>false</span>
+      #<span class=sf-dump-protected title=\"Protected property\">hidden</span>: <span class=sf-dump-note>array:1</span> [ &#8230;1]
+      #<span class=sf-dump-protected title=\"Protected property\">visible</span>: []
+      #<span class=sf-dump-protected title=\"Protected property\">fillable</span>: <span class=sf-dump-note>array:16</span> [ &#8230;16]
+      #<span class=sf-dump-protected title=\"Protected property\">guarded</span>: <span class=sf-dump-note>array:1</span> [ &#8230;1]
+      #<span class=sf-dump-protected title=\"Protected property\">rememberTokenName</span>: \"<span class=sf-dump-str title=\"14 characters\">remember_token</span>\"
+    </samp>}
+    <span class=sf-dump-index>2</span> => <span class=\"sf-dump-note sf-dump-ellipsization\" title=\"App\\Models\\User
+\"><span class=\"sf-dump-ellipsis sf-dump-ellipsis-note\">App\\Models</span><span class=\"sf-dump-ellipsis sf-dump-ellipsis-note\">\\</span><span class=\"sf-dump-ellipsis-tail\">User</span></span> {<a class=sf-dump-ref>#1109</a><samp data-depth=3 class=sf-dump-compact>
+      #<span class=sf-dump-protected title=\"Protected property\">connection</span>: \"<span class=sf-dump-str title=\"5 characters\">mysql</span>\"
+      #<span class=sf-dump-protected title=\"Protected property\">table</span>: \"<span class=sf-dump-str title=\"5 characters\">users</span>\"
+      #<span class=sf-dump-protected title=\"Protected property\">primaryKey</span>: \"<span class=sf-dump-str title=\"2 characters\">id</span>\"
+      #<span class=sf-dump-protected title=\"Protected property\">keyType</span>: \"<span class=sf-dump-str title=\"3 characters\">int</span>\"
+      +<span class=sf-dump-public title=\"Public property\">incrementing</span>: <span class=sf-dump-const>true</span>
+      #<span class=sf-dump-protected title=\"Protected property\">with</span>: []
+      #<span class=sf-dump-protected title=\"Protected property\">withCount</span>: []
+      +<span class=sf-dump-public title=\"Public property\">preventsLazyLoading</span>: <span class=sf-dump-const>false</span>
+      #<span class=sf-dump-protected title=\"Protected property\">perPage</span>: <span class=sf-dump-num>15</span>
+      +<span class=sf-dump-public title=\"Public property\">exists</span>: <span class=sf-dump-const>true</span>
+      +<span class=sf-dump-public title=\"Public property\">wasRecentlyCreated</span>: <span class=sf-dump-const>false</span>
+      #<span class=sf-dump-protected title=\"Protected property\">escapeWhenCastingToString</span>: <span class=sf-dump-const>false</span>
+      #<span class=sf-dump-protected title=\"Protected property\">attributes</span>: <span class=sf-dump-note>array:24</span> [ &#8230;24]
+      #<span class=sf-dump-protected title=\"Protected property\">original</span>: <span class=sf-dump-note>array:17</span> [ &#8230;17]
+      #<span class=sf-dump-protected title=\"Protected property\">changes</span>: []
+      #<span class=sf-dump-protected title=\"Protected property\">casts</span>: <span class=sf-dump-note>array:1</span> [ &#8230;1]
+      #<span class=sf-dump-protected title=\"Protected property\">classCastCache</span>: []
+      #<span class=sf-dump-protected title=\"Protected property\">attributeCastCache</span>: []
+      #<span class=sf-dump-protected title=\"Protected property\">dateFormat</span>: <span class=sf-dump-const>null</span>
+      #<span class=sf-dump-protected title=\"Protected property\">appends</span>: []
+      #<span class=sf-dump-protected title=\"Protected property\">dispatchesEvents</span>: []
+      #<span class=sf-dump-protected title=\"Protected property\">observables</span>: []
+      #<span class=sf-dump-protected title=\"Protected property\">relations</span>: <span class=sf-dump-note>array:3</span> [ &#8230;3]
+      #<span class=sf-dump-protected title=\"Protected property\">touches</span>: []
+      +<span class=sf-dump-public title=\"Public property\">timestamps</span>: <span class=sf-dump-const>true</span>
+      +<span class=sf-dump-public title=\"Public property\">usesUniqueIds</span>: <span class=sf-dump-const>false</span>
+      #<span class=sf-dump-protected title=\"Protected property\">hidden</span>: <span class=sf-dump-note>array:1</span> [ &#8230;1]
+      #<span class=sf-dump-protected title=\"Protected property\">visible</span>: []
+      #<span class=sf-dump-protected title=\"Protected property\">fillable</span>: <span class=sf-dump-note>array:16</span> [ &#8230;16]
+      #<span class=sf-dump-protected title=\"Protected property\">guarded</span>: <span class=sf-dump-note>array:1</span> [ &#8230;1]
+      #<span class=sf-dump-protected title=\"Protected property\">rememberTokenName</span>: \"<span class=sf-dump-str title=\"14 characters\">remember_token</span>\"
+    </samp>}
+    <span class=sf-dump-index>3</span> => <span class=\"sf-dump-note sf-dump-ellipsization\" title=\"App\\Models\\User
+\"><span class=\"sf-dump-ellipsis sf-dump-ellipsis-note\">App\\Models</span><span class=\"sf-dump-ellipsis sf-dump-ellipsis-note\">\\</span><span class=\"sf-dump-ellipsis-tail\">User</span></span> {<a class=sf-dump-ref>#1110</a><samp data-depth=3 class=sf-dump-compact>
+      #<span class=sf-dump-protected title=\"Protected property\">connection</span>: \"<span class=sf-dump-str title=\"5 characters\">mysql</span>\"
+      #<span class=sf-dump-protected title=\"Protected property\">table</span>: \"<span class=sf-dump-str title=\"5 characters\">users</span>\"
+      #<span class=sf-dump-protected title=\"Protected property\">primaryKey</span>: \"<span class=sf-dump-str title=\"2 characters\">id</span>\"
+      #<span class=sf-dump-protected title=\"Protected property\">keyType</span>: \"<span class=sf-dump-str title=\"3 characters\">int</span>\"
+      +<span class=sf-dump-public title=\"Public property\">incrementing</span>: <span class=sf-dump-const>true</span>
+      #<span class=sf-dump-protected title=\"Protected property\">with</span>: []
+      #<span class=sf-dump-protected title=\"Protected property\">withCount</span>: []
+      +<span class=sf-dump-public title=\"Public property\">preventsLazyLoading</span>: <span class=sf-dump-const>false</span>
+      #<span class=sf-dump-protected title=\"Protected property\">perPage</span>: <span class=sf-dump-num>15</span>
+      +<span class=sf-dump-public title=\"Public property\">exists</span>: <span class=sf-dump-const>true</span>
+      +<span class=sf-dump-public title=\"Public property\">wasRecentlyCreated</span>: <span class=sf-dump-const>false</span>
+      #<span class=sf-dump-protected title=\"Protected property\">escapeWhenCastingToString</span>: <span class=sf-dump-const>false</span>
+      #<span class=sf-dump-protected title=\"Protected property\">attributes</span>: <span class=sf-dump-note>array:24</span> [ &#8230;24]
+      #<span class=sf-dump-protected title=\"Protected property\">original</span>: <span class=sf-dump-note>array:17</span> [ &#8230;17]
+      #<span class=sf-dump-protected title=\"Protected property\">changes</span>: []
+      #<span class=sf-dump-protected title=\"Protected property\">casts</span>: <span class=sf-dump-note>array:1</span> [ &#8230;1]
+      #<span class=sf-dump-protected title=\"Protected property\">classCastCache</span>: []
+      #<span class=sf-dump-protected title=\"Protected property\">attributeCastCache</span>: []
+      #<span class=sf-dump-protected title=\"Protected property\">dateFormat</span>: <span class=sf-dump-const>null</span>
+      #<span class=sf-dump-protected title=\"Protected property\">appends</span>: []
+      #<span class=sf-dump-protected title=\"Protected property\">dispatchesEvents</span>: []
+      #<span class=sf-dump-protected title=\"Protected property\">observables</span>: []
+      #<span class=sf-dump-protected title=\"Protected property\">relations</span>: <span class=sf-dump-note>array:3</span> [ &#8230;3]
+      #<span class=sf-dump-protected title=\"Protected property\">touches</span>: []
+      +<span class=sf-dump-public title=\"Public property\">timestamps</span>: <span class=sf-dump-const>true</span>
+      +<span class=sf-dump-public title=\"Public property\">usesUniqueIds</span>: <span class=sf-dump-const>false</span>
+      #<span class=sf-dump-protected title=\"Protected property\">hidden</span>: <span class=sf-dump-note>array:1</span> [ &#8230;1]
+      #<span class=sf-dump-protected title=\"Protected property\">visible</span>: []
+      #<span class=sf-dump-protected title=\"Protected property\">fillable</span>: <span class=sf-dump-note>array:16</span> [ &#8230;16]
+      #<span class=sf-dump-protected title=\"Protected property\">guarded</span>: <span class=sf-dump-note>array:1</span> [ &#8230;1]
+      #<span class=sf-dump-protected title=\"Protected property\">rememberTokenName</span>: \"<span class=sf-dump-str title=\"14 characters\">remember_token</span>\"
+    </samp>}
+  </samp>]
+  #<span class=sf-dump-protected title=\"Protected property\">escapeWhenCastingToString</span>: <span class=sf-dump-const>false</span>
+</samp>}
+</pre><script>Sfdump(\"sf-dump-974808268\", {\"maxDepth\":3,\"maxStringLength\":160})</script>
+","phonePrefixes":"<pre class=sf-dump id=sf-dump-1619767319 data-indent-pad=\"  \"><span class=sf-dump-note>array:6</span> [<samp data-depth=1 class=sf-dump-expanded>
+  <span class=sf-dump-index>0</span> => <span class=sf-dump-note>array:2</span> [<samp data-depth=2 class=sf-dump-compact>
+    \"<span class=sf-dump-key>code</span>\" => \"<span class=sf-dump-str title=\"3 characters\">+39</span>\"
+    \"<span class=sf-dump-key>name</span>\" => \"<span class=sf-dump-str title=\"6 characters\">Italia</span>\"
+  </samp>]
+  <span class=sf-dump-index>1</span> => <span class=sf-dump-note>array:2</span> [<samp data-depth=2 class=sf-dump-compact>
+    \"<span class=sf-dump-key>code</span>\" => \"<span class=sf-dump-str title=\"3 characters\">+33</span>\"
+    \"<span class=sf-dump-key>name</span>\" => \"<span class=sf-dump-str title=\"7 characters\">Francia</span>\"
+  </samp>]
+  <span class=sf-dump-index>2</span> => <span class=sf-dump-note>array:2</span> [<samp data-depth=2 class=sf-dump-compact>
+    \"<span class=sf-dump-key>code</span>\" => \"<span class=sf-dump-str title=\"3 characters\">+49</span>\"
+    \"<span class=sf-dump-key>name</span>\" => \"<span class=sf-dump-str title=\"8 characters\">Germania</span>\"
+  </samp>]
+  <span class=sf-dump-index>3</span> => <span class=sf-dump-note>array:2</span> [<samp data-depth=2 class=sf-dump-compact>
+    \"<span class=sf-dump-key>code</span>\" => \"<span class=sf-dump-str title=\"3 characters\">+34</span>\"
+    \"<span class=sf-dump-key>name</span>\" => \"<span class=sf-dump-str title=\"6 characters\">Spagna</span>\"
+  </samp>]
+  <span class=sf-dump-index>4</span> => <span class=sf-dump-note>array:2</span> [<samp data-depth=2 class=sf-dump-compact>
+    \"<span class=sf-dump-key>code</span>\" => \"<span class=sf-dump-str title=\"3 characters\">+44</span>\"
+    \"<span class=sf-dump-key>name</span>\" => \"<span class=sf-dump-str title=\"11 characters\">Regno Unito</span>\"
+  </samp>]
+  <span class=sf-dump-index>5</span> => <span class=sf-dump-note>array:2</span> [<samp data-depth=2 class=sf-dump-compact>
+    \"<span class=sf-dump-key>code</span>\" => \"<span class=sf-dump-str title=\"2 characters\">+1</span>\"
+    \"<span class=sf-dump-key>name</span>\" => \"<span class=sf-dump-str title=\"11 characters\">Stati Uniti</span>\"
+  </samp>]
+</samp>]
+</pre><script>Sfdump(\"sf-dump-1619767319\", {\"maxDepth\":3,\"maxStringLength\":160})</script>
+","documentDefinitions":"<pre class=sf-dump id=sf-dump-1507407865 data-indent-pad=\"  \"><span class=sf-dump-note>array:4</span> [<samp data-depth=1 class=sf-dump-expanded>
+  \"<span class=sf-dump-key>id_front</span>\" => \"<span class=sf-dump-str title=\"11 characters\">CI - fronte</span>\"
+  \"<span class=sf-dump-key>id_back</span>\" => \"<span class=sf-dump-str title=\"10 characters\">CI - retro</span>\"
+  \"<span class=sf-dump-key>health_card</span>\" => \"<span class=sf-dump-str title=\"17 characters\">Tessera sanitaria</span>\"
+  \"<span class=sf-dump-key>medical_certificate</span>\" => \"<span class=sf-dump-str title=\"18 characters\">Certificato medico</span>\"
+</samp>]
+</pre><script>Sfdump(\"sf-dump-1507407865\", {\"maxDepth\":3,\"maxStringLength\":160})</script>
+","membershipSummary":"<pre class=sf-dump id=sf-dump-460276407 data-indent-pad=\"  \"><span class=sf-dump-note>array:5</span> [<samp data-depth=1 class=sf-dump-expanded>
+  \"<span class=sf-dump-key>total</span>\" => <span class=sf-dump-num>3</span>
+  \"<span class=sf-dump-key>entries</span>\" => <span class=\"sf-dump-note sf-dump-ellipsization\" title=\"Illuminate\\Support\\Collection
+\"><span class=\"sf-dump-ellipsis sf-dump-ellipsis-note\">Illuminate\\Support</span><span class=\"sf-dump-ellipsis sf-dump-ellipsis-note\">\\</span><span class=\"sf-dump-ellipsis-tail\">Collection</span></span> {<a class=sf-dump-ref>#1102</a><samp data-depth=2 class=sf-dump-compact>
+    #<span class=sf-dump-protected title=\"Protected property\">items</span>: <span class=sf-dump-note>array:3</span> [<samp data-depth=3 class=sf-dump-compact>
+      <span class=sf-dump-index>0</span> => <span class=sf-dump-note>array:7</span> [ &#8230;7]
+      <span class=sf-dump-index>1</span> => <span class=sf-dump-note>array:7</span> [ &#8230;7]
+      <span class=sf-dump-index>2</span> => <span class=sf-dump-note>array:7</span> [ &#8230;7]
+    </samp>]
+    #<span class=sf-dump-protected title=\"Protected property\">escapeWhenCastingToString</span>: <span class=sf-dump-const>false</span>
+  </samp>}
+  \"<span class=sf-dump-key>per_page</span>\" => <span class=sf-dump-num>5</span>
+  \"<span class=sf-dump-key>current_page</span>\" => <span class=sf-dump-num>1</span>
+  \"<span class=sf-dump-key>last_page</span>\" => <span class=sf-dump-num>1</span>
+</samp>]
+</pre><script>Sfdump(\"sf-dump-460276407\", {\"maxDepth\":3,\"maxStringLength\":160})</script>
+","clientCount":"<pre class=sf-dump id=sf-dump-491002186 data-indent-pad=\"  \"><span class=sf-dump-num>4</span>
+</pre><script>Sfdump(\"sf-dump-491002186\", {\"maxDepth\":3,\"maxStringLength\":160})</script>
+","courseUnpaidSummary":"<pre class=sf-dump id=sf-dump-1636177761 data-indent-pad=\"  \"><span class=sf-dump-note>array:5</span> [<samp data-depth=1 class=sf-dump-expanded>
+  \"<span class=sf-dump-key>month_label</span>\" => \"<span class=sf-dump-str title=\"13 characters\">December 2025</span>\"
+  \"<span class=sf-dump-key>total_unpaid</span>\" => <span class=sf-dump-num>0</span>
+  \"<span class=sf-dump-key>future_total</span>\" => <span class=sf-dump-num>0</span>
+  \"<span class=sf-dump-key>showing_future</span>\" => <span class=sf-dump-const>false</span>
+  \"<span class=sf-dump-key>courses</span>\" => <span class=sf-dump-note>array:7</span> [<samp data-depth=2 class=sf-dump-compact>
+    <span class=sf-dump-index>0</span> => <span class=sf-dump-note>array:6</span> [<samp data-depth=3 class=sf-dump-compact>
+      \"<span class=sf-dump-key>course_id</span>\" => <span class=sf-dump-num>3</span>
+      \"<span class=sf-dump-key>title</span>\" => \"<span class=sf-dump-str title=\"13 characters\">Ashtanga yoga</span>\"
+      \"<span class=sf-dump-key>price</span>\" => <span class=sf-dump-num>0.0</span>
+      \"<span class=sf-dump-key>count</span>\" => <span class=sf-dump-num>0</span>
+      \"<span class=sf-dump-key>future_count</span>\" => <span class=sf-dump-num>0</span>
+      \"<span class=sf-dump-key>unpaid</span>\" => []
+    </samp>]
+    <span class=sf-dump-index>1</span> => <span class=sf-dump-note>array:6</span> [<samp data-depth=3 class=sf-dump-compact>
+      \"<span class=sf-dump-key>course_id</span>\" => <span class=sf-dump-num>7</span>
+      \"<span class=sf-dump-key>title</span>\" => \"<span class=sf-dump-str title=\"13 characters\">Bioenergetica</span>\"
+      \"<span class=sf-dump-key>price</span>\" => <span class=sf-dump-num>50.0</span>
+      \"<span class=sf-dump-key>count</span>\" => <span class=sf-dump-num>0</span>
+      \"<span class=sf-dump-key>future_count</span>\" => <span class=sf-dump-num>0</span>
+      \"<span class=sf-dump-key>unpaid</span>\" => []
+    </samp>]
+    <span class=sf-dump-index>2</span> => <span class=sf-dump-note>array:6</span> [<samp data-depth=3 class=sf-dump-compact>
+      \"<span class=sf-dump-key>course_id</span>\" => <span class=sf-dump-num>2</span>
+      \"<span class=sf-dump-key>title</span>\" => \"<span class=sf-dump-str title=\"10 characters\">Hatha yoga</span>\"
+      \"<span class=sf-dump-key>price</span>\" => <span class=sf-dump-num>0.0</span>
+      \"<span class=sf-dump-key>count</span>\" => <span class=sf-dump-num>0</span>
+      \"<span class=sf-dump-key>future_count</span>\" => <span class=sf-dump-num>0</span>
+      \"<span class=sf-dump-key>unpaid</span>\" => []
+    </samp>]
+    <span class=sf-dump-index>3</span> => <span class=sf-dump-note>array:6</span> [<samp data-depth=3 class=sf-dump-compact>
+      \"<span class=sf-dump-key>course_id</span>\" => <span class=sf-dump-num>5</span>
+      \"<span class=sf-dump-key>title</span>\" => \"<span class=sf-dump-str title=\"23 characters\">Iyengar Yoga - Giuseppe</span>\"
+      \"<span class=sf-dump-key>price</span>\" => <span class=sf-dump-num>60.0</span>
+      \"<span class=sf-dump-key>count</span>\" => <span class=sf-dump-num>0</span>
+      \"<span class=sf-dump-key>future_count</span>\" => <span class=sf-dump-num>0</span>
+      \"<span class=sf-dump-key>unpaid</span>\" => []
+    </samp>]
+    <span class=sf-dump-index>4</span> => <span class=sf-dump-note>array:6</span> [<samp data-depth=3 class=sf-dump-compact>
+      \"<span class=sf-dump-key>course_id</span>\" => <span class=sf-dump-num>6</span>
+      \"<span class=sf-dump-key>title</span>\" => \"<span class=sf-dump-str title=\"20 characters\">Iyengar Yoga - Laura</span>\"
+      \"<span class=sf-dump-key>price</span>\" => <span class=sf-dump-num>0.0</span>
+      \"<span class=sf-dump-key>count</span>\" => <span class=sf-dump-num>0</span>
+      \"<span class=sf-dump-key>future_count</span>\" => <span class=sf-dump-num>0</span>
+      \"<span class=sf-dump-key>unpaid</span>\" => []
+    </samp>]
+    <span class=sf-dump-index>5</span> => <span class=sf-dump-note>array:6</span> [<samp data-depth=3 class=sf-dump-compact>
+      \"<span class=sf-dump-key>course_id</span>\" => <span class=sf-dump-num>1</span>
+      \"<span class=sf-dump-key>title</span>\" => \"<span class=sf-dump-str title=\"12 characters\">yoga in volo</span>\"
+      \"<span class=sf-dump-key>price</span>\" => <span class=sf-dump-num>50.0</span>
+      \"<span class=sf-dump-key>count</span>\" => <span class=sf-dump-num>0</span>
+      \"<span class=sf-dump-key>future_count</span>\" => <span class=sf-dump-num>0</span>
+      \"<span class=sf-dump-key>unpaid</span>\" => []
+    </samp>]
+    <span class=sf-dump-index>6</span> => <span class=sf-dump-note>array:6</span> [<samp data-depth=3 class=sf-dump-compact>
+      \"<span class=sf-dump-key>course_id</span>\" => <span class=sf-dump-num>4</span>
+      \"<span class=sf-dump-key>title</span>\" => \"<span class=sf-dump-str title=\"14 characters\">Yoga Integrale</span>\"
+      \"<span class=sf-dump-key>price</span>\" => <span class=sf-dump-num>0.0</span>
+      \"<span class=sf-dump-key>count</span>\" => <span class=sf-dump-num>0</span>
+      \"<span class=sf-dump-key>future_count</span>\" => <span class=sf-dump-num>0</span>
+      \"<span class=sf-dump-key>unpaid</span>\" => []
+    </samp>]
+  </samp>]
+</samp>]
+</pre><script>Sfdump(\"sf-dump-1636177761\", {\"maxDepth\":3,\"maxStringLength\":160})</script>
+","courseUnpaidShowFuture":"<pre class=sf-dump id=sf-dump-2011420009 data-indent-pad=\"  \"><span class=sf-dump-const>false</span>
+</pre><script>Sfdump(\"sf-dump-2011420009\", {\"maxDepth\":3,\"maxStringLength\":160})</script>
+","initialExpandedClient":"<pre class=sf-dump id=sf-dump-1110069782 data-indent-pad=\"  \"><span class=sf-dump-num>3</span>
+</pre><script>Sfdump(\"sf-dump-1110069782\", {\"maxDepth\":3,\"maxStringLength\":160})</script>
+","clientPagePermissions":"<pre class=sf-dump id=sf-dump-1573429983 data-indent-pad=\"  \"><span class=sf-dump-note>array:7</span> [<samp data-depth=1 class=sf-dump-expanded>
+  \"<span class=sf-dump-key>mode</span>\" => \"<span class=sf-dump-str title=\"5 characters\">admin</span>\"
+  \"<span class=sf-dump-key>can_create</span>\" => <span class=sf-dump-const>true</span>
+  \"<span class=sf-dump-key>can_export</span>\" => <span class=sf-dump-const>true</span>
+  \"<span class=sf-dump-key>can_manage_account</span>\" => <span class=sf-dump-const>true</span>
+  \"<span class=sf-dump-key>can_manage_profile</span>\" => <span class=sf-dump-const>true</span>
+  \"<span class=sf-dump-key>can_manage_documents</span>\" => <span class=sf-dump-const>true</span>
+  \"<span class=sf-dump-key>can_manage_payments</span>\" => <span class=sf-dump-const>true</span>
+</samp>]
+</pre><script>Sfdump(\"sf-dump-1573429983\", {\"maxDepth\":3,\"maxStringLength\":160})</script>
+","search":"<pre class=sf-dump id=sf-dump-1302305409 data-indent-pad=\"  \">\"\"
+</pre><script>Sfdump(\"sf-dump-1302305409\", {\"maxDepth\":3,\"maxStringLength\":160})</script>
+","sort":"<pre class=sf-dump id=sf-dump-6107529 data-indent-pad=\"  \">\"<span class=sf-dump-str title=\"4 characters\">name</span>\"
+</pre><script>Sfdump(\"sf-dump-6107529\", {\"maxDepth\":3,\"maxStringLength\":160})</script>
+","dir":"<pre class=sf-dump id=sf-dump-1707200756 data-indent-pad=\"  \">\"<span class=sf-dump-str title=\"3 characters\">asc</span>\"
+</pre><script>Sfdump(\"sf-dump-1707200756\", {\"maxDepth\":3,\"maxStringLength\":160})</script>
+"}},"userId":4,"exception":"[object] (Spatie\\LaravelIgnition\\Exceptions\\ViewException(code: 0): syntax error, unexpected token \";\" at C:\\yoga-studio-erp\\resources\\views\\admin\\clients\\partials\\management.blade.php:1)
+[stacktrace]
+#0 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Filesystem\\Filesystem.php(123): require('C:\\\\yoga-studio-...')
+#1 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Filesystem\\Filesystem.php(124): Illuminate\\Filesystem\\Filesystem::{closure:Illuminate\\Filesystem\\Filesystem::getRequire():120}()
+#2 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Engines\\PhpEngine.php(58): Illuminate\\Filesystem\\Filesystem->getRequire('C:\\\\yoga-studio-...', Array)
+#3 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Engines\\CompilerEngine.php(72): Illuminate\\View\\Engines\\PhpEngine->evaluatePath('C:\\\\yoga-studio-...', Array)
+#4 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\View\\View.php(207): Illuminate\\View\\Engines\\CompilerEngine->get('C:\\\\yoga-studio-...', Array)
+#5 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\View\\View.php(190): Illuminate\\View\\View->getContents()
+#6 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\View\\View.php(159): Illuminate\\View\\View->renderContents()
+#7 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Response.php(69): Illuminate\\View\\View->render()
+#8 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Response.php(35): Illuminate\\Http\\Response->setContent(Object(Illuminate\\View\\View))
+#9 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(918): Illuminate\\Http\\Response->__construct(Object(Illuminate\\View\\View), 200, Array)
+#10 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(885): Illuminate\\Routing\\Router::toResponse(Object(Illuminate\\Http\\Request), Object(Illuminate\\View\\View))
+#11 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(805): Illuminate\\Routing\\Router->prepareResponse(Object(Illuminate\\Http\\Request), Object(Illuminate\\View\\View))
+#12 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(144): Illuminate\\Routing\\Router->{closure:Illuminate\\Routing\\Router::runRouteWithinStack():805}(Object(Illuminate\\Http\\Request))
+#13 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Auth\\Middleware\\EnsureEmailIsVerified.php(41): Illuminate\\Pipeline\\Pipeline->{closure:Illuminate\\Pipeline\\Pipeline::prepareDestination():142}(Object(Illuminate\\Http\\Request))
+#14 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Auth\\Middleware\\EnsureEmailIsVerified->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#15 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Middleware\\SubstituteBindings.php(50): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():158}:159}(Object(Illuminate\\Http\\Request))
+#16 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Routing\\Middleware\\SubstituteBindings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#17 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Middleware\\ThrottleRequests.php(159): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():158}:159}(Object(Illuminate\\Http\\Request))
+#18 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Middleware\\ThrottleRequests.php(90): Illuminate\\Routing\\Middleware\\ThrottleRequests->handleRequest(Object(Illuminate\\Http\\Request), Object(Closure), Array)
+#19 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Routing\\Middleware\\ThrottleRequests->handle(Object(Illuminate\\Http\\Request), Object(Closure), '15', '1')
+#20 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Auth\\Middleware\\Authenticate.php(57): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():158}:159}(Object(Illuminate\\Http\\Request))
+#21 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Auth\\Middleware\\Authenticate->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#22 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\VerifyCsrfToken.php(78): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():158}:159}(Object(Illuminate\\Http\\Request))
+#23 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Foundation\\Http\\Middleware\\VerifyCsrfToken->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#24 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Middleware\\ShareErrorsFromSession.php(49): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():158}:159}(Object(Illuminate\\Http\\Request))
+#25 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\View\\Middleware\\ShareErrorsFromSession->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#26 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Session\\Middleware\\StartSession.php(121): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():158}:159}(Object(Illuminate\\Http\\Request))
+#27 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Session\\Middleware\\StartSession.php(64): Illuminate\\Session\\Middleware\\StartSession->handleStatefulRequest(Object(Illuminate\\Http\\Request), Object(Illuminate\\Session\\Store), Object(Closure))
+#28 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Session\\Middleware\\StartSession->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#29 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse.php(37): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():158}:159}(Object(Illuminate\\Http\\Request))
+#30 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#31 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Cookie\\Middleware\\EncryptCookies.php(67): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():158}:159}(Object(Illuminate\\Http\\Request))
+#32 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Cookie\\Middleware\\EncryptCookies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#33 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(119): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():158}:159}(Object(Illuminate\\Http\\Request))
+#34 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(805): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#35 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(784): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
+#36 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(748): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
+#37 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(737): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
+#38 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(200): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
+#39 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(144): Illuminate\\Foundation\\Http\\Kernel->{closure:Illuminate\\Foundation\\Http\\Kernel::dispatchToRouter():197}(Object(Illuminate\\Http\\Request))
+#40 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->{closure:Illuminate\\Pipeline\\Pipeline::prepareDestination():142}(Object(Illuminate\\Http\\Request))
+#41 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#42 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#43 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():158}:159}(Object(Illuminate\\Http\\Request))
+#44 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TrimStrings.php(40): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#45 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#46 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():158}:159}(Object(Illuminate\\Http\\Request))
+#47 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#48 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance.php(99): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():158}:159}(Object(Illuminate\\Http\\Request))
+#49 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#50 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\HandleCors.php(49): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():158}:159}(Object(Illuminate\\Http\\Request))
+#51 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Http\\Middleware\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#52 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\TrustProxies.php(39): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():158}:159}(Object(Illuminate\\Http\\Request))
+#53 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#54 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(119): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():158}:159}(Object(Illuminate\\Http\\Request))
+#55 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(175): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#56 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(144): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
+#57 C:\\yoga-studio-erp\\public\\index.php(51): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
+#58 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(16): require_once('C:\\\\yoga-studio-...')
+#59 {main}
+
+[previous exception] [object] (ParseError(code: 0): syntax error, unexpected token \";\" at C:\\yoga-studio-erp\\storage\\framework\\views\\5930f22557a26cdd3942e7e9bd8c432b.php:10)
+[stacktrace]
+#0 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Filesystem\\Filesystem.php(124): Illuminate\\Filesystem\\Filesystem::{closure:Illuminate\\Filesystem\\Filesystem::getRequire():120}()
+#1 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Engines\\PhpEngine.php(58): Illuminate\\Filesystem\\Filesystem->getRequire('C:\\\\yoga-studio-...', Array)
+#2 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Engines\\CompilerEngine.php(72): Illuminate\\View\\Engines\\PhpEngine->evaluatePath('C:\\\\yoga-studio-...', Array)
+#3 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\View\\View.php(207): Illuminate\\View\\Engines\\CompilerEngine->get('C:\\\\yoga-studio-...', Array)
+#4 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\View\\View.php(190): Illuminate\\View\\View->getContents()
+#5 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\View\\View.php(159): Illuminate\\View\\View->renderContents()
+#6 C:\\yoga-studio-erp\\storage\\framework\\views\\48704f969aaafd8f10f1e62a33d3e9fb.php(84): Illuminate\\View\\View->render()
+#7 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Filesystem\\Filesystem.php(123): require('C:\\\\yoga-studio-...')
+#8 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Filesystem\\Filesystem.php(124): Illuminate\\Filesystem\\Filesystem::{closure:Illuminate\\Filesystem\\Filesystem::getRequire():120}()
+#9 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Engines\\PhpEngine.php(58): Illuminate\\Filesystem\\Filesystem->getRequire('C:\\\\yoga-studio-...', Array)
+#10 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Engines\\CompilerEngine.php(72): Illuminate\\View\\Engines\\PhpEngine->evaluatePath('C:\\\\yoga-studio-...', Array)
+#11 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\View\\View.php(207): Illuminate\\View\\Engines\\CompilerEngine->get('C:\\\\yoga-studio-...', Array)
+#12 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\View\\View.php(190): Illuminate\\View\\View->getContents()
+#13 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\View\\View.php(159): Illuminate\\View\\View->renderContents()
+#14 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Response.php(69): Illuminate\\View\\View->render()
+#15 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Response.php(35): Illuminate\\Http\\Response->setContent(Object(Illuminate\\View\\View))
+#16 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(918): Illuminate\\Http\\Response->__construct(Object(Illuminate\\View\\View), 200, Array)
+#17 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(885): Illuminate\\Routing\\Router::toResponse(Object(Illuminate\\Http\\Request), Object(Illuminate\\View\\View))
+#18 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(805): Illuminate\\Routing\\Router->prepareResponse(Object(Illuminate\\Http\\Request), Object(Illuminate\\View\\View))
+#19 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(144): Illuminate\\Routing\\Router->{closure:Illuminate\\Routing\\Router::runRouteWithinStack():805}(Object(Illuminate\\Http\\Request))
+#20 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Auth\\Middleware\\EnsureEmailIsVerified.php(41): Illuminate\\Pipeline\\Pipeline->{closure:Illuminate\\Pipeline\\Pipeline::prepareDestination():142}(Object(Illuminate\\Http\\Request))
+#21 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Auth\\Middleware\\EnsureEmailIsVerified->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#22 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Middleware\\SubstituteBindings.php(50): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():158}:159}(Object(Illuminate\\Http\\Request))
+#23 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Routing\\Middleware\\SubstituteBindings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#24 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Middleware\\ThrottleRequests.php(159): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():158}:159}(Object(Illuminate\\Http\\Request))
+#25 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Middleware\\ThrottleRequests.php(90): Illuminate\\Routing\\Middleware\\ThrottleRequests->handleRequest(Object(Illuminate\\Http\\Request), Object(Closure), Array)
+#26 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Routing\\Middleware\\ThrottleRequests->handle(Object(Illuminate\\Http\\Request), Object(Closure), '15', '1')
+#27 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Auth\\Middleware\\Authenticate.php(57): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():158}:159}(Object(Illuminate\\Http\\Request))
+#28 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Auth\\Middleware\\Authenticate->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#29 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\VerifyCsrfToken.php(78): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():158}:159}(Object(Illuminate\\Http\\Request))
+#30 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Foundation\\Http\\Middleware\\VerifyCsrfToken->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#31 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Middleware\\ShareErrorsFromSession.php(49): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():158}:159}(Object(Illuminate\\Http\\Request))
+#32 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\View\\Middleware\\ShareErrorsFromSession->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#33 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Session\\Middleware\\StartSession.php(121): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():158}:159}(Object(Illuminate\\Http\\Request))
+#34 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Session\\Middleware\\StartSession.php(64): Illuminate\\Session\\Middleware\\StartSession->handleStatefulRequest(Object(Illuminate\\Http\\Request), Object(Illuminate\\Session\\Store), Object(Closure))
+#35 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Session\\Middleware\\StartSession->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#36 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse.php(37): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():158}:159}(Object(Illuminate\\Http\\Request))
+#37 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#38 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Cookie\\Middleware\\EncryptCookies.php(67): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():158}:159}(Object(Illuminate\\Http\\Request))
+#39 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Cookie\\Middleware\\EncryptCookies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#40 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(119): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():158}:159}(Object(Illuminate\\Http\\Request))
+#41 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(805): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#42 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(784): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
+#43 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(748): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
+#44 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(737): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
+#45 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(200): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
+#46 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(144): Illuminate\\Foundation\\Http\\Kernel->{closure:Illuminate\\Foundation\\Http\\Kernel::dispatchToRouter():197}(Object(Illuminate\\Http\\Request))
+#47 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->{closure:Illuminate\\Pipeline\\Pipeline::prepareDestination():142}(Object(Illuminate\\Http\\Request))
+#48 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#49 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#50 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():158}:159}(Object(Illuminate\\Http\\Request))
+#51 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TrimStrings.php(40): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#52 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#53 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():158}:159}(Object(Illuminate\\Http\\Request))
+#54 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#55 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance.php(99): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():158}:159}(Object(Illuminate\\Http\\Request))
+#56 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#57 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\HandleCors.php(49): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():158}:159}(Object(Illuminate\\Http\\Request))
+#58 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Http\\Middleware\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#59 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\TrustProxies.php(39): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():158}:159}(Object(Illuminate\\Http\\Request))
+#60 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#61 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(119): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():158}:159}(Object(Illuminate\\Http\\Request))
+#62 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(175): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#63 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(144): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
+#64 C:\\yoga-studio-erp\\public\\index.php(51): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
+#65 C:\\yoga-studio-erp\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(16): require_once('C:\\\\yoga-studio-...')
+#66 {main}
+"} 
