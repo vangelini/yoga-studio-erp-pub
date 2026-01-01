@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Software Open Source per Centri Yoga</title>
+  <style>
+    body {
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background:#f9fafb;
+      color:#111;
+    }
+    header {
+      background: linear-gradient(135deg, #2f855a, #68d391);
+      color:#fff;
+      padding: 72px 20px;
+      text-align:center;
+    }
+    header h1 { font-size: 42px; margin-bottom: 12px; }
+    header p { font-size: 18px; max-width: 720px; margin: 0 auto; }
+
+    .container { max-width: 1080px; margin: 0 auto; padding: 56px 20px; }
+    h2 { font-size: 32px; margin-bottom: 16px; }
+    p { line-height: 1.7; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 24px;
+      margin-top: 32px;
+    }
+
+    .card {
+      background:#fff;
+      padding: 26px;
+      border-radius: 18px;
+      box-shadow: 0 10px 28px rgba(0,0,0,.06);
+    }
+
+    .cta {
+      margin-top: 28px;
+      display:flex;
+      gap:14px;
+      flex-wrap:wrap;
+    }
+
+    .btn {
+      padding: 14px 20px;
+      border-radius: 14px;
+      font-weight: 700;
+      text-decoration:none;
+      display:inline-block;
+    }
+    .btn-primary { background:#2f855a; color:#fff; }
+    .btn-secondary { background:#edf2f7; color:#111; }
+    .btn-paypal { background:#0070ba; color:#fff; }
+
+    .section-alt { background:#ffffff; }
+
+    footer {
+      background:#111;
+      color:#ccc;
+      text-align:center;
+      padding: 28px 20px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>Gestisci il tuo Centro Yoga in modo semplice</h1>
+  <p>
+    Un software open-source, gratuito e personalizzabile per scuole yoga,
+    centri olistici e insegnanti indipendenti.
+  </p>
+
+  <div class="cta" style="justify-content:center;">
+    <a class="btn btn-primary" href="https://github.com/TUO-REPO" target="_blank">
+      Scarica da GitHub
+    </a>
+    <a class="btn btn-secondary" href="#consulenza">
+      Richiedi consulenza
+    </a>
+  </div>
+</header>
+
+<section class="container">
+  <h2>Perché questo software?</h2>
+  <p>
+    Molti centri yoga utilizzano strumenti frammentati: fogli Excel,
+    chat, app costose e poco flessibili.  
+    Questo progetto nasce per offrire una soluzione **etica, sostenibile e libera**.
+  </p>
+
+  <div class="grid">
+    <div class="card">
+      <h3>📅 Gestione corsi e lezioni</h3>
+      <p>
+        Calendario lezioni, iscrizioni, insegnanti, sale e orari
+        in un unico sistema chiaro.
+      </p>
+    </div>
+    <div class="card">
+      <h3>👥 Allievi e abbonamenti</h3>
+      <p>
+        Anagrafica studenti, pacchetti, presenze,
+        rinnovi e storico attività.
+      </p>
+    </div>
+    <div class="card">
+      <h3>🧘 Pensato per lo yoga</h3>
+      <p>
+        Non un gestionale generico, ma costruito
+        sulle reali esigenze dei centri yoga.
+      </p>
+    </div>
+    <div class="card">
+      <h3>🔓 Open Source</h3>
+      <p>
+        Codice libero, trasparente e senza abbonamenti obbligatori.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="container section-alt" id="consulenza">
+  <h2>Personalizzazioni e consulenze</h2>
+  <p>
+    Il software è **gratuito**, ma offriamo supporto professionale per adattarlo
+    al tuo centro:
+  </p>
+
+  <div class="grid">
+    <div class="card">
+      <h3>⚙️ Personalizzazione</h3>
+      <p>
+        Funzioni su misura, flussi di lavoro personalizzati,
+        integrazioni con il tuo sito.
+      </p>
+    </div>
+    <div class="card">
+      <h3>☁️ Installazione & hosting</h3>
+      <p>
+        Installazione su server, sottodominio o cloud,
+        con configurazione completa.
+      </p>
+    </div>
+    <div class="card">
+      <h3>📚 Formazione</h3>
+      <p>
+        Affiancamento per staff e insegnanti
+        nell’uso quotidiano del sistema.
+      </p>
+    </div>
+  </div>
+
+  <div class="cta">
+    <a class="btn btn-primary" href="/contatti">
+      Richiedi una consulenza
+    </a>
+  </div>
+</section>
+
+<section class="container">
+  <h2>Sostieni il progetto</h2>
+  <p>
+    Se questo software ti è utile, puoi sostenere lo sviluppo
+    con una donazione libera.
+  </p>
+
+  <div class="cta">
+    <a class="btn btn-paypal" href="https://paypal.me/TUONOME" target="_blank">
+      Dona ora con PayPal
+    </a>
+  </div>
+</section>
+
+<footer>
+  © ShantiSadhana – Software libero per una pratica consapevole
+</footer>
+
+</body>
+</html>
