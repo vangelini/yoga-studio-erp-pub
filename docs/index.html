@@ -62,6 +62,59 @@
       gap: 24px;
       margin-top: 24px;
     }
+    .preview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 32px;
+      margin-top: 28px;
+    }
+    .preview {
+      background: var(--card);
+      border-radius: 24px;
+      padding: 32px;
+      border: 1px solid var(--border);
+      box-shadow: 0 25px 50px rgba(15, 23, 42, .12);
+    }
+    .preview h3 {
+      margin-top: 0;
+      margin-bottom: 12px;
+    }
+    .preview-figure {
+      margin: 20px 0 0;
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(47, 133, 90, .15), rgba(104, 211, 145, .2));
+      padding: 18px;
+      border: 1px dashed rgba(47, 133, 90, .4);
+      min-height: 180px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      color: var(--primary);
+      text-align: center;
+    }
+    .preview-gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-top: 18px;
+    }
+    .preview-gallery figure {
+      margin: 0;
+    }
+    .preview-gallery img {
+      width: 100%;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      box-shadow: 0 15px 28px rgba(15, 23, 42, .18);
+      background: var(--card);
+    }
+    .preview-gallery figcaption {
+      margin-top: 6px;
+      text-align: center;
+      font-size: .85rem;
+      color: var(--muted);
+    }
     .card {
       background:var(--card);
       padding: 26px;
@@ -91,6 +144,20 @@
     .btn-secondary { background:var(--secondary); color:var(--text); }
     .btn-paypal { background:#0070ba; color:#fff; }
     .section-alt { background:linear-gradient(180deg, rgba(255,255,255,0.65), rgba(255,255,255,0)); border-radius:28px; padding:40px 28px; }
+    .paypal-embed {
+      margin-top: 18px;
+      display: flex;
+      justify-content: center;
+    }
+    .paypal-embed iframe {
+      width: 100%;
+      max-width: 420px;
+      height: 540px;
+      border: none;
+      border-radius: 24px;
+      box-shadow: 0 25px 50px rgba(15, 23, 42, .18);
+      background: var(--card);
+    }
     footer {
       background:#0b1525;
       color:#cfd8e3;
@@ -176,6 +243,58 @@
   </div>
 </section>
 
+<section class="preview-section" id="preview">
+  <h2>Preview interattiva</h2>
+  <p>Uno sguardo ai due ambienti chiave del gestionale: il pannello amministratori e l'area riservata agli allievi.</p>
+
+  <div class="preview-grid">
+    <div class="preview">
+      <h3>👩‍💼 Dashboard amministratori</h3>
+      <p>Gestisci corsi, presenze, pagamenti e comunicazioni da un'unica interfaccia pensata per lo staff.</p>
+      <div class="preview-gallery">
+        <figure>
+          <img src="admin home.png" alt="Dashboard generale amministratori" loading="lazy" />
+          <figcaption>Dashboard generale</figcaption>
+        </figure>
+        <figure>
+          <img src="admin gestione allievi.png" alt="Gestione elenco allievi" loading="lazy" />
+          <figcaption>Gestione elenco allievi</figcaption>
+        </figure>
+        <figure>
+          <img src="admin gestione allievi dettaglio.png" alt="Dettaglio profilo allievo" loading="lazy" />
+          <figcaption>Dettaglio profilo allievo</figcaption>
+        </figure>
+      </div>
+    </div>
+    <div class="preview">
+      <h3>🧘 Area riservata allievi</h3>
+      <p>Gli studenti consultano i corsi, stato dei pagamenti e documenti, e ricevono notifiche sulle lezioni.</p>
+      <div class="preview-gallery">
+        <figure>
+          <img src="allievi login.png" alt="Schermata di login studenti" loading="lazy" />
+          <figcaption>Accesso sicuro all'area studenti</figcaption>
+        </figure>
+        <figure>
+          <img src="allievi wizard iscrizioni.png" alt="Wizard iscrizione allievi" loading="lazy" />
+          <figcaption>Wizard guidato per iscrizioni</figcaption>
+        </figure>
+        <figure>
+          <img src="allievi corsi.png" alt="Vista corsi allievi" loading="lazy" />
+          <figcaption>Calendario corsi e lezioni</figcaption>
+        </figure>
+        <figure>
+          <img src="allievi pagamenti.png" alt="Storico pagamenti allievo" loading="lazy" />
+          <figcaption>Pagamenti e abbonamenti</figcaption>
+        </figure>
+        <figure>
+          <img src="allievi documenti.png" alt="Sezione documenti allievi" loading="lazy" />
+          <figcaption>Documenti e comunicazioni</figcaption>
+        </figure>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="section-alt" id="consulenza">
   <h2>Personalizzazioni e consulenze</h2>
   <p>
@@ -221,10 +340,14 @@
     con una donazione libera.
   </p>
 
-  <div class="cta">
-    <a class="btn btn-paypal" href="https://paypal.me/TUONOME" target="_blank" rel="noopener">
-      Dona ora con PayPal
-    </a>
+  <div class="paypal-embed">
+    <iframe
+      src="https://www.paypal.com/donate/?business=TR59F8KP49464&no_recurring=0&item_name=Contribuisci+allo+sviluppo+di+un+software+libero+per+i+centri+yoga+e+al+lavoro+del+suo+sviluppatore.&currency_code=EUR"
+      title="Modulo donazione PayPal"
+      loading="lazy"
+      referrerpolicy="no-referrer-when-downgrade"
+      allowtransparency="true">
+    </iframe>
   </div>
   <p>
     Preferisci un bonifico o vuoi fattura? Scrivici e riceverai tutte le istruzioni.
