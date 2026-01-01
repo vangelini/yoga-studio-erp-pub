@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Yoga Studio ERP • Dona e sostieni</title>
+  <meta name="description" content="Pagina ufficiale di Yoga Studio ERP su GitHub Pages: scopri funzionalità, servizi professionali e come sostenere il progetto Open Source." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f9fafb;
+      --text: #111;
+      --muted: #4a5568;
+      --card: #fff;
+      --primary: #2f855a;
+      --secondary: #edf2f7;
+      --border: rgba(0,0,0,.08);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f172a;
+        --text: #f1f5f9;
+        --muted: #cbd5f5;
+        --card: #1e293b;
+        --secondary: #1f2937;
+        --border: rgba(255,255,255,.08);
+      }
+    }
+    * { box-sizing:border-box; }
+    body {
+      margin:0;
+      font-family:'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background:var(--bg);
+      color:var(--text);
+      line-height:1.6;
+    }
+    header {
+      background: linear-gradient(135deg, #2f855a, #68d391);
+      color:#fff;
+      padding: 80px 20px 60px;
+      text-align:center;
+    }
+    header h1 { font-size: clamp(2rem, 4vw, 3rem); margin-bottom: 12px; }
+    header p { font-size: 1.15rem; max-width: 720px; margin: 0 auto; color:#f0fff4; }
+    nav {
+      display:flex;
+      justify-content:center;
+      gap:18px;
+      margin-top:18px;
+      flex-wrap:wrap;
+    }
+    main { max-width: 1080px; margin: 0 auto; padding: 56px 20px 72px; }
+    section + section { margin-top:64px; }
+    h2 { font-size: clamp(1.6rem, 3vw, 2.25rem); margin-bottom: 12px; }
+    p { color:var(--muted); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 24px;
+      margin-top: 24px;
+    }
+    .card {
+      background:var(--card);
+      padding: 26px;
+      border-radius: 18px;
+      border:1px solid var(--border);
+      box-shadow: 0 20px 45px rgba(15, 23, 42, .08);
+    }
+    .cta {
+      margin-top: 28px;
+      display:flex;
+      gap:14px;
+      flex-wrap:wrap;
+    }
+    .btn {
+      padding: 14px 22px;
+      border-radius: 999px;
+      font-weight: 700;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      transition:transform .15s ease, box-shadow .15s ease;
+    }
+    .btn:focus-visible { outline:3px solid rgba(255,255,255,.8); outline-offset:3px; }
+    .btn:hover { transform:translateY(-1px); box-shadow: 0 14px 30px rgba(0,0,0,.12); }
+    .btn-primary { background:#fff; color:#2f855a; }
+    .btn-secondary { background:var(--secondary); color:var(--text); }
+    .btn-paypal { background:#0070ba; color:#fff; }
+    .section-alt { background:linear-gradient(180deg, rgba(255,255,255,0.65), rgba(255,255,255,0)); border-radius:28px; padding:40px 28px; }
+    footer {
+      background:#0b1525;
+      color:#cfd8e3;
+      text-align:center;
+      padding: 32px 20px;
+      font-size: 14px;
+    }
+    a.anchor-link {
+      position:relative;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      color:var(--text);
+      text-decoration:none;
+      font-weight:600;
+    }
+    a.anchor-link::after {
+      content:'↗';
+      font-size:14px;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>Yoga Studio ERP</h1>
+  <p>
+    Un software open source, gratuito e personalizzabile per scuole yoga, centri olistici e insegnanti indipendenti.
+  </p>
+
+  <nav>
+    <a class="btn btn-primary" href="https://github.com/vincenzoangelini/yoga-studio-erp" target="_blank" rel="noopener">
+      Scarica da GitHub
+    </a>
+    <a class="btn btn-secondary" href="#consulenza">
+      Consulenza & supporto
+    </a>
+    <a class="btn btn-secondary" href="#donazioni">
+      Dona subito
+    </a>
+  </nav>
+</header>
+
+<main>
+
+<section>
+  <h2>Perché questo software?</h2>
+  <p>
+    Molti centri yoga utilizzano strumenti frammentati: fogli Excel,
+    chat, app costose e poco flessibili.
+    Questo progetto nasce per offrire una soluzione <strong>etica, sostenibile e libera</strong>.
+  </p>
+
+  <div class="grid">
+    <div class="card">
+      <h3>📅 Gestione corsi e lezioni</h3>
+      <p>
+        Calendario lezioni, iscrizioni, insegnanti, sale e orari
+        in un unico sistema chiaro.
+      </p>
+    </div>
+    <div class="card">
+      <h3>👥 Allievi e abbonamenti</h3>
+      <p>
+        Anagrafica studenti, pacchetti, presenze,
+        rinnovi e storico attività.
+      </p>
+    </div>
+    <div class="card">
+      <h3>🧘 Pensato per lo yoga</h3>
+      <p>
+        Non un gestionale generico, ma costruito
+        sulle reali esigenze dei centri yoga.
+      </p>
+    </div>
+    <div class="card">
+      <h3>🔓 Open Source</h3>
+      <p>
+        Codice libero, trasparente e senza abbonamenti obbligatori.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="section-alt" id="consulenza">
+  <h2>Personalizzazioni e consulenze</h2>
+  <p>
+    Il software è <strong>gratuito</strong>, ma offriamo supporto professionale per adattarlo
+    al tuo centro:
+  </p>
+
+  <div class="grid">
+    <div class="card">
+      <h3>⚙️ Personalizzazione</h3>
+      <p>
+        Funzioni su misura, flussi di lavoro personalizzati,
+        integrazioni con il tuo sito.
+      </p>
+    </div>
+    <div class="card">
+      <h3>☁️ Installazione & hosting</h3>
+      <p>
+        Installazione su server, sottodominio o cloud,
+        con configurazione completa.
+      </p>
+    </div>
+    <div class="card">
+      <h3>📚 Formazione</h3>
+      <p>
+        Affiancamento per staff e insegnanti
+        nell’uso quotidiano del sistema.
+      </p>
+    </div>
+  </div>
+
+  <div class="cta">
+    <a class="btn btn-primary" href="#contatti">
+      Richiedi una consulenza
+    </a>
+  </div>
+</section>
+
+<section id="donazioni">
+  <h2>Sostieni il progetto</h2>
+  <p>
+    Se questo software ti è utile, puoi sostenere lo sviluppo
+    con una donazione libera.
+  </p>
+
+  <div class="cta">
+    <a class="btn btn-paypal" href="https://paypal.me/TUONOME" target="_blank" rel="noopener">
+      Dona ora con PayPal
+    </a>
+  </div>
+  <p>
+    Preferisci un bonifico o vuoi fattura? Scrivici e riceverai tutte le istruzioni.
+  </p>
+</section>
+
+<section id="contatti">
+  <h2>Contatti</h2>
+  <p>Per consulenze, personalizzazioni o collaborazione scrivi una mail:</p>
+  <p>
+    <a class="anchor-link" href="mailto:hello@shantisadhana.it">hello@shantisadhana.it</a>
+  </p>
+</section>
+
+</main>
+
+<footer>
+  © ShantiSadhana – Software libero per una pratica consapevole
+</footer>
+
+</body>
+</html>
