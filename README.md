@@ -126,6 +126,8 @@ php artisan optimize:clear
 php artisan route:clear
 php artisan serve --host=127.0.0.1 --port=8000
 
+```
+
 🌐 Deploy su hosting (senza Node.js)
 
 Caricare i file PHP (app/, routes/, ecc.)
@@ -137,6 +139,7 @@ Eseguire:
 ```bash
 php artisan config:cache
 php artisan route:cache
+```
 
 ⚙️ Personalizzazioni e consulenze
 🤝 Contributi
@@ -148,7 +151,7 @@ Il progetto cresce grazie alla community.
 
 Questo progetto è rilasciato sotto licenza:
 
-GNU AGPL-3.0
+[GNU AGPL-3.0](LICENSE)
 
 Chiunque utilizzi il software, anche tramite rete (SaaS),
 è tenuto a rendere pubbliche eventuali modifiche al codice sorgente.
@@ -157,16 +160,6 @@ Chiunque utilizzi il software, anche tramite rete (SaaS),
 
 Software libero per una pratica consapevole.
 Tecnologia al servizio delle persone, non il contrario.
-
-
----
-
-### 🔧 Prossimi miglioramenti possibili
-Se vuoi, nel prossimo messaggio posso:
-- adattare il README **esattamente alle entità del database**
-- preparare una **sezione “Demo / Screenshot reali”**
-- creare una **ROADMAP.md tecnica**
-- scrivere un **CONTRIBUTING.md**
 
 ---
 
